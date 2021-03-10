@@ -1,9 +1,14 @@
 Code
 ====
 
-This section has the documentation of each AIS function
+This section has the documentation of each AIS package.
 
-.. toctree::   
-   :maxdepth: 2   
+.. toctree::
+   :maxdepth: 2
+   :hidden:
    
-   code/modules
+
+.. automodule:: AIS
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -36,43 +36,54 @@ class Artificial_Images_Simulator:
         values for the dictionary are
 
         * em_mode: {0, 1}
-            Use the 0 for the Conventional Mode and 1 for the EM Mode
+
+           Use the 0 for the Conventional Mode and 1 for the EM Mode
+
         * em_gain: float
-            Electron Multiplying gain
+
+           Electron Multiplying gain
+
         * preamp: {1, 2}
-            Pre-amplification
+
+           Pre-amplification
+
         * hss: {0.1, 1, 10, 20, 30}
-            Horizontal Shift Speed (readout rate) in MHz
+
+           Horizontal Shift Speed (readout rate) in MHz
+
         * bin: int
-            Number of the binned pixels
+
+           Number of the binned pixels
+
         * t_exp: float
-            Exposure time in seconds
+
+           Exposure time in seconds
 
     ccd_temp: float, optional
         CCD temperature
+
     serial_number: int, optional
         CCD serial number
+
     bias_level: int, optional
         Bias level, in ADU, of the image
+
     image_dir: str, optional
         Directory where the image should be saved
 
-    Attributes
-    ----------
-    lista de variáveis que não posso mudar
 
     Yields
     ------
-    image cube: int
-        An image cube in the FITS format with the star flux distribution
+        image cube: int
+            An image cube in the FITS format with the star flux distribution
 
     Notes
     -----
-    Explica o código; background; passo-a-passo
+        Explica o código; background; passo-a-passo
 
     Examples
     --------
-    Incluir exemplos
+        Incluir exemplos
 
     References
     ----------
