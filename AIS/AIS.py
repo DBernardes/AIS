@@ -10,7 +10,6 @@ flux is added to an image with a background level given by counts distribution
 of an image of the SPARC4 cameras, as a function of its operation mode.
 """
 
-
 import read_noise_calc as RNC
 from photutils.datasets import make_noise_image
 import astropy.io.fits as fits
@@ -18,6 +17,10 @@ import numpy as np
 
 from astropy.table import Table
 from photutils.datasets import make_gaussian_sources_image
+from sys import exit
+
+
+__all__ = ['Artificial_Images_Simulator']
 
 
 class Artificial_Images_Simulator:
@@ -62,7 +65,7 @@ class Artificial_Images_Simulator:
     ccd_temp: float, optional
         CCD temperature
 
-    serial_number: int, optional
+    serial_number: {9914, 9915, 9916 or 9917}, optional
         CCD serial number
 
     bias_level: int, optional
@@ -70,6 +73,20 @@ class Artificial_Images_Simulator:
 
     image_dir: str, optional
         Directory where the image should be saved
+
+
+    Attributes
+    ----------
+    image_name: str
+        Name of the image cube
+    dark_current: float
+        Dark current in e-/s/pix
+    read_noise: float
+        Read noise in e-/pix
+    gain: float
+        CCD pre-amplification gain in e-/ADU
+    hdr: list
+        Header content of the image
 
 
     Yields
@@ -91,7 +108,9 @@ class Artificial_Images_Simulator:
 
     """
 
-    def __init__(self, star_flux, sky_flux,
+    def __init__(self,
+                 star_flux,
+                 sky_flux,
                  gaussian_stddev,
                  ccd_operation_mode,
                  ccd_temp=-70,
@@ -99,40 +118,105 @@ class Artificial_Images_Simulator:
                  bias_level=500,
                  image_dir=''):
         """Initialize the class."""
-        # star flux in photons/s
-        self.star_flux = star_flux
-        # sky flux in photons/s
-        self.sky_flux = sky_flux
-        # standard deviaion of the 2D-Gaussian Distribution in pixels
-        self.gaussian_stddev = gaussian_stddev
-        # operation mode of the CCD.
-        self.ccd_operation_mode = ccd_operation_mode
-        # CCD temperature. It should be between 0 ºC to -70 ºC
-        self.ccd_temp = ccd_temp
-        # Serial number of the CCD. For the SPARC4 cameras, they would be
-        # 9914, 9915, 9916, or 9917.
-        self.serial_number = serial_number
-        # Bias level in analogical-to digital units for the pixels of the
-        # created image
-        self.bias_level = bias_level
-        # Directory where the image should be saved
-        if image_dir != '':
-            if '\\' not in image_dir[-1]:
-                image_dir += '\\'
-        self.image_dir = image_dir
-        # Name of the createde image. It is automatically generated.
-        self.image_name = ''
+        if type(star_flux) not in [int, float]:
+            raise ValueError(f'The star flux must be a number: {star_flux}')
+        elif star_flux > 0:
+            self.star_flux = star_flux
+        else:
+            raise ValueError(
+                f'The star flux must be greater than zero: {star_flux}')
 
-        # Dark current of the CCD.
+        if type(sky_flux) not in [int, float]:
+            raise ValueError(f'The sky flux must be a number: {sky_flux}')
+        elif sky_flux > 0:
+            self.sky_flux = sky_flux
+        else:
+            raise ValueError(
+                f'The sky flux must be greater than zero: {sky_flux}')
+
+        if type(gaussian_stddev) is not int:
+            raise ValueError(
+                f'The gaussian standard deviation must be an integer: {gaussian_stddev}')
+        elif gaussian_stddev > 0:
+            self.gaussian_stddev = gaussian_stddev
+        else:
+            raise ValueError(
+                f'The gaussian standard deviation must be greater than zero: {gaussian_stddev}')
+
+        self._verify_ccd_operation_mode(ccd_operation_mode)
+
+        if type(ccd_temp) not in [int, float]:
+            raise ValueError(
+                f'The CCD temperature must be a number: {ccd_temp}')
+        elif -70 <= ccd_temp and ccd_temp <= 0:
+            self.ccd_temp = ccd_temp
+        else:
+            raise ValueError(
+                f'CCD temperatura out of range [-70 ºC, 0 ºC]: {ccd_temp}')
+
+        if serial_number in [9914, 9915, 9916, 9917]:
+            self.serial_number = serial_number
+        else:
+            raise ValueError(
+                f'There is no camera with the provided serial number: {serial_number}')
+
+        if type(bias_level) is not int:
+            raise ValueError(
+                f'The bias level must be an integer: {bias_level}')
+        elif bias_level >= 0:
+            self.bias_level = bias_level
+        else:
+            raise ValueError(f'The bias level must be positive: {bias_level}')
+
+        if type(image_dir) is not str:
+            raise ValueError(
+                f'The directory path must be a string: {image_dir}')
+        else:
+            if image_dir != '':
+                if '\\' not in image_dir[-1]:
+                    image_dir += '\\'
+            self.image_dir = image_dir
+
+        self.image_name = ''
         self.dark_current = 0
-        # Read noise of the CCD.
         self.read_noise = 0
-        # Gain of the CCD in e-/ADU
         self.gain = 0
-        # Image header
         self.hdr = []
 
-    def write_image_mode(self):
+    def _verify_ccd_operation_mode(self, ccd_operation_mode):
+        """Verify if the provided CCD operation mode is correct."""
+        self.ccd_operation_mode = ccd_operation_mode
+        dic_keywords_list = [
+            'em_mode', 'em_gain', 'preamp', 'hss', 'bin', 't_exp']
+        for key in ccd_operation_mode.keys():
+            if key not in dic_keywords_list:
+                raise ValueError(
+                    f'The name provided is not a CCD parameter: {key}')
+
+        if list(ccd_operation_mode.keys()) != dic_keywords_list:
+            raise ValueError(
+                'There is a missing parameter of the CCD operation mode')
+
+        if ccd_operation_mode['em_mode'] not in [0, 1]:
+            raise ValueError(
+                f'Invalid value for the EM mode: {ccd_operation_mode["em_mode"]}')
+        if ccd_operation_mode['em_gain'] < 2 or ccd_operation_mode['em_gain'] > 300:
+            raise ValueError(
+                f'EM gain out of range [2, 300]: {ccd_operation_mode["em_mode"]}')
+        if ccd_operation_mode['preamp'] not in [1, 2]:
+            raise ValueError(
+                f'Invalid value for the pre-amplification: {ccd_operation_mode["preamp"]}')
+        if ccd_operation_mode['hss'] not in [0.1, 1, 10, 20, 30]:
+            raise ValueError(
+                f'Invalid value for the Readout rate: {ccd_operation_mode["hss"]}')
+        if ccd_operation_mode['bin'] not in [1, 2]:
+            raise ValueError(
+                f'Invalid value for the binning: {ccd_operation_mode["bin"]}')
+        if ccd_operation_mode['t_exp'] < 1e-5:
+            raise ValueError(
+                f'Invalid value for the exposure time: {ccd_operation_mode["t_exp"]}')
+
+    def _write_image_mode(self):
         """Write the CCD operation mode to the attributes of the class."""
         self.em_mode = self.ccd_operation_mode['em_mode']
         self.noise_factor = 1
@@ -145,14 +229,12 @@ class Artificial_Images_Simulator:
         self.bin = self.ccd_operation_mode['bin']
         self.t_exp = self.ccd_operation_mode['t_exp']
 
-        # Calculated the gain, dark current and the read noise of the CCD for
-        # the provided operation mode
-        self.set_gain()
+        self.config_gain()
         self.set_dc()
         self.calc_RN()
 
-    def set_gain(self):
-        """Set the CCD gain based on its operation mode."""
+    def _config_gain(self):
+        """Configure the CCD gain based on its operation mode."""
         em_mode = self.em_mode
         hss = self.hss
         preamp = self.preamp
@@ -191,8 +273,8 @@ class Artificial_Images_Simulator:
                     gain = 0.8
         self.gain = gain
 
-    def calc_dark_current(self):
-        """Calculate the CCD dark current.
+    def _calc_dark_current(self):
+        """Calculate the CCD dark current as a function of its temperature.
 
         The calculation of the DC is based on the model presented in the
         article of the Characterization of the SPARC4 CCDs [#Bernardes_2018]_
@@ -207,7 +289,7 @@ class Artificial_Images_Simulator:
         if self.serial_number == 9917:
             self.dark_current = 5.92*np.exp(0.0005*T**2+0.18*T)
 
-    def calc_RN(self):
+    def _calc_RN(self):
         """Calculate the read noise the CCD.
 
         The calculation is performed by providing the CCD operation mode to
@@ -219,7 +301,7 @@ class Artificial_Images_Simulator:
         RN.calc_read_noise()
         self.read_noise = RN.calc_read_noise()
 
-    def create_image_header(self):
+    def _create_image_header(self):
         """Create the image header.
 
         This functions writes a simple header with the used parameters for
@@ -255,11 +337,10 @@ class Artificial_Images_Simulator:
         hdr['IMAGE'] = ('hats-24_I_transito_001', 'Nome do arquivo')
         self.hdr = hdr
 
-    def write_image_name(self, include_star_flux=False):
+    def _create_image_name(self, include_star_flux=False):
         """Create the image name.
 
-        It will be created the image name based on the provided CCD operation
-        mode
+        The image name will be created based on the provided information
 
         Parameters
         ----------
@@ -281,7 +362,7 @@ class Artificial_Images_Simulator:
             star_flux = '_S' + str(self.star_flux)
             self.image_name += star_flux
 
-    def create_artificial_image(self):
+    def create_image_cube(self):
         """Create the artificial image cube."""
         t_exp = self.t_exp
         em_gain = self.em_gain
@@ -319,8 +400,7 @@ class Artificial_Images_Simulator:
     def create_bias_image(self):
         """Create a bias image.
 
-        Create a bias image with the same operation mode used for the star
-        image
+        It will be used the same operation mode used for the star image
         """
         gain = self.gain
         bias = self.bias_level
