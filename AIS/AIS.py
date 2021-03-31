@@ -14,6 +14,7 @@ import read_noise_calc as RNC
 from photutils.datasets import make_noise_image
 import astropy.io.fits as fits
 import numpy as np
+import openpyxl
 
 from astropy.table import Table
 from photutils.datasets import make_gaussian_sources_image
@@ -75,7 +76,7 @@ class Artificial_Images_Simulator:
         Directory where the image should be saved
 
 
-    Attributes
+    Attribute
     ----------
     image_name: str
         Name of the image cube
@@ -114,7 +115,7 @@ class Artificial_Images_Simulator:
                  gaussian_stddev,
                  ccd_operation_mode,
                  ccd_temp=-70,
-                 serial_number=9916,
+                 serial_number=9914,
                  bias_level=500,
                  image_dir=''):
         """Initialize the class."""
@@ -229,11 +230,38 @@ class Artificial_Images_Simulator:
         self.bin = self.ccd_operation_mode['bin']
         self.t_exp = self.ccd_operation_mode['t_exp']
 
-        self.config_gain()
-        self.set_dc()
-        self.calc_RN()
+        # self.config_gain()
+        # self.set_dc()
+        # self.calc_RN()
 
-    def _config_gain(self):
+    def _configure_gain(self):
+        """Configure the CCD gain based on its operation mode."""
+        em_mode = self.em_mode
+        hss = self.hss
+        preamp = self.preamp
+        tab_index = 0
+        if hss == 0.1:
+            tab_index = 23
+        elif hss == 1:
+            tab_index = 19
+            if em_mode == 1:
+                tab_index = 15
+        elif hss == 10:
+            tab_index = 11
+        elif hss == 20:
+            tab_index = 7
+        elif hss == 30:
+            tab_index = 3
+        else:
+            raise ValueError('Unexpected value for the readout rate: {hss}')
+        if preamp == 2:
+            tab_index += 2
+
+        spreadsheet = openpyxl.load_workbook(
+            r'spreadsheet\Read_noise_and_gain_values.xlsx').active
+        self.gain = spreadsheet.cell(tab_index, 5).value
+
+    def _config_gain_2(self):
         """Configure the CCD gain based on its operation mode."""
         em_mode = self.em_mode
         hss = self.hss
@@ -289,7 +317,7 @@ class Artificial_Images_Simulator:
         if self.serial_number == 9917:
             self.dark_current = 5.92*np.exp(0.0005*T**2+0.18*T)
 
-    def _calc_RN(self):
+    def _calc_read_noise(self):
         """Calculate the read noise the CCD.
 
         The calculation is performed by providing the CCD operation mode to
@@ -337,7 +365,7 @@ class Artificial_Images_Simulator:
         hdr['IMAGE'] = ('hats-24_I_transito_001', 'Nome do arquivo')
         self.hdr = hdr
 
-    def _create_image_name(self, include_star_flux=False):
+    def _configure_image_name(self, include_star_flux=False):
         """Create the image name.
 
         The image name will be created based on the provided information
@@ -349,10 +377,10 @@ class Artificial_Images_Simulator:
             image name
         """
         em_gain = '_G' + str(self.em_gain)
-        em_mode = 'CONV_'
+        em_mode = 'CONV'
         if self.em_mode == 1:
-            em_mode = 'EM_'
-        hss = str(self.hss) + 'MHz'
+            em_mode = 'EM'
+        hss = '_HSS' + str(self.hss)
         preamp = '_PA' + str(self.preamp)
         binn = '_B' + str(self.bin)
         t_exp = '_TEXP' + str(self.t_exp)
