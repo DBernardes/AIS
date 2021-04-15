@@ -394,5 +394,91 @@ def test_create_image_name(
            'hss': hss, 'bin': binn, 't_exp': t_exp}
     ais.ccd_operation_mode = dic
     ais._write_image_mode()
-    ais._create_image_name(include_star_flux=include_star_flux)
+    ais._configure_image_name(include_star_flux=include_star_flux)
     assert ais.image_name == image_name
+
+# -----------------------------test _configure_gain------------------------
+
+
+@pytest.mark.parametrize(
+    'em_mode, em_gain, hss, preamp, binn, ccd_gain',
+    [(0, 2, 0.1, 1, 1, 3.35),
+     (0, 2, 0.1, 2, 1, 0.80),
+     (0, 2, 1, 1, 1, 3.37),
+     (0, 2, 1, 2, 1, 0.80),
+     (1, 2, 1, 1, 1, 15.90),
+     (1, 2, 1, 2, 1, 3.88),
+     (1, 2, 10, 1, 1, 16.00),
+     (1, 2, 10, 2, 1, 3.96),
+     (1, 2, 20, 1, 1, 16.40),
+     (1, 2, 20, 2, 1, 4.39),
+     (1, 2, 30, 1, 1, 17.20),
+     (1, 2, 30, 2, 1, 5.27),
+     ]
+)
+def test_configure_gain(ais, em_mode, em_gain, hss, preamp, binn, ccd_gain):
+    ais.em_mode = em_mode
+    ais.em_gain = em_gain
+    ais.hss = hss
+    ais.preamp = preamp
+    ais.preamp = preamp
+    ais.bin = binn
+    ais._configure_gain()
+    assert ais.gain == ccd_gain
+
+
+# -----------------------------test _create_image_header---------------------
+
+def test_NAXIS1(ais):
+    ais._write_image_mode()
+    ais._create_image_header()
+    assert ais.hdr['NAXIS1'] == 200
+
+
+def test_NAXIS2(ais):
+    ais._write_image_mode()
+    ais._create_image_header()
+    assert ais.hdr['NAXIS2'] == 200
+
+
+def test_HBIN(ais):
+    ais._write_image_mode()
+    ais._create_image_header()
+    assert ais.hdr['HBIN'] == 1
+
+
+def test_VBIN1(ais):
+    ais._write_image_mode()
+    ais._create_image_header()
+    assert ais.hdr['VBIN'] == 1
+
+
+def test_EXPOSURE(ais):
+    ais._write_image_mode()
+    ais._create_image_header()
+    assert ais.hdr['EXPOSURE'] == 1
+
+
+def test_TEMP(ais):
+    ais._write_image_mode()
+    ais._create_image_header()
+    assert ais.hdr['READTIME'] == '1.0E-006'
+
+
+def test_GAIN(ais):
+    ais._write_image_mode()
+    ais._configure_gain()
+    ais._create_image_header()
+    assert ais.hdr['GAIN'] == 3.37
+
+
+def test_OUTPTAMP(ais):
+    ais._write_image_mode()
+    ais._create_image_header()
+    assert ais.hdr['OUTPTAMP'] == 'Conventional'
+
+
+def test_SERNO(ais):
+    ais._write_image_mode()
+    ais._create_image_header()
+    assert ais.hdr['SERNO'] == 9914

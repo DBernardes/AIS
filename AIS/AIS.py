@@ -230,10 +230,6 @@ class Artificial_Images_Simulator:
         self.bin = self.ccd_operation_mode['bin']
         self.t_exp = self.ccd_operation_mode['t_exp']
 
-        # self.config_gain()
-        # self.set_dc()
-        # self.calc_RN()
-
     def _configure_gain(self):
         """Configure the CCD gain based on its operation mode."""
         em_mode = self.em_mode
@@ -260,46 +256,6 @@ class Artificial_Images_Simulator:
         spreadsheet = openpyxl.load_workbook(
             r'spreadsheet\Read_noise_and_gain_values.xlsx').active
         self.gain = spreadsheet.cell(tab_index, 5).value
-
-    def _config_gain_2(self):
-        """Configure the CCD gain based on its operation mode."""
-        em_mode = self.em_mode
-        hss = self.hss
-        preamp = self.preamp
-        gain = 0
-        if em_mode == 1:
-            if hss == 30:
-                if preamp == 1:
-                    gain = 17.2
-                if preamp == 2:
-                    gain = 5.27
-            if hss == 20:
-                if preamp == 1:
-                    gain = 16.4
-                if preamp == 2:
-                    gain = 4.39
-            if hss == 10:
-                if preamp == 1:
-                    gain = 16.0
-                if preamp == 2:
-                    gain = 3.96
-            if hss == 1:
-                if preamp == 1:
-                    gain = 15.9
-                if preamp == 2:
-                    gain = 3.88
-        else:
-            if hss == 1:
-                if preamp == 1:
-                    gain = 3.37
-                if preamp == 2:
-                    gain = 0.8
-            if hss == 0.1:
-                if preamp == 1:
-                    gain = 3.35
-                if preamp == 2:
-                    gain = 0.8
-        self.gain = gain
 
     def _calc_dark_current(self):
         """Calculate the CCD dark current as a function of its temperature.
