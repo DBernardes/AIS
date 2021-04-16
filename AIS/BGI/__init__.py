@@ -1,4 +1,4 @@
-"""Back Ground Image Generator.
+"""Background Image Generator Package.
 
 
 This package calculates a back ground image that simulates and bias image of
@@ -6,7 +6,7 @@ the SPARC4 cameras
 """
 
 
-from .BGI import Back_Ground_Image
+from .BGI import Background_Image
 from FC import Flux_Calculation
 from Telescope_SR import Telescope_Spectral_Response
 from Atmosphere_SR import Atmosphere_Spectral_Response
