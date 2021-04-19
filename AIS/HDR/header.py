@@ -23,7 +23,7 @@ class Header:
     None.
     """
 
-    def __init__(self, ccd_operation_mode):
+    def __init__(self, ccd_operation_mode, ccd_gain, serial_number):
         """Initialize the Header Class."""
         self.em_mode = ccd_operation_mode['em_mode']
         self.noise_factor = 1
@@ -35,6 +35,9 @@ class Header:
         self.hss = ccd_operation_mode['hss']
         self.bin = ccd_operation_mode['bin']
         self.t_exp = ccd_operation_mode['t_exp']
+        self.ccd_temp = ccd_operation_mode['ccd_temp']
+        self.ccd_gain = ccd_gain
+        self.serial_number = serial_number
 
     def _create_header(self):
         """Create the image header.
@@ -58,7 +61,7 @@ class Header:
         hdr['TEMP'] = (self.ccd_temp, 'Temperature')
         hdr['READTIME'] = (str(1/self.hss)+'E-006', 'Pixel readout time ')
         hdr['VSHIFT'] = ('4.33E-06', 'Vertical Shift Speed')
-        hdr['GAIN'] = (self.gain, 'Preamp Gain (e-/ADU)')
+        hdr['GAIN'] = (self.ccd_gain, 'Preamp Gain (e-/ADU)')
         em_mode = 'Conventional'
         if self.em_mode == 1:
             em_mode = 'Electron Multiplying'

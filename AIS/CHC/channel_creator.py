@@ -22,6 +22,7 @@ class Abstract_Channel_Creator:
     """Abstract Channel Creator Class."""
 
     _channel_ID = 0
+    _serial_number = 0
 
     def __init__(self):
         pass
@@ -33,6 +34,17 @@ class Abstract_Channel_Creator:
         """Return the Channel ID."""
         return f"Channel {self._channel_ID}"
 
+    def get_serial_number(self):
+        """Return CCD serial number.
+
+        Returns
+        -------
+        _serial_number: 9914, 9915, 9916, 9917
+            Serial number of the CCD
+
+        """
+        return self._serial_number
+
     def calc_star_flux(self):
         """Calcute the star flux in photons/s."""
         pass
@@ -42,6 +54,7 @@ class Concrete_Channel_1(Abstract_Channel_Creator):
     """Concreat Channel Creator Class 1."""
 
     _channel_ID = 1
+    _serial_number = 9914
 
     def _factory_method(self):
         pass
@@ -51,6 +64,7 @@ class Concrete_Channel_2(Abstract_Channel_Creator):
     """Concreat Channel Creator Class 2."""
 
     _channel_ID = 2
+    _serial_number = 9915
 
     def _factory_method(self):
         pass
@@ -60,6 +74,7 @@ class Concrete_Channel_3(Abstract_Channel_Creator):
     """Concreat Channel Creator Class 3."""
 
     _channel_ID = 3
+    _serial_number = 9916
 
     def _factory_method(self):
         pass
@@ -69,6 +84,7 @@ class Concrete_Channel_4(Abstract_Channel_Creator):
     """Concreat Channel Creator Class 4."""
 
     _channel_ID = 4
+    _serial_number = 9917
 
     def _factory_method(self):
         pass

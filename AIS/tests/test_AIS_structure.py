@@ -40,12 +40,12 @@ def chc1():
 
 @pytest.fixture
 def psf(chc1):
-    return Point_Spread_Function(chc1)
+    return Point_Spread_Function(chc1, 3)
 
 
 @pytest.fixture
 def bgi(chc1):
-    return Background_Image(chc1)
+    return Background_Image(chc1, 3)
 
 
 # -------------------- Testing the AIS structure -----------------------------

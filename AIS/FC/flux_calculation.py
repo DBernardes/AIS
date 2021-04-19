@@ -9,7 +9,8 @@ magnitude
 
 class Flux_Calculation:
 
-    def __init__(self):
+    def __init__(self, ccd_gain):
+        self.ccd_gain = ccd_gain
         pass
 
     def calc_star_flux(self):

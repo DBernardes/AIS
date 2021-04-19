@@ -13,7 +13,7 @@ of an image of the SPARC4 cameras, as a function of its operation mode.
 # import read_noise_calc as RNC
 # from photutils.datasets import make_noise_image
 # import numpy as np
-# import openpyxl
+import openpyxl
 
 # from astropy.table import Table
 # from photutils.datasets import make_gaussian_sources_image
@@ -127,30 +127,28 @@ class Artificial_Images_Simulator:
         """Initialize the class."""
         if type(star_flux) not in [int, float]:
             raise ValueError(f'The star flux must be a number: {star_flux}')
-        elif star_flux > 0:
-            self.star_flux = star_flux
-        else:
+        elif star_flux <= 0:
             raise ValueError(
                 f'The star flux must be greater than zero: {star_flux}')
+        else:
+            self.star_flux = star_flux
 
         if type(sky_flux) not in [int, float]:
             raise ValueError(f'The sky flux must be a number: {sky_flux}')
-        elif sky_flux > 0:
-            self.sky_flux = sky_flux
-        else:
+        elif sky_flux <= 0:
             raise ValueError(
                 f'The sky flux must be greater than zero: {sky_flux}')
+        else:
+            self.sky_flux = sky_flux
 
         if type(gaussian_stddev) is not int:
             raise ValueError(
                 f'The gaussian standard deviation must be an integer: {gaussian_stddev}')
-        elif gaussian_stddev > 0:
-            self.gaussian_stddev = gaussian_stddev
-        else:
+        elif gaussian_stddev <= 0:
             raise ValueError(
                 f'The gaussian standard deviation must be greater than zero: {gaussian_stddev}')
-
-        self._verify_ccd_operation_mode(ccd_operation_mode)
+        else:
+            self.gaussian_stddev = gaussian_stddev
 
         if channel in [1, 2, 3, 4]:
             self.channel = channel
@@ -161,10 +159,10 @@ class Artificial_Images_Simulator:
         if type(bias_level) is not int:
             raise ValueError(
                 f'The bias level must be an integer: {bias_level}')
-        elif bias_level >= 0:
-            self.bias_level = bias_level
-        else:
+        elif bias_level <= 0:
             raise ValueError(f'The bias level must be positive: {bias_level}')
+        else:
+            self.bias_level = bias_level
 
         if type(image_dir) is not str:
             raise ValueError(
@@ -174,6 +172,9 @@ class Artificial_Images_Simulator:
                 if '\\' not in image_dir[-1]:
                     image_dir += '\\'
             self.image_dir = image_dir
+
+        self._verify_ccd_operation_mode(ccd_operation_mode)
+        self._configure_gain(ccd_operation_mode)
 
         CHC = 0
         if channel == 1:
@@ -185,14 +186,10 @@ class Artificial_Images_Simulator:
         elif channel == 4:
             CHC = Concrete_Channel_4()
         self.CHC = CHC
-        self.PSF = Point_Spread_Function(CHC)
-        self.BGI = Background_Image(CHC)
-        self.HDR = Header(ccd_operation_mode)
-        self.image_name = ''
-        self.dark_current = 0
-        self.read_noise = 0
-        self.gain = 0
-        self.hdr = []
+        self.PSF = Point_Spread_Function(CHC, self.ccd_gain)
+        self.BGI = Background_Image(CHC, self.ccd_gain)
+        self.HDR = Header(ccd_operation_mode, self.ccd_gain,
+                          CHC.get_serial_number())
 
     def _verify_ccd_operation_mode(self, ccd_operation_mode):
         """Verify if the provided CCD operation mode is correct."""
@@ -264,6 +261,33 @@ class Artificial_Images_Simulator:
         if include_star_flux:
             star_flux = '_S' + str(self.star_flux)
             self.image_name += star_flux
+
+    def _configure_gain(self, ccd_operation_mode):
+        """Configure the CCD gain based on its operation mode."""
+        em_mode = ccd_operation_mode['em_mode']
+        hss = ccd_operation_mode['hss']
+        preamp = ccd_operation_mode['preamp']
+        tab_index = 0
+        if hss == 0.1:
+            tab_index = 23
+        elif hss == 1:
+            tab_index = 19
+            if em_mode == 1:
+                tab_index = 15
+        elif hss == 10:
+            tab_index = 11
+        elif hss == 20:
+            tab_index = 7
+        elif hss == 30:
+            tab_index = 3
+        else:
+            raise ValueError('Unexpected value for the readout rate: {hss}')
+        if preamp == 2:
+            tab_index += 2
+
+        spreadsheet = openpyxl.load_workbook(
+            r'spreadsheet\Read_noise_and_gain_values.xlsx').active
+        self.ccd_gain = spreadsheet.cell(tab_index, 5).value
 
     def create_image(self):
         """Create the star image.

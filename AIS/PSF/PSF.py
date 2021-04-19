@@ -15,8 +15,9 @@ from CHC import Abstract_Channel_Creator
 class Point_Spread_Function:
     """Point Spread Function Class."""
 
-    def __init__(self, Abstract_Channel_Creator):
+    def __init__(self, Abstract_Channel_Creator, ccd_gain):
         self.CHC = Abstract_Channel_Creator
         self.FC = Flux_Calculation
         self.TSR = Telescope_Spectral_Response
         self.ASR = Atmosphere_Spectral_Response
+        self.ccd_gain = ccd_gain

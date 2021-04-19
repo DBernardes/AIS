@@ -324,3 +324,28 @@ def test_create_image_name(
     ais.ccd_operation_mode = dic
     ais._configure_image_name(include_star_flux=include_star_flux)
     assert ais.image_name == image_name
+
+# -----------------------------test _configure_gain------------------------
+
+
+@pytest.mark.parametrize(
+    'em_mode, em_gain, hss, preamp, binn, ccd_gain',
+    [(0, 2, 0.1, 1, 1, 3.35),
+     (0, 2, 0.1, 2, 1, 0.80),
+     (0, 2, 1, 1, 1, 3.37),
+     (0, 2, 1, 2, 1, 0.80),
+     (1, 2, 1, 1, 1, 15.90),
+     (1, 2, 1, 2, 1, 3.88),
+     (1, 2, 10, 1, 1, 16.00),
+     (1, 2, 10, 2, 1, 3.96),
+     (1, 2, 20, 1, 1, 16.40),
+     (1, 2, 20, 2, 1, 4.39),
+     (1, 2, 30, 1, 1, 17.20),
+     (1, 2, 30, 2, 1, 5.27),
+     ]
+)
+def test_configure_gain(ais, em_mode, em_gain, hss, preamp, binn, ccd_gain):
+    dic = {'em_mode': em_mode, 'em_gain': em_gain, 'preamp': preamp,
+           'hss': hss, 'bin': binn, 't_exp': 1, 'ccd_temp': -70}
+    ais._configure_gain(dic)
+    assert ais.ccd_gain == ccd_gain
