@@ -8,13 +8,18 @@ magnitude
 
 
 class Flux_Calculation:
+    """Flux Calculation class.
 
-    def __init__(self, ccd_gain):
-        self.ccd_gain = ccd_gain
+    This class calculates the star and the sky flux based on the object
+    magnitude.
+    """
+
+    def __init__(self):
+
         pass
 
     def calc_star_flux(self):
-        pass
+        return 100
 
     def calc_sky_flux(self):
-        pass
+        return 100

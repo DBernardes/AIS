@@ -119,7 +119,7 @@ class Artificial_Images_Simulator:
     def __init__(self,
                  star_flux,
                  sky_flux,
-                 gaussian_stddev,
+                 gaussian_std,
                  ccd_operation_mode,
                  channel=1,
                  bias_level=500,
@@ -141,14 +141,14 @@ class Artificial_Images_Simulator:
         else:
             self.sky_flux = sky_flux
 
-        if type(gaussian_stddev) is not int:
+        if type(gaussian_std) is not int:
             raise ValueError(
-                f'The gaussian standard deviation must be an integer: {gaussian_stddev}')
-        elif gaussian_stddev <= 0:
+                f'The gaussian standard deviation must be an integer: {gaussian_std}')
+        elif gaussian_std <= 0:
             raise ValueError(
-                f'The gaussian standard deviation must be greater than zero: {gaussian_stddev}')
+                f'The gaussian standard deviation must be greater than zero: {gaussian_std}')
         else:
-            self.gaussian_stddev = gaussian_stddev
+            self.gaussian_std = gaussian_std
 
         if channel in [1, 2, 3, 4]:
             self.channel = channel
@@ -186,16 +186,25 @@ class Artificial_Images_Simulator:
         elif channel == 4:
             CHC = Concrete_Channel_4()
         self.CHC = CHC
-        self.PSF = Point_Spread_Function(CHC, self.ccd_gain)
-        self.BGI = Background_Image(CHC, self.ccd_gain)
+        self.PSF = Point_Spread_Function(
+            CHC, ccd_operation_mode, self.ccd_gain, self.gaussian_std)
+        self.BGI = Background_Image(CHC, ccd_operation_mode, self.ccd_gain)
         self.HDR = Header(ccd_operation_mode, self.ccd_gain,
                           CHC.get_serial_number())
 
     def _verify_ccd_operation_mode(self, ccd_operation_mode):
         """Verify if the provided CCD operation mode is correct."""
-        self.ccd_operation_mode = ccd_operation_mode
+        em_mode = ccd_operation_mode['em_mode']
+        em_gain = ccd_operation_mode['em_gain']
+        hss = ccd_operation_mode['hss']
+        preamp = ccd_operation_mode['preamp']
+        binn = ccd_operation_mode['binn']
+        t_exp = ccd_operation_mode['t_exp']
+        ccd_temp = ccd_operation_mode['ccd_temp']
+
         dic_keywords_list = [
-            'em_mode', 'em_gain', 'preamp', 'hss', 'bin', 't_exp', 'ccd_temp']
+            'em_mode', 'em_gain', 'preamp', 'hss', 'binn', 't_exp', 'ccd_temp']
+
         for key in ccd_operation_mode.keys():
             if key not in dic_keywords_list:
                 raise ValueError(
@@ -205,32 +214,46 @@ class Artificial_Images_Simulator:
             raise ValueError(
                 'There is a missing parameter of the CCD operation mode')
 
-        if ccd_operation_mode['em_mode'] not in [0, 1]:
+        if em_mode not in [0, 1]:
             raise ValueError(
-                f'Invalid value for the EM mode: {ccd_operation_mode["em_mode"]}')
-        if ccd_operation_mode['em_mode'] == 0:
-            if ccd_operation_mode['em_gain'] != 1:
+                f'Invalid value for the EM mode: {em_mode}')
+        if em_mode == 0:
+            if em_gain != 1:
                 raise ValueError(
-                    f'For the Conventional Mode, the EM Gain must be 1: {ccd_operation_mode["em_gain"]}')
+                    f'For the Conventional Mode, the EM Gain must be 1: {em_gain}')
         else:
-            if ccd_operation_mode['em_gain'] < 2 or ccd_operation_mode['em_gain'] > 300:
+            if em_gain not in [float, int]:
                 raise ValueError(
-                    f'EM gain out of range [2, 300]: {ccd_operation_mode["em_mode"]}')
-        if ccd_operation_mode['preamp'] not in [1, 2]:
+                    f'The EM gain must be a number: {em_gain}')
+            elif em_gain < 2 or em_gain > 300:
+                raise ValueError(
+                    f'EM gain out of range [2, 300]: {em_gain}')
+
+        if preamp not in [1, 2]:
             raise ValueError(
-                f'Invalid value for the pre-amplification: {ccd_operation_mode["preamp"]}')
-        if ccd_operation_mode['hss'] not in [0.1, 1, 10, 20, 30]:
+                f'Invalid value for the pre-amplification: {preamp}')
+
+        if hss not in [0.1, 1, 10, 20, 30]:
             raise ValueError(
-                f'Invalid value for the Readout rate: {ccd_operation_mode["hss"]}')
-        if ccd_operation_mode['bin'] not in [1, 2]:
+                f'Invalid value for the Readout rate: {hss}')
+
+        if binn not in [1, 2]:
             raise ValueError(
-                f'Invalid value for the binning: {ccd_operation_mode["bin"]}')
-        if ccd_operation_mode['t_exp'] < 1e-5:
+                f'Invalid value for the binning: {bin}')
+
+        if type(t_exp) not in [float, int]:
             raise ValueError(
-                f'Invalid value for the exposure time: {ccd_operation_mode["t_exp"]}')
-        if ccd_operation_mode['ccd_temp'] < -80 or ccd_operation_mode['ccd_temp'] > 20:
+                f'The exposure time must be a number: {t_exp}')
+        elif ccd_operation_mode['t_exp'] < 1e-5:
             raise ValueError(
-                f'CCD temperature out of range [-80, 20]: {ccd_operation_mode["ccd_temp"]}')
+                f'Invalid value for the exposure time: {t_exp}')
+
+        if type(ccd_temp) not in [float, int]:
+            raise ValueError(
+                f'The CCD temperature must be a number: {ccd_temp}')
+        if ccd_temp < -80 or ccd_temp > 20:
+            raise ValueError(
+                f'CCD temperature out of range [-80, 20]: {ccd_temp}')
 
     def get_channel_ID(self):
         """Return the ID for the respective SPARC4 channel."""
@@ -254,7 +277,7 @@ class Artificial_Images_Simulator:
             em_mode = 'EM'
         hss = '_HSS' + str(dic['hss'])
         preamp = '_PA' + str(dic['preamp'])
-        binn = '_B' + str(dic['bin'])
+        binn = '_B' + str(dic['binn'])
         t_exp = '_TEXP' + str(dic['t_exp'])
         self.image_name = em_mode + hss + preamp + binn + t_exp + em_gain
 

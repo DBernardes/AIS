@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""HDR class tests.
+"""Header class tests.
 
 This script tests the operation of the Header Class. 
 
@@ -13,7 +13,7 @@ from HDR import Header
 import pytest
 
 dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
-       'hss': 1, 'bin': 1, 't_exp': 1, 'ccd_temp': -70}
+       'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
 
 
 @pytest.fixture
@@ -34,7 +34,7 @@ def test_noise_factor_1(hdr):
 
 def test_noise_factor_2():
     dic = {'em_mode': 1, 'em_gain': 2, 'preamp': 1,
-           'hss': 1, 'bin': 1, 't_exp': 1, 'ccd_temp': -70}
+           'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
     hdr = Header(dic, 3, 9914)
     assert hdr.noise_factor == 1.41
 
@@ -58,7 +58,7 @@ def test_hss(hdr):
 
 
 def test_bin(hdr):
-    assert hdr.bin == 1
+    assert hdr.binn == 1
 
 
 def test_t_exp(hdr):

@@ -22,14 +22,14 @@ import pytest
 
 
 dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
-       'hss': 1, 'bin': 1, 't_exp': 1, 'ccd_temp': -70}
+       'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
 
 
 @pytest.fixture
 def ais():
     return Artificial_Images_Simulator(star_flux=100.0,
                                        sky_flux=10.0,
-                                       gaussian_stddev=3,
+                                       gaussian_std=3,
                                        ccd_operation_mode=dic)
 
 
@@ -40,12 +40,12 @@ def chc1():
 
 @pytest.fixture
 def psf(chc1):
-    return Point_Spread_Function(chc1, 3)
+    return Point_Spread_Function(chc1, dic, 3, 3)
 
 
 @pytest.fixture
 def bgi(chc1):
-    return Background_Image(chc1, 3)
+    return Background_Image(chc1, dic, 3)
 
 
 # -------------------- Testing the AIS structure -----------------------------

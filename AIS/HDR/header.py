@@ -33,7 +33,7 @@ class Header:
             self.em_gain = ccd_operation_mode['em_gain']
         self.preamp = ccd_operation_mode['preamp']
         self.hss = ccd_operation_mode['hss']
-        self.bin = ccd_operation_mode['bin']
+        self.binn = ccd_operation_mode['binn']
         self.t_exp = ccd_operation_mode['t_exp']
         self.ccd_temp = ccd_operation_mode['ccd_temp']
         self.ccd_gain = ccd_gain
@@ -54,8 +54,8 @@ class Header:
         hdr['ACQMODE'] = ('Single  ', 'Acquisition Mode')
         hdr['READMODE'] = ('Image   ', 'Readout Mode')
         hdr['IMGRECT'] = ('1, 200,200, 1', 'Image Format')
-        hdr['HBIN'] = (self.bin, 'Horizontal Binning')
-        hdr['VBIN'] = (self.bin, 'Vertical Binning')
+        hdr['HBIN'] = (self.binn, 'Horizontal Binning')
+        hdr['VBIN'] = (self.binn, 'Vertical Binning')
         hdr['TRIGGER'] = ('Internal', 'Trigger Mode')
         hdr['EXPOSURE'] = (self.t_exp, 'Total Exposure Time')
         hdr['TEMP'] = (self.ccd_temp, 'Temperature')

@@ -10,7 +10,7 @@ class will call the correct concrete channel creator for the respective desired
 image.
 """
 
-
+import numpy as np
 from S4_SR import (Abstract_SPARC4_Spectral_Response,
                    Concrete_SPARC4_Spectral_Response_1,
                    Concrete_SPARC4_Spectral_Response_2,
@@ -24,8 +24,8 @@ class Abstract_Channel_Creator:
     _channel_ID = 0
     _serial_number = 0
 
-    def __init__(self):
-        pass
+    def __init__(self, ccd_temp):
+        self.ccd_temp = ccd_temp
 
     def _factory_method(self):
         pass
@@ -45,9 +45,12 @@ class Abstract_Channel_Creator:
         """
         return self._serial_number
 
-    def calc_star_flux(self):
-        """Calcute the star flux in photons/s."""
-        pass
+    def calc_dark_current(self):
+        return 0
+
+    # def calc_star_flux(self):
+    #     """Calcute the star flux in photons/s."""
+    #     pass
 
 
 class Concrete_Channel_1(Abstract_Channel_Creator):
@@ -59,6 +62,11 @@ class Concrete_Channel_1(Abstract_Channel_Creator):
     def _factory_method(self):
         pass
 
+    def calc_dark_current(self):
+        T = self.ccd_temp
+        self.dark_current = 24.66*np.exp(0.0015*T**2+0.29*T)
+        return self.dark_current
+
 
 class Concrete_Channel_2(Abstract_Channel_Creator):
     """Concreat Channel Creator Class 2."""
@@ -68,6 +76,11 @@ class Concrete_Channel_2(Abstract_Channel_Creator):
 
     def _factory_method(self):
         pass
+
+    def calc_dark_current(self):
+        T = self.ccd_temp
+        self.dark_current = 35.26*np.exp(0.0019*T**2+0.31*T)
+        return self.dark_current
 
 
 class Concrete_Channel_3(Abstract_Channel_Creator):
@@ -79,6 +92,11 @@ class Concrete_Channel_3(Abstract_Channel_Creator):
     def _factory_method(self):
         pass
 
+    def calc_dark_current(self):
+        T = self.ccd_temp
+        self.dark_current = 9.67*np.exp(0.0012*T**2+0.25*T)
+        return self.dark_current
+
 
 class Concrete_Channel_4(Abstract_Channel_Creator):
     """Concreat Channel Creator Class 4."""
@@ -88,3 +106,8 @@ class Concrete_Channel_4(Abstract_Channel_Creator):
 
     def _factory_method(self):
         pass
+
+    def calc_dark_current(self):
+        T = self.ccd_temp
+        self.dark_current = 5.92*np.exp(0.0005*T**2+0.18*T)
+        return self.dark_current
