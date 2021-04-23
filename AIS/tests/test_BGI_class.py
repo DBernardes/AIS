@@ -14,7 +14,8 @@ from CHC import Concrete_Channel_1
 import pytest
 import numpy as np
 
-dic = {'em_gain': 1, 'binn': 1, 't_exp': 1, 'preamp': 1, 'hss': 1}
+dic = {'em_mode': 0, 'em_gain': 1, 'binn': 1,
+       't_exp': 1, 'preamp': 1, 'hss': 1}
 
 
 @pytest.fixture
@@ -75,18 +76,28 @@ def test_ccd_gain(bgi):
 
 # ----------------------- Calculate sky flux -----------------------------
 
-def test_calc_sky_flux(bgi):
+def test_calculate_sky_flux(bgi):
     bgi._calculate_sky_flux()
     assert bgi.sky_flux == 100
 
 # ----------------------- Calculate dark current  -------------------------
 
 
-def test_create_background_image(bgi):
+def test_calculate_dark_current(bgi):
+    bgi._calculate_dark_current()
     assert round(bgi.dark_current, 7) == 5.86e-5
 
 
+# -------------------------Calculate Read Noise -------------------------
+
+def test_calculate_read_noise(bgi):
+    bgi._calculate_read_noise(dic)
+    assert bgi.read_noise == 6.67
+
 # ----------------------- Calculate Background Image -------------------------
+
+
+'''Como testar ?'''
 
 # def test_create_background_image(bgi):
 #     assert bgi.create_background_image() == []

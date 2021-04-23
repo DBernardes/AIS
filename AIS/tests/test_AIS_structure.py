@@ -10,7 +10,7 @@ Created on Fri Apr 16 09:10:51 2021
 """
 
 
-from AIS import Artificial_Images_Simulator
+from AIS import Artificial_Image_Simulator
 from PSF import Point_Spread_Function
 from BGI import Background_Image
 from HDR import Header
@@ -27,15 +27,16 @@ dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
 
 @pytest.fixture
 def ais():
-    return Artificial_Images_Simulator(star_flux=100.0,
-                                       sky_flux=10.0,
-                                       gaussian_std=3,
-                                       ccd_operation_mode=dic)
+    return Artificial_Image_Simulator(star_flux=100.0,
+                                      sky_flux=10.0,
+                                      gaussian_std=3,
+                                      ccd_operation_mode=dic,
+                                      channel=1)
 
 
 @pytest.fixture
 def chc1():
-    return Concrete_Channel_1()
+    return Concrete_Channel_1(ccd_temp=-70)
 
 
 @pytest.fixture

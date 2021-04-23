@@ -10,15 +10,9 @@ flux is added to an image with a background level given by counts distribution
 of an image of the SPARC4 cameras, as a function of its operation mode.
 """
 
-# import read_noise_calc as RNC
-# from photutils.datasets import make_noise_image
-# import numpy as np
+
 import openpyxl
-
-# from astropy.table import Table
-# from photutils.datasets import make_gaussian_sources_image
-# from sys import exit
-
+import astropy.io.fits as fits
 from PSF import Point_Spread_Function
 from BGI import Background_Image
 from HDR import Header
@@ -28,10 +22,10 @@ from CHC import (Concrete_Channel_1,
                  Concrete_Channel_4)
 
 
-__all__ = ['Artificial_Images_Simulator']
+__all__ = ['Artificial_Image_Simulator']
 
 
-class Artificial_Images_Simulator:
+class Artificial_Image_Simulator:
     """Create an image cube with the star flux distribution.
 
     Parameters
@@ -121,7 +115,7 @@ class Artificial_Images_Simulator:
                  sky_flux,
                  gaussian_std,
                  ccd_operation_mode,
-                 channel=1,
+                 channel,
                  bias_level=500,
                  image_dir=''):
         """Initialize the class."""
@@ -175,16 +169,17 @@ class Artificial_Images_Simulator:
 
         self._verify_ccd_operation_mode(ccd_operation_mode)
         self._configure_gain(ccd_operation_mode)
+        self._configure_image_name(ccd_operation_mode)
 
         CHC = 0
         if channel == 1:
-            CHC = Concrete_Channel_1()
+            CHC = Concrete_Channel_1(ccd_operation_mode['ccd_temp'])
         elif channel == 2:
-            CHC = Concrete_Channel_2()
+            CHC = Concrete_Channel_2(ccd_operation_mode['ccd_temp'])
         elif channel == 3:
-            CHC = Concrete_Channel_3()
+            CHC = Concrete_Channel_3(ccd_operation_mode['ccd_temp'])
         elif channel == 4:
-            CHC = Concrete_Channel_4()
+            CHC = Concrete_Channel_4(ccd_operation_mode['ccd_temp'])
         self.CHC = CHC
         self.PSF = Point_Spread_Function(
             CHC, ccd_operation_mode, self.ccd_gain, self.gaussian_std)
@@ -210,9 +205,9 @@ class Artificial_Images_Simulator:
                 raise ValueError(
                     f'The name provided is not a CCD parameter: {key}')
 
-        if list(ccd_operation_mode.keys()) != dic_keywords_list:
-            raise ValueError(
-                'There is a missing parameter of the CCD operation mode')
+        # if list(ccd_operation_mode.keys()) != dic_keywords_list:
+        #     raise ValueError(
+        #         'There is a missing parameter of the CCD operation mode')
 
         if em_mode not in [0, 1]:
             raise ValueError(
@@ -259,7 +254,8 @@ class Artificial_Images_Simulator:
         """Return the ID for the respective SPARC4 channel."""
         return self.CHC.get_channel_ID()
 
-    def _configure_image_name(self, include_star_flux=False):
+    def _configure_image_name(self, ccd_operation_mode,
+                              include_star_flux=False):
         """Create the image name.
 
         The image name will be created based on the provided information
@@ -270,7 +266,7 @@ class Artificial_Images_Simulator:
             Indicate if it is needed to include the star flux value in the
             image name
         """
-        dic = self.ccd_operation_mode
+        dic = ccd_operation_mode
         em_gain = '_G' + str(dic['em_gain'])
         em_mode = 'CONV'
         if dic['em_mode'] == 1:
@@ -309,11 +305,12 @@ class Artificial_Images_Simulator:
             tab_index += 2
 
         spreadsheet = openpyxl.load_workbook(
-            r'spreadsheet\Read_noise_and_gain_values.xlsx').active
+            f'RNC\\spreadsheet\\Channel {self.channel}'
+            + '\\Read_noise_and_gain_values.xlsx').active
         self.ccd_gain = spreadsheet.cell(tab_index, 5).value
 
-    def create_image(self):
-        """Create the star image.
+    def create_artificial_image(self):
+        """Create the artificial star image.
 
         This function will sum the background image with the star SPF image
         to create a artificil image, similar to those image acquired by the
@@ -325,4 +322,9 @@ class Artificial_Images_Simulator:
         Star Image:
             A FITS file with the calculated artificial image
         """
-        pass
+        background = self.BGI.create_background_image()
+        star_PSF = self.PSF.create_star_PSF()
+        header = self.HDR.create_header()
+
+        fits.writeto(self.image_dir + self.image_name + '.fits',
+                     background + star_PSF, overwrite=True, header=header)

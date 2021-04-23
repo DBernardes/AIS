@@ -34,7 +34,7 @@ Created on Fri Apr 16 09:10:51 2021
 """
 
 
-from AIS import Artificial_Images_Simulator
+from AIS import Artificial_Image_Simulator
 import pytest
 
 dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
@@ -43,7 +43,11 @@ dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
 
 @pytest.fixture
 def ais():
-    return Artificial_Images_Simulator(100.0, 10.0, 3, dic)
+    return Artificial_Image_Simulator(star_flux=100.0,
+                                      sky_flux=10.0,
+                                      gaussian_std=3,
+                                      ccd_operation_mode=dic,
+                                      channel=1)
 
 # -------------------- Testing the AIS class --------------------------------
 
@@ -61,12 +65,12 @@ def test_gaussian_std_positive_value(ais):
 
 
 def test_bias_level():
-    ais = Artificial_Images_Simulator(100, 10, 3, dic, bias_level=500)
+    ais = Artificial_Image_Simulator(100, 10, 3, dic, 1, bias_level=500)
     assert ais.bias_level == 500
 
 
 def test_image_dir():
-    ais = Artificial_Images_Simulator(100, 10, 3, dic, image_dir='')
+    ais = Artificial_Image_Simulator(100, 10, 3, dic, 1, image_dir='')
     assert ais.image_dir == ''
 
 # -----------------Provide a string value to the parameters--------------------
@@ -74,27 +78,27 @@ def test_image_dir():
 
 def test_star_flux_isnot_a_number():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator('a', 10, 3, dic)
+        Artificial_Image_Simulator('a', 10, 3, dic, 1)
 
 
 def test_sky_flux_isnot_a_number():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 'a', 3, dic)
+        Artificial_Image_Simulator(100, 'a', 3, dic, 1)
 
 
 def test_gaussian_stddev_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(-100, 10, 'a', dic)
+        Artificial_Image_Simulator(-100, 10, 'a', dic, 1)
 
 
 def test_bias_level_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 3, dic, bias_level='a')
+        Artificial_Image_Simulator(100, 10, 3, dic, 1, bias_level='a')
 
 
 def test_image_dir_isnot_string():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 3, dic, image_dir=1)
+        Artificial_Image_Simulator(100, 10, 3, dic, 1, image_dir=1)
 
 
 # ------------------provide a negative value to the parameters-----------------
@@ -102,44 +106,44 @@ def test_image_dir_isnot_string():
 
 def test_star_flux_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(-100, 10, 3, dic)
+        Artificial_Image_Simulator(-100, 10, 3, dic, 1)
 
 
 def test_sky_flux_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, -10, 3, dic)
+        Artificial_Image_Simulator(100, -10, 3, dic, 1)
 
 
 def test_gaussian_stddev_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, -3, dic)
+        Artificial_Image_Simulator(100, 10, -3, dic, 1)
 
 
 def test_bias_level_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, -3, dic, bias_level=-1)
+        Artificial_Image_Simulator(100, 10, -3, dic, 1, bias_level=-1)
 
 # ----------------provide zero to the parameters----------------------
 
 
 def test_star_flux_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(0, 10, 3, dic)
+        Artificial_Image_Simulator(0, 10, 3, dic, 1)
 
 
 def test_sky_flux_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 0, 3, dic)
+        Artificial_Image_Simulator(100, 0, 3, dic, 1)
 
 
 def test_gaussian_stddev_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_bias_level_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic, bias_level=0)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1, bias_level=0)
 
 # -------  provide a wrong parameter to the CCD operation mode---------------
 
@@ -148,49 +152,49 @@ def test_ccd_operation_mode_wrong_keyword_em_mode():
     dic = {'em_modee': 0, 'em_gain': 2, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyword_em_gain():
     dic = {'em_mode': 0, 'em_gainn': 2, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyword_preamp():
     dic = {'em_mode': 0, 'em_gain': 2, 'preampp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyword_hss():
     dic = {'em_mode': 0, 'em_gain': 2, 'preamp': 1,
            'hsss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyword_bin():
     dic = {'em_mode': 0, 'em_gain': 2, 'preamp': 1,
            'hss': 1, 'bin': 1, 't_exp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyword_t_exp():
     dic = {'em_mode': 0, 'em_gain': 2, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_expp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyword_ccd_temp():
     dic = {'em_mode': 0, 'em_gain': 2, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_tempp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 # ------------ provide a wrong value to the CCD operation mode-------------
 
@@ -199,77 +203,77 @@ def test_ccd_operation_mode_wrong_keyvalue_em_mode():
     dic = {'em_mode': 2, 'em_gain': 1, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_1():
     dic = {'em_mode': 0, 'em_gain': 2, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_2():
     dic = {'em_mode': 1, 'em_gain': 1, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_3():
     dic = {'em_mode': 1, 'em_gain': 'a', 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_preamp():
     dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 3,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_hss():
     dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
            'hss': 0, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_bin():
     dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
            'hss': 1, 'binn': 3, 't_exp': 1, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_exp_1():
     dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 0, 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_exp_2():
     dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 'a', 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_ccd_temp_1():
     dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 0, 'ccd_temp': 50}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_ccd_temp_2():
     dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 'a', 'ccd_temp': -70}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 # ---------------------------miscelaneous-------------------------------------
@@ -277,36 +281,36 @@ def test_ccd_operation_mode_wrong_keyvalue_t_ccd_temp_2():
 
 def test_gaussian_stddev_float_value():
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(-100, 10, 3.0, dic)
+        Artificial_Image_Simulator(-100, 10, 3.0, dic, 1)
 
 
 def test_ccd_operation_mode_missing_parameter():
     dic = {'em_mode': 0, 'em_gain': 2, 'preamp': 1,
            'hss': 1, 'binn': 1}
     with pytest.raises(ValueError):
-        Artificial_Images_Simulator(100, 10, 0, dic)
+        Artificial_Image_Simulator(100, 10, 0, dic, 1)
 
 
 # ----------------------- Channels ID --------------------------------
 
 
 def test_Channel_output_1():
-    ais = Artificial_Images_Simulator(100.0, 10.0, 3, dic, channel=1)
+    ais = Artificial_Image_Simulator(100.0, 10.0, 3, dic, channel=1)
     assert ais.get_channel_ID() == 'Channel 1'
 
 
 def test_Channel_output_2():
-    ais = Artificial_Images_Simulator(100.0, 10.0, 3, dic, channel=2)
+    ais = Artificial_Image_Simulator(100.0, 10.0, 3, dic, channel=2)
     assert ais.get_channel_ID() == 'Channel 2'
 
 
 def test_Channel_output_3():
-    ais = Artificial_Images_Simulator(100.0, 10.0, 3, dic, channel=3)
+    ais = Artificial_Image_Simulator(100.0, 10.0, 3, dic, channel=3)
     assert ais.get_channel_ID() == 'Channel 3'
 
 
 def test_Channel_output_4():
-    ais = Artificial_Images_Simulator(100.0, 10.0, 3, dic, channel=4)
+    ais = Artificial_Image_Simulator(100.0, 10.0, 3, dic, channel=4)
     assert ais.get_channel_ID() == 'Channel 4'
 
 # -----------------------------test _create_image_name------------------------
@@ -343,7 +347,8 @@ def test_Channel_output_4():
      ]
 )
 def test_create_image_name(
-        ais, em_mode, em_gain, hss, preamp, binn, t_exp, include_star_flux, image_name):
+        ais, em_mode, em_gain, hss, preamp, binn,
+        t_exp, include_star_flux, image_name):
     dic = {'em_mode': em_mode, 'em_gain': em_gain, 'preamp': preamp,
            'hss': hss, 'binn': binn, 't_exp': t_exp}
     ais.ccd_operation_mode = dic
@@ -374,3 +379,9 @@ def test_configure_gain(ais, em_mode, em_gain, hss, preamp, binn, ccd_gain):
            'hss': hss, 'binn': binn, 't_exp': 1, 'ccd_temp': -70}
     ais._configure_gain(dic)
     assert ais.ccd_gain == ccd_gain
+
+# --------------------------- test create artificial image ----------------
+
+
+def test_create_artificial_image(ais):
+    ais.create_artificial_image()

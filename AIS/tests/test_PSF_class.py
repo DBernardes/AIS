@@ -22,7 +22,7 @@ dic = {'em_gain': 1, 'binn': 1, 't_exp': 1}
 
 @pytest.fixture
 def chc1():
-    return Concrete_Channel_1()
+    return Concrete_Channel_1(ccd_temp=-70)
 
 
 @pytest.fixture

@@ -28,7 +28,7 @@ class Background_Image:
         Parameters
         ----------
         Abstract_Channel_Creator : object
-            An object of the Channel Creator Class. This object si used to 
+            An object of the Channel Creator Class. This object si used to
             calculate the contribution of the SPARC4 instrument in the sky flux
         ccd_gain : float
             CCD gain in e-/ADU.
@@ -49,16 +49,24 @@ class Background_Image:
         self.t_exp = ccd_operation_mode['t_exp']
         self.preamp = ccd_operation_mode['preamp']
         self.hss = ccd_operation_mode['hss']
+
         self.BIAS_LEVEL = 100
+        self.NOISE_FACTOR = 1.0
+        if ccd_operation_mode['em_mode'] == 1:
+            self.NOISE_FACTOR = 1.4
 
         self._calculate_sky_flux()
         self._calculate_dark_current()
+        self._calculate_read_noise(ccd_operation_mode)
 
     def _calculate_sky_flux(self):
         self.sky_flux = self.FC.calc_sky_flux()
 
     def _calculate_dark_current(self):
         self.dark_current = self.CHC.calc_dark_current()
+
+    def _calculate_read_noise(self, ccd_operation_mode):
+        self.read_noise = self.CHC.calculate_read_noise(ccd_operation_mode)
 
     def create_background_image(self):
         """Create the background image.
@@ -83,8 +91,8 @@ class Background_Image:
         dc = self.dark_current * t_exp
         rn = self.read_noise
         sky = self.sky_flux
-        nf = self.noise_factor
-        binn = self.bin
+        nf = self.NOISE_FACTOR
+        binn = self.binn
 
         shape = (200, 200)
         table = Table()
@@ -100,9 +108,10 @@ class Background_Image:
 
         noise = np.sqrt(rn**2 + (sky + dc)*t_exp
                         * nf**2 * em_gain**2 * binn**2)/ccd_gain
-        self.noise_image = make_noise_image(shape,
-                                            distribution='gaussian',
-                                            mean=background_level,
-                                            stddev=noise)
 
-        return self.noise_image
+        self.background_image = make_noise_image(shape,
+                                                 distribution='gaussian',
+                                                 mean=background_level,
+                                                 stddev=noise)
+
+        return self.background_image

@@ -39,7 +39,7 @@ class Header:
         self.ccd_gain = ccd_gain
         self.serial_number = serial_number
 
-    def _create_header(self):
+    def create_header(self):
         """Create the image header.
 
         This functions writes a simple header with the used parameters for
@@ -75,12 +75,4 @@ class Header:
         hdr['IMAGE'] = ('hats-24_I_transito_001', 'Nome do arquivo')
         self.hdr = hdr
 
-    def get_header(self):
-        """Return the image header.
-
-        Returns
-        -------
-        Image header: dictionary
-            Information related to the artificial image created by the AIS
-        """
         return self.hdr

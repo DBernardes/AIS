@@ -61,7 +61,7 @@ class Point_Spread_Function:
     def _calculate_star_flux(self):
         self.star_flux = self.FC.calc_star_flux()
 
-    def calculate_star_PSF(self):
+    def create_star_PSF(self):
         """Create the artificial image cube."""
         t_exp = self.t_exp
         em_gain = self.em_gain

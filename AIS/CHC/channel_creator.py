@@ -11,18 +11,15 @@ image.
 """
 
 import numpy as np
-from S4_SR import (Abstract_SPARC4_Spectral_Response,
-                   Concrete_SPARC4_Spectral_Response_1,
-                   Concrete_SPARC4_Spectral_Response_2,
-                   Concrete_SPARC4_Spectral_Response_3,
-                   Concrete_SPARC4_Spectral_Response_4)
+from RNC import Read_Noise_Calculation
+from S4_SR import Abstract_SPARC4_Spectral_Response
 
 
 class Abstract_Channel_Creator:
     """Abstract Channel Creator Class."""
 
-    _channel_ID = 0
-    _serial_number = 0
+    _CHANNEL_ID = 0
+    _SERIAL_NUMBER = 0
 
     def __init__(self, ccd_temp):
         self.ccd_temp = ccd_temp
@@ -32,7 +29,7 @@ class Abstract_Channel_Creator:
 
     def get_channel_ID(self):
         """Return the Channel ID."""
-        return f"Channel {self._channel_ID}"
+        return f"Channel {self._CHANNEL_ID}"
 
     def get_serial_number(self):
         """Return CCD serial number.
@@ -43,26 +40,59 @@ class Abstract_Channel_Creator:
             Serial number of the CCD
 
         """
-        return self._serial_number
+        return self._SERIAL_NUMBER
 
     def calc_dark_current(self):
-        return 0
+        """Calculate the cark current.
 
-    # def calc_star_flux(self):
-    #     """Calcute the star flux in photons/s."""
-    #     pass
+        This function calculates the dark current for each SPARC4 CCD. This is
+        an abstract function that is extended in the child classes.
+
+        Returns
+        -------
+        dakr current: float
+            Dark current of the respective SPARC4 CCD.
+
+        """
+        dark_current = 0
+        return dark_current
+
+    def calculate_read_noise(self, ccd_operation_mode):
+        """Calculate the read noise the CCD.
+
+        The calculation is performed by providing the CCD operation mode to
+        the ReadNoiseCalc package
+        """
+        RN = Read_Noise_Calculation(ccd_operation_mode,
+                                    directory=f'Channel {self._CHANNEL_ID}')
+        self.read_noise = RN.calculate_read_noise()
+
+        return self.read_noise
 
 
 class Concrete_Channel_1(Abstract_Channel_Creator):
     """Concreat Channel Creator Class 1."""
 
-    _channel_ID = 1
-    _serial_number = 9914
+    _CHANNEL_ID = 1
+    _SERIAL_NUMBER = 9914
 
     def _factory_method(self):
         pass
 
     def calc_dark_current(self):
+        """Calculate the dark current.
+
+        This function extends the function of the Abstract Channel Creator
+        class. Here, the dark current in e-/AUD for the Channel 1 is
+        calculated.
+
+
+        Returns
+        -------
+        dark_ current: float
+            Dark current in e-/ADU for the CCD of the Channel 1 of the SPARC4
+            instrument.
+        """
         T = self.ccd_temp
         self.dark_current = 24.66*np.exp(0.0015*T**2+0.29*T)
         return self.dark_current
@@ -71,13 +101,26 @@ class Concrete_Channel_1(Abstract_Channel_Creator):
 class Concrete_Channel_2(Abstract_Channel_Creator):
     """Concreat Channel Creator Class 2."""
 
-    _channel_ID = 2
-    _serial_number = 9915
+    _CHANNEL_ID = 2
+    _SERIAL_NUMBER = 9915
 
     def _factory_method(self):
         pass
 
     def calc_dark_current(self):
+        """Calculate the dark current.
+
+        This function extends the function of the Abstract Channel Creator
+        class. Here, the dark current in e-/AUD for the Channel 2 is
+        calculated.
+
+
+        Returns
+        -------
+        dark_ current: float
+            Dark current in e-/ADU for the CCD of the Channel 1 of the SPARC4
+            instrument.
+        """
         T = self.ccd_temp
         self.dark_current = 35.26*np.exp(0.0019*T**2+0.31*T)
         return self.dark_current
@@ -86,13 +129,26 @@ class Concrete_Channel_2(Abstract_Channel_Creator):
 class Concrete_Channel_3(Abstract_Channel_Creator):
     """Concreat Channel Creator Class 3."""
 
-    _channel_ID = 3
-    _serial_number = 9916
+    _CHANNEL_ID = 3
+    _SERIAL_NUMBER = 9916
 
     def _factory_method(self):
         pass
 
     def calc_dark_current(self):
+        """Calculate the dark current.
+
+        This function extends the function of the Abstract Channel Creator
+        class. Here, the dark current in e-/AUD for the Channel 3 is
+        calculated.
+
+
+        Returns
+        -------
+        dark_ current: float
+            Dark current in e-/ADU for the CCD of the Channel 1 of the SPARC4
+            instrument.
+        """
         T = self.ccd_temp
         self.dark_current = 9.67*np.exp(0.0012*T**2+0.25*T)
         return self.dark_current
@@ -101,13 +157,26 @@ class Concrete_Channel_3(Abstract_Channel_Creator):
 class Concrete_Channel_4(Abstract_Channel_Creator):
     """Concreat Channel Creator Class 4."""
 
-    _channel_ID = 4
-    _serial_number = 9917
+    _CHANNEL_ID = 4
+    _SERIAL_NUMBER = 9917
 
     def _factory_method(self):
         pass
 
     def calc_dark_current(self):
+        """Calculate the dark current.
+
+        This function extends the function of the Abstract Channel Creator
+        class. Here, the dark current in e-/AUD for the Channel 4 is
+        calculated.
+
+
+        Returns
+        -------
+        dark_ current: float
+            Dark current in e-/ADU for the CCD of the Channel 1 of the SPARC4
+            instrument.
+        """
         T = self.ccd_temp
         self.dark_current = 5.92*np.exp(0.0005*T**2+0.18*T)
         return self.dark_current

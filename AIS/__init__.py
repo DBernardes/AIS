@@ -10,4 +10,4 @@ added to a noise image, created based on the noise information of the SPARC4
 CCDs, as a function of their operation mode.
 """
 
-from AIS import Artificial_Images_Simulator
+from .AIS import Artificial_Image_Simulator
