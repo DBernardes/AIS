@@ -2,8 +2,7 @@ Code
 ====
 
 .. toctree::
-   :maxdepth: 2
-   :titlesonly:
+   :maxdepth: 2   
 
    AIS
    Atmosphere_SR
