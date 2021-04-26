@@ -198,16 +198,16 @@ class Artificial_Image_Simulator:
         ccd_temp = ccd_operation_mode['ccd_temp']
 
         dic_keywords_list = [
-            'em_mode', 'em_gain', 'preamp', 'hss', 'binn', 't_exp', 'ccd_temp']
+            'binn', 'ccd_temp', 'em_gain', 'em_mode', 'hss', 'preamp', 't_exp']
 
         for key in ccd_operation_mode.keys():
             if key not in dic_keywords_list:
                 raise ValueError(
                     f'The name provided is not a CCD parameter: {key}')
 
-        # if list(ccd_operation_mode.keys()) != dic_keywords_list:
-        #     raise ValueError(
-        #         'There is a missing parameter of the CCD operation mode')
+        if list(ccd_operation_mode.keys()).sort() != dic_keywords_list.sort():
+            raise ValueError(
+                'There is a missing parameter of the CCD operation mode')
 
         if em_mode not in [0, 1]:
             raise ValueError(

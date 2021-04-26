@@ -351,8 +351,8 @@ def test_create_image_name(
         t_exp, include_star_flux, image_name):
     dic = {'em_mode': em_mode, 'em_gain': em_gain, 'preamp': preamp,
            'hss': hss, 'binn': binn, 't_exp': t_exp}
-    ais.ccd_operation_mode = dic
-    ais._configure_image_name(include_star_flux=include_star_flux)
+    ais._configure_image_name(ccd_operation_mode=dic,
+                              include_star_flux=include_star_flux)
     assert ais.image_name == image_name
 
 # -----------------------------test _configure_gain------------------------

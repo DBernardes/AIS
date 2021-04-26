@@ -76,45 +76,45 @@ def test_serial_number(hdr):
 
 
 def test_NAXIS1(hdr):
-    hdr._create_header()
+    hdr.create_header()
     assert hdr.hdr['NAXIS1'] == 200
 
 
 def test_NAXIS2(hdr):
-    hdr._create_header()
+    hdr.create_header()
     assert hdr.hdr['NAXIS2'] == 200
 
 
 def test_HBIN(hdr):
-    hdr._create_header()
+    hdr.create_header()
     assert hdr.hdr['HBIN'] == 1
 
 
 def test_VBIN1(hdr):
-    hdr._create_header()
+    hdr.create_header()
     assert hdr.hdr['VBIN'] == 1
 
 
 def test_EXPOSURE(hdr):
-    hdr._create_header()
+    hdr.create_header()
     assert hdr.hdr['EXPOSURE'] == 1
 
 
 def test_TEMP(hdr):
-    hdr._create_header()
+    hdr.create_header()
     assert hdr.hdr['READTIME'] == '1.0E-006'
 
 
 def test_GAIN(hdr):
-    hdr._create_header()
+    hdr.create_header()
     assert hdr.hdr['GAIN'] == 3.0
 
 
 def test_OUTPTAMP(hdr):
-    hdr._create_header()
+    hdr.create_header()
     assert hdr.hdr['OUTPTAMP'] == 'Conventional'
 
 
 def test_SERNO(hdr):
-    hdr._create_header()
+    hdr.create_header()
     assert hdr.hdr['SERNO'] == 9914

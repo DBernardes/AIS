@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-"""Channel Creator Class.
+"""
+Channel Creator Class
+=====================
 
 This class creates the several channels of the SPARC4. The AIS is based on the
 Factory Method to implement the correct star flux calculation as a function of

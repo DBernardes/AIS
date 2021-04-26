@@ -105,4 +105,4 @@ def test_calculate_star_PSF(psf):
 
     star_image = make_gaussian_sources_image(shape, table)
 
-    assert np.sum(psf.calculate_star_PSF()) == np.sum(star_image)
+    assert np.sum(psf.create_star_PSF()) == np.sum(star_image)

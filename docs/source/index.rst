@@ -28,7 +28,7 @@ References
     :hidden:       
     
     software_description      
-    code
+    Code <code/modules>
     license
     contact
 
