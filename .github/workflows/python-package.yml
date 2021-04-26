@@ -26,4 +26,5 @@ jobs:
     - name: Test with pytest
       run: |      
         cd code
-        python -m pytest tests
+        pip install pytest
+        pytest -x
