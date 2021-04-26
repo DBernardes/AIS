@@ -89,7 +89,7 @@ class Read_Noise_Calculation:
                 indice_tab = 25
         if self.binn == 2:
             indice_tab += 1
-        path = r'RNC\\spreadsheet' \
+        path = r'code\\RNC\\spreadsheet' \
             + '\\' + self.directory + '\\' + 'Read_noise_and_gain_values.xlsx'
 
         spreadsheet = openpyxl.load_workbook(path).active
@@ -97,7 +97,7 @@ class Read_Noise_Calculation:
 
     def _calculate_read_noise_em_mode(self):
         """Calculate the read noise for the EM mode."""
-        tab_name = 'RNC\\spreadsheet' + '\\' + self.directory + '\\' + 'RN_PA'\
+        tab_name = 'code\\RNC\\spreadsheet' + '\\' + self.directory + '\\' + 'RN_PA'\
             + str(int(self.preamp)) + 'B' + str(int(self.binn))\
             + 'HSS' + str(int(self.hss)) + '.xlsx'
         spreadsheet = list(openpyxl.load_workbook(tab_name).active.values)
