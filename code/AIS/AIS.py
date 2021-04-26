@@ -292,7 +292,7 @@ class Artificial_Image_Simulator:
             tab_index += 2
 
         spreadsheet = openpyxl.load_workbook(
-            f'code\\RNC\\spreadsheet\\Channel {self.channel}'
+            f'RNC\\spreadsheet\\Channel {self.channel}'
             + '\\Read_noise_and_gain_values.xlsx').active
         self.ccd_gain = spreadsheet.cell(tab_index, 5).value
 
