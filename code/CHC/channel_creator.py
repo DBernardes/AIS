@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Channel Creator Class
-=====================
+Channel Creator
+===============
 
 This class creates the several channels of the SPARC4. The AIS is based on the
 Factory Method to implement the correct star flux calculation as a function of
@@ -18,12 +18,24 @@ from S4_SR import Abstract_SPARC4_Spectral_Response
 
 
 class Abstract_Channel_Creator:
-    """Abstract Channel Creator Class."""
+    """Abstract Channel Creator Class.
+
+    This is an abstracty class that represents the SPARC4 channels. It is
+    responsible to calculate the star or the sky flux as a function of the
+    properly instrumental response of the SPARC4 channel.
+    """
 
     _CHANNEL_ID = 0
     _SERIAL_NUMBER = 0
 
     def __init__(self, ccd_temp):
+        """Initialize the class.
+
+        Parameters
+        ----------
+        ccd_temp : float
+            The CCD temperature in ºC
+        """
         self.ccd_temp = ccd_temp
 
     def _factory_method(self):
@@ -73,7 +85,11 @@ class Abstract_Channel_Creator:
 
 
 class Concrete_Channel_1(Abstract_Channel_Creator):
-    """Concreat Channel Creator Class 1."""
+    """Concreat Channel Creator Class 1.
+
+    This class calculates the star and/or the sky flux as a function of the
+    instrumental response of the SPARC4 Channel 1.
+    """
 
     _CHANNEL_ID = 1
     _SERIAL_NUMBER = 9914
@@ -101,7 +117,11 @@ class Concrete_Channel_1(Abstract_Channel_Creator):
 
 
 class Concrete_Channel_2(Abstract_Channel_Creator):
-    """Concreat Channel Creator Class 2."""
+    """Concreat Channel Creator Class 2.
+
+    This class calculates the star and/or the sky flux as a function of the
+    instrumental response of the SPARC4 Channel 2.
+    """
 
     _CHANNEL_ID = 2
     _SERIAL_NUMBER = 9915
@@ -129,7 +149,11 @@ class Concrete_Channel_2(Abstract_Channel_Creator):
 
 
 class Concrete_Channel_3(Abstract_Channel_Creator):
-    """Concreat Channel Creator Class 3."""
+    """Concreat Channel Creator Class 3.
+
+    This class calculates the star and/or the sky flux as a function of the
+    instrumental response of the SPARC4 Channel 3.
+    """
 
     _CHANNEL_ID = 3
     _SERIAL_NUMBER = 9916
@@ -157,7 +181,11 @@ class Concrete_Channel_3(Abstract_Channel_Creator):
 
 
 class Concrete_Channel_4(Abstract_Channel_Creator):
-    """Concreat Channel Creator Class 4."""
+    """Concreat Channel Creator Class 4.
+
+    This class calculates the star and/or the sky flux as a function of the
+    instrumental response of the SPARC4 Channel 4.
+    """
 
     _CHANNEL_ID = 4
     _SERIAL_NUMBER = 9917

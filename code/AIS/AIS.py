@@ -1,6 +1,6 @@
 """
-Artificial Images Simulator Class
-===================================
+Artificial Images Simulator
+============================
 
 The Artificial Images Simulator (AIS) class was developed to generate
 artificial star images, similar to those images that would be acquired by
@@ -20,9 +20,6 @@ from CHC import (Concrete_Channel_1,
                  Concrete_Channel_2,
                  Concrete_Channel_3,
                  Concrete_Channel_4)
-
-
-__all__ = ['Artificial_Image_Simulator']
 
 
 class Artificial_Image_Simulator:
@@ -77,28 +74,14 @@ class Artificial_Image_Simulator:
         Directory where the image should be saved
 
 
-    Attribute
-    ----------
-    image_name: str
-        Name of the image cube
-    dark_current: float
-        Dark current in e-/s/pix
-    read_noise: float
-        Read noise in e-/pix
-    gain: float
-        CCD pre-amplification gain in e-/ADU
-    hdr: list
-        Header content of the image
-
-
     Yields
     ------
-        image cube: int
+        image cube: array like
             An image cube in the FITS format with the star flux distribution
 
     Notes
     -----
-        Explica o código; background; passo-a-passo
+        Explicar o código; background; passo-a-passo
 
     Examples
     --------
@@ -137,10 +120,12 @@ class Artificial_Image_Simulator:
 
         if type(gaussian_std) is not int:
             raise ValueError(
-                f'The gaussian standard deviation must be an integer: {gaussian_std}')
+                f'The gaussian standard deviation must be \
+                an integer: {gaussian_std}')
         elif gaussian_std <= 0:
             raise ValueError(
-                f'The gaussian standard deviation must be greater than zero: {gaussian_std}')
+                f'The gaussian standard deviation must be greater \
+                than zero: {gaussian_std}')
         else:
             self.gaussian_std = gaussian_std
 
@@ -148,7 +133,8 @@ class Artificial_Image_Simulator:
             self.channel = channel
         else:
             raise ValueError(
-                f'There is no camera with the provided serial number: {channel}')
+                f'There is no camera with the provided \
+                serial number: {channel}')
 
         if type(bias_level) is not int:
             raise ValueError(
@@ -215,7 +201,8 @@ class Artificial_Image_Simulator:
         if em_mode == 0:
             if em_gain != 1:
                 raise ValueError(
-                    f'For the Conventional Mode, the EM Gain must be 1: {em_gain}')
+                    f'For the Conventional Mode, the EM Gain must \
+                    be 1: {em_gain}')
         else:
             if em_gain not in [float, int]:
                 raise ValueError(
@@ -313,7 +300,7 @@ class Artificial_Image_Simulator:
         """Create the artificial star image.
 
         This function will sum the background image with the star SPF image
-        to create a artificil image, similar to those image acquired by the
+        to create an artificil image, similar to those acquired by the
         SPARC4 cameras.
 
 

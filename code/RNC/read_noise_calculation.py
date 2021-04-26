@@ -10,10 +10,10 @@ conventional mode, it is read the respective value of the read noise in the
 Tabelas_Valores_Ruido_Leitura spreadsheet. For the EM mode, it is done an
 interpolation of the data presented by the respective spreadshhet, as a
 function of the EM gain.
-
-Denis Varise Bernardes.
-08/10/2019.
 """
+
+# Denis Varise Bernardes.
+# 08/10/2019.
 
 import openpyxl
 from scipy.interpolate import interp1d
@@ -42,10 +42,6 @@ class Read_Noise_Calculation:
 
         directory : string
             Directory of the spreadsheet with the read noise of the CCD
-
-        Returns
-        -------
-        None.
         """
         self.em_mode = ccd_operation_mode['em_mode']
         self.em_gain = ccd_operation_mode['em_gain']
@@ -66,7 +62,7 @@ class Read_Noise_Calculation:
         """Calculate the read noise of the CCD.
 
         For the conventional mode, it is used the read noise values of the
-        Tabelas_Valores_Ruido_Leitura spreadsheet
+        Read_noise_and_gain_values spreadsheet
 
         For the EM mode, the read noise is obtained through an interpolation of
         the values presente by the respective spreadsheet, as a function of the
@@ -93,7 +89,7 @@ class Read_Noise_Calculation:
                 indice_tab = 25
         if self.binn == 2:
             indice_tab += 1
-        path = r'RNC\spreadsheet' \
+        path = r'RNC\\spreadsheet' \
             + '\\' + self.directory + '\\' + 'Read_noise_and_gain_values.xlsx'
 
         spreadsheet = openpyxl.load_workbook(path).active
