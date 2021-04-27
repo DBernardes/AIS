@@ -20,29 +20,30 @@ from scipy.interpolate import interp1d
 
 
 class Read_Noise_Calculation:
-    """Read Noise Calculation Class."""
+    """Read Noise Calculation Class.
+
+    Parameters
+    ----------
+    ccd_operation_mode: dictionary
+
+        A dictionary with the parameter of the CCD operation mode.
+        em_mode : [0, 1]
+            CCD Electron Multiplying Mode
+        em_gain : float
+            CCD Electron Multiplying gain
+        hss : [0.1, 1, 10, 20, 30]
+            Horizontal Shift Spedd of the pixels
+        preamp : [1, 2]
+            Pre-amplifer gain
+        binn : [1, 2]
+            Binning of the pixels
+
+    directory : string
+        Directory of the spreadsheet with the read noise of the CCD
+        """
 
     def __init__(self, ccd_operation_mode, directory):
-        """Initialize the class.
-
-        Parameters
-        ----------
-        ccd_operation_mode: dictionary
-            A dictionary with the parameter of the CCD operation mode.
-            em_mode : [0, 1]
-                CCD Electron Multiplying Mode
-            em_gain : float
-                CCD Electron Multiplying gain
-            hss : [0.1, 1, 10, 20, 30]
-                Horizontal Shift Spedd of the pixels
-            preamp : [1, 2]
-                Pre-amplifer gain
-            binn : [1, 2]
-                Binning of the pixels
-
-        directory : string
-            Directory of the spreadsheet with the read noise of the CCD
-        """
+        """Initialize the class."""
         self.em_mode = ccd_operation_mode['em_mode']
         self.em_gain = ccd_operation_mode['em_gain']
         self.hss = ccd_operation_mode['hss']

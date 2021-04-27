@@ -23,19 +23,18 @@ class Abstract_Channel_Creator:
     This is an abstracty class that represents the SPARC4 channels. It is
     responsible to calculate the star or the sky flux as a function of the
     properly instrumental response of the SPARC4 channel.
+
+    Parameters
+    ----------
+    ccd_temp : float
+        The CCD temperature in ºC
     """
 
     _CHANNEL_ID = 0
     _SERIAL_NUMBER = 0
 
     def __init__(self, ccd_temp):
-        """Initialize the class.
-
-        Parameters
-        ----------
-        ccd_temp : float
-            The CCD temperature in ºC
-        """
+        """Initialize the class."""
         self.ccd_temp = ccd_temp
 
     def _factory_method(self):

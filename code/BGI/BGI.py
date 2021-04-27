@@ -18,41 +18,42 @@ from astropy.table import Table
 
 
 class Background_Image:
-    """Background Image Class."""
+    """Background Image Class.
+
+    Parameters
+    ----------
+    Abstract_Channel_Creator : object
+        An object of the Channel Creator Class. This object is used to
+        calculate the contribution of the SPARC4 instrument in the sky flux
+
+    ccd_operation_mode: dictionary
+        A python dictionary with the CCD operation mode.
+        The allowed keywords values for the dictionary are
+
+        * em_mode: {0, 1}
+
+           Use the 0 for the Conventional Mode and 1 for the EM Mode
+
+        * preamp: {1, 2}
+
+           Pre-amplification
+
+        * hss: {0.1, 1, 10, 20, 30}
+
+           Horizontal Shift Speed (readout rate) in MHz
+
+        * bin: int
+
+           Number of the binned pixels
+
+    ccd_gain : float
+        CCD gain in e-/ADU.
+        """
 
     def __init__(self, Abstract_Channel_Creator,
                  ccd_operation_mode,
                  ccd_gain):
-        """Initialize the Background Image class.
-
-        Parameters
-        ----------
-        Abstract_Channel_Creator : object
-            An object of the Channel Creator Class. This object is used to
-            calculate the contribution of the SPARC4 instrument in the sky flux
-        ccd_operation_mode: dictionary
-            A python dictionary with the CCD operation mode. 
-            The allowed keywords values for the dictionary are
-
-            * em_mode: {0, 1}
-
-               Use the 0 for the Conventional Mode and 1 for the EM Mode     
-
-            * preamp: {1, 2}
-
-               Pre-amplification
-
-            * hss: {0.1, 1, 10, 20, 30}
-
-               Horizontal Shift Speed (readout rate) in MHz
-
-            * bin: int
-
-               Number of the binned pixels
-
-        ccd_gain : float
-            CCD gain in e-/ADU.
-        """
+        """Initialize the Background Image class."""
         self.CHC = Abstract_Channel_Creator
         self.FC = Flux_Calculation()
         self.TSR = Telescope_Spectral_Response()

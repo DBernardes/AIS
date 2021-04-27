@@ -22,6 +22,20 @@ class Point_Spread_Function:
     calculated using the library Flux_Calculation. Over this flux, the
     contribution of the atmosphere, the telescope, and the SPARC4 are
     considered as a function of their spectral response.
+
+
+    Parameters
+    ----------
+    Abstract_Channel_Creator : object
+        A chield object of the Channel Creator class. This object is used
+        to calculated the contribution of the instrument spectral response
+        over the star flux as a function of the instrument channel.
+    ccd_gain : float
+        Gain of the CCD in e-/ADU.
+
+    Returns
+    -------
+    None.
     """
 
     def __init__(self,
@@ -29,22 +43,7 @@ class Point_Spread_Function:
                  ccd_operation_mode,
                  ccd_gain,
                  gaussian_std):
-        """Initialize the class.
-
-        Parameters
-        ----------
-        Abstract_Channel_Creator : object
-            A chield object of the Channel Creator class. This object is used
-            to calculated the contribution of the instrument spectral response
-            over the star flux as a function of the instrument channel.
-        ccd_gain : float
-            Gain of the CCD in e-/ADU.
-
-        Returns
-        -------
-        None.
-
-        """
+        """Initialize the class."""
         self.CHC = Abstract_Channel_Creator
         self.FC = Flux_Calculation()
         self.TSR = Telescope_Spectral_Response()
