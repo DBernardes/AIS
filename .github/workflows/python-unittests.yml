@@ -37,4 +37,8 @@ jobs:
     - name: Test with pytest
       run: |
         cd code
-        python -m pytest -x tests
+        python -m pytest -x tests  
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v1
+      with:
+        fail_ci_if_error: true
