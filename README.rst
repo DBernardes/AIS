@@ -1,4 +1,4 @@
-|Unit Tests| |Documentation|
+|Unit Tests| |Documentation| |Code Cov|
 
 Introduction
 ============
@@ -188,4 +188,7 @@ References
 .. |Unit Tests| image:: https://github.com/DBernardes/AIS/actions/workflows/python-unittests.yml/badge.svg
 	:target: https://github.com/DBernardes/AIS/actions/workflows/python-unittests.yml
 	:alt: Unit Tests
+.. |Code Cov| image:: https://codecov.io/gh/DBernardes/AIS/branch/main/graph/badge.svg?token=aPhVaeHkOh
+      :target: https://codecov.io/gh/DBernardes/AIS
+    
       
