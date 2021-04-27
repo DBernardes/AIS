@@ -52,6 +52,13 @@ class Abstract_SPARC4_Spectral_Response:
         """
         self.spectrum = self.spectrum
 
+    def analyzer(self):
+        """Analyzer spectrum response.
+
+        Apllies the analyzer spectral response on the flux.
+        """
+        self.spectrum = self.spectrum
+
     def collimator(self):
         """Collimator spectrum response.
 

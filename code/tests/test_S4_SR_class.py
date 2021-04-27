@@ -83,6 +83,13 @@ def test_retarder(abs_s4_sr):
     abs_s4_sr.retarder()
     assert abs_s4_sr.spectrum == [1, 2, 3, 4, 5]
 
+# -------------------- analyzer -----------------------
+
+
+def test_analyzer(abs_s4_sr):
+    abs_s4_sr.analyzer()
+    assert abs_s4_sr.spectrum == [1, 2, 3, 4, 5]
+
 # -------------------- collimator -----------------------
 
 

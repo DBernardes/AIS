@@ -150,8 +150,8 @@ class Artificial_Image_Simulator:
                 f'The directory path must be a string: {image_dir}')
         else:
             if image_dir != '':
-                if '\\' not in image_dir[-1]:
-                    image_dir += '\\'
+                if '/' not in image_dir[-1]:
+                    image_dir += '/'
             self.image_dir = image_dir
 
         self._verify_ccd_operation_mode(ccd_operation_mode)
@@ -244,7 +244,7 @@ class Artificial_Image_Simulator:
         return self.CHC.get_channel_ID()
 
     def _configure_image_name(self, ccd_operation_mode,
-                              include_star_flux=False):
+                              include_star_mag=False):
         """Create the image name.
 
         The image name will be created based on the provided information
@@ -266,8 +266,8 @@ class Artificial_Image_Simulator:
         t_exp = '_TEXP' + str(dic['t_exp'])
         self.image_name = em_mode + hss + preamp + binn + t_exp + em_gain
 
-        if include_star_flux:
-            star_flux = '_S' + str(self.star_flux)
+        if include_star_mag:
+            star_flux = '_S' + str(self.star_magnitude)
             self.image_name += star_flux
 
     def _configure_gain(self, ccd_operation_mode):

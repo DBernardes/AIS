@@ -43,8 +43,8 @@ dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
 
 @pytest.fixture
 def ais():
-    return Artificial_Image_Simulator(star_flux=100.0,
-                                      sky_flux=10.0,
+    return Artificial_Image_Simulator(star_magnitude=15,
+                                      sky_magnitude=20,
                                       gaussian_std=3,
                                       ccd_operation_mode=dic,
                                       channel=1)
@@ -52,12 +52,12 @@ def ais():
 # -------------------- Testing the AIS class --------------------------------
 
 
-def test_star_flux_positive_value(ais):
-    assert ais.star_flux == 100
+def test_star_magnitude_positive_value(ais):
+    assert ais.star_magnitude == 15
 
 
-def test_sky_flux_positive_value(ais):
-    assert ais.sky_flux == 10
+def test_sky_magnitude_positive_value(ais):
+    assert ais.sky_magnitude == 20
 
 
 def test_gaussian_std_positive_value(ais):
@@ -71,17 +71,17 @@ def test_bias_level():
 
 def test_image_dir():
     ais = Artificial_Image_Simulator(100, 10, 3, dic, 1, image_dir='a')
-    assert ais.image_dir == 'a'
+    assert ais.image_dir == 'a/'
 
 # -----------------Provide a string value to the parameters--------------------
 
 
-def test_star_flux_isnot_a_number():
+def test_star_magnitude_isnot_a_number():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator('a', 10, 3, dic, 1)
 
 
-def test_sky_flux_isnot_a_number():
+def test_sky_magnitude_isnot_a_number():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 'a', 3, dic, 1)
 
@@ -104,12 +104,12 @@ def test_image_dir_isnot_string():
 # ------------------provide a negative value to the parameters-----------------
 
 
-def test_star_flux_negative_value():
+def test_star_magnitude_negative_value():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(-100, 10, 3, dic, 1)
 
 
-def test_sky_flux_negative_value():
+def test_sky_magnitude_negative_value():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, -10, 3, dic, 1)
 
@@ -126,12 +126,12 @@ def test_bias_level_negative_value():
 # ----------------provide zero to the parameters----------------------
 
 
-def test_star_flux_zero_value():
+def test_star_magnitude_zero_value():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(0, 10, 3, dic, 1)
 
 
-def test_sky_flux_zero_value():
+def test_sky_magnitude_zero_value():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 0, 3, dic, 1)
 
@@ -317,7 +317,7 @@ def test_Channel_output_4():
 
 
 @pytest.mark.parametrize(
-    'em_mode, em_gain, hss, preamp, binn, t_exp, include_star_flux, image_name',
+    'em_mode, em_gain, hss, preamp, binn, t_exp, include_star_mag, image_name',
     [(0, 1, 0.1, 1, 1, 1, False, 'CONV_HSS0.1_PA1_B1_TEXP1_G1'),
      (0, 1, 0.1, 1, 2, 1, False, 'CONV_HSS0.1_PA1_B2_TEXP1_G1'),
      (0, 1, 0.1, 2, 1, 1, False, 'CONV_HSS0.1_PA2_B1_TEXP1_G1'),
@@ -343,16 +343,16 @@ def test_Channel_output_4():
      (1, 2, 30, 2, 1, 1, False, 'EM_HSS30_PA2_B1_TEXP1_G2'),
      (1, 2, 30, 2, 2, 1, False, 'EM_HSS30_PA2_B2_TEXP1_G2'),
      (1, 2, 30, 2, 2, 2, False, 'EM_HSS30_PA2_B2_TEXP2_G2'),
-     (1, 2, 30, 2, 2, 1, True, 'EM_HSS30_PA2_B2_TEXP1_G2_S100.0'),
+     (1, 2, 30, 2, 2, 1, True, 'EM_HSS30_PA2_B2_TEXP1_G2_S15'),
      ]
 )
 def test_create_image_name(
         ais, em_mode, em_gain, hss, preamp, binn,
-        t_exp, include_star_flux, image_name):
+        t_exp, include_star_mag, image_name):
     dic = {'em_mode': em_mode, 'em_gain': em_gain, 'preamp': preamp,
            'hss': hss, 'binn': binn, 't_exp': t_exp}
     ais._configure_image_name(ccd_operation_mode=dic,
-                              include_star_flux=include_star_flux)
+                              include_star_mag=include_star_mag)
     assert ais.image_name == image_name
 
 # -----------------------------test _configure_gain------------------------

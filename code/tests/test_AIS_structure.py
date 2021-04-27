@@ -27,8 +27,8 @@ dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
 
 @pytest.fixture
 def ais():
-    return Artificial_Image_Simulator(star_flux=100.0,
-                                      sky_flux=10.0,
+    return Artificial_Image_Simulator(star_magnitude=15,
+                                      sky_magnitude=20,
                                       gaussian_std=3,
                                       ccd_operation_mode=dic,
                                       channel=1)
@@ -46,7 +46,7 @@ def psf(chc1):
 
 @pytest.fixture
 def bgi(chc1):
-    return Background_Image(chc1, dic, 3)
+    return Background_Image(chc1, dic, 3, 500)
 
 
 # -------------------- Testing the AIS structure -----------------------------
