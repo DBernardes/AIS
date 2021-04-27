@@ -27,10 +27,10 @@ class Artificial_Image_Simulator:
 
     Parameters
     ----------
-    star_flux : float
-        Number of photons per second of the star
-    sky_flux: float
-        Number of photons per second of the sky
+    star_magitude : float
+        Magnitude of the star
+    sky_magnitude: float
+        Magnitude of the sky
     gaussian_stddev: int
         Number of pixels of the gaussian standard deviation
     ccd_operation_mode: dictionary
@@ -94,29 +94,30 @@ class Artificial_Image_Simulator:
     """
 
     def __init__(self,
-                 star_flux,
-                 sky_flux,
+                 star_magnitude,
+                 sky_magnitude,
                  gaussian_std,
                  ccd_operation_mode,
                  channel,
                  bias_level=500,
                  image_dir=''):
         """Initialize the class."""
-        if type(star_flux) not in [int, float]:
-            raise ValueError(f'The star flux must be a number: {star_flux}')
-        elif star_flux <= 0:
+        if type(star_magnitude) not in [int, float]:
+            raise ValueError('The star flux must be a number: '
+                             + f'{star_magnitude}')
+        elif star_magnitude <= 0:
             raise ValueError(
-                f'The star flux must be greater than zero: {star_flux}')
+                f'The star flux must be greater than zero: {star_magnitude}')
         else:
-            self.star_flux = star_flux
+            self.star_magnitude = star_magnitude
 
-        if type(sky_flux) not in [int, float]:
-            raise ValueError(f'The sky flux must be a number: {sky_flux}')
-        elif sky_flux <= 0:
+        if type(sky_magnitude) not in [int, float]:
+            raise ValueError(f'The sky flux must be a number: {sky_magnitude}')
+        elif sky_magnitude <= 0:
             raise ValueError(
-                f'The sky flux must be greater than zero: {sky_flux}')
+                f'The sky flux must be greater than zero: {sky_magnitude}')
         else:
-            self.sky_flux = sky_flux
+            self.sky_magnitude = sky_magnitude
 
         if type(gaussian_std) is not int:
             raise ValueError(
@@ -133,8 +134,8 @@ class Artificial_Image_Simulator:
             self.channel = channel
         else:
             raise ValueError(
-                f'There is no camera with the provided \
-                serial number: {channel}')
+                'There is no camera with the provided'
+                + f'serial number: {channel}')
 
         if type(bias_level) is not int:
             raise ValueError(
@@ -169,7 +170,8 @@ class Artificial_Image_Simulator:
         self.CHC = CHC
         self.PSF = Point_Spread_Function(
             CHC, ccd_operation_mode, self.ccd_gain, self.gaussian_std)
-        self.BGI = Background_Image(CHC, ccd_operation_mode, self.ccd_gain)
+        self.BGI = Background_Image(CHC, ccd_operation_mode, self.ccd_gain,
+                                    self.bias_level)
         self.HDR = Header(ccd_operation_mode, self.ccd_gain,
                           CHC.get_serial_number())
 
@@ -201,8 +203,8 @@ class Artificial_Image_Simulator:
         if em_mode == 0:
             if em_gain != 1:
                 raise ValueError(
-                    f'For the Conventional Mode, the EM Gain must \
-                    be 1: {em_gain}')
+                    'The EM Gain must be 1 for the Conventional'
+                    + f' Mode: {em_gain}')
         else:
             if em_gain not in [float, int]:
                 raise ValueError(

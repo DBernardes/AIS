@@ -9,7 +9,6 @@ a bias image acquired by the SPARC4 cameras.
 from FC import Flux_Calculation
 from Telescope_SR import Telescope_Spectral_Response
 from Atmosphere_SR import Atmosphere_Spectral_Response
-from CHC import Abstract_Channel_Creator
 import numpy as np
 
 
@@ -48,17 +47,20 @@ class Background_Image:
 
     ccd_gain : float
         CCD gain in e-/ADU.
+    bias_level : integer
+        The bias level of the image in ADU.
         """
 
-    def __init__(self, Abstract_Channel_Creator,
+    def __init__(self, abstract_channel_creator,
                  ccd_operation_mode,
-                 ccd_gain):
+                 ccd_gain, bias_level):
         """Initialize the Background Image class."""
-        self.CHC = Abstract_Channel_Creator
+        self.CHC = abstract_channel_creator
         self.FC = Flux_Calculation()
         self.TSR = Telescope_Spectral_Response()
         self.ASR = Atmosphere_Spectral_Response()
         self.ccd_gain = ccd_gain
+        self.bias_level = bias_level
 
         self.em_gain = ccd_operation_mode['em_gain']
         self.binn = ccd_operation_mode['binn']
@@ -66,7 +68,6 @@ class Background_Image:
         self.preamp = ccd_operation_mode['preamp']
         self.hss = ccd_operation_mode['hss']
 
-        self.BIAS_LEVEL = 100
         self.NOISE_FACTOR = 1.0
         if ccd_operation_mode['em_mode'] == 1:
             self.NOISE_FACTOR = 1.4
@@ -103,7 +104,7 @@ class Background_Image:
         t_exp = self.t_exp
         em_gain = self.em_gain
         ccd_gain = self.ccd_gain
-        bias = self.BIAS_LEVEL
+        bias = self.bias_level
         dc = self.dark_current * t_exp
         rn = self.read_noise
         sky = self.sky_flux
@@ -111,14 +112,6 @@ class Background_Image:
         binn = self.binn
 
         shape = (200, 200)
-        table = Table()
-        table['amplitude'] = [0]
-        table['x_mean'] = [100]
-        table['y_mean'] = [100]
-        table['x_stddev'] = [0]
-        table['y_stddev'] = [0]
-        table['theta'] = [0]
-
         background_level = bias \
             + (dc + sky) * t_exp * em_gain * binn**2 / ccd_gain
 

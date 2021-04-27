@@ -65,13 +65,13 @@ def test_gaussian_std_positive_value(ais):
 
 
 def test_bias_level():
-    ais = Artificial_Image_Simulator(100, 10, 3, dic, 1, bias_level=500)
-    assert ais.bias_level == 500
+    ais = Artificial_Image_Simulator(100, 10, 3, dic, 1, bias_level=300)
+    assert ais.bias_level == 300
 
 
 def test_image_dir():
-    ais = Artificial_Image_Simulator(100, 10, 3, dic, 1, image_dir='')
-    assert ais.image_dir == ''
+    ais = Artificial_Image_Simulator(100, 10, 3, dic, 1, image_dir='a')
+    assert ais.image_dir == 'a'
 
 # -----------------Provide a string value to the parameters--------------------
 

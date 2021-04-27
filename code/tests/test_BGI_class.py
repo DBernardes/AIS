@@ -25,7 +25,10 @@ def chc1():
 
 @pytest.fixture
 def bgi(chc1):
-    return Background_Image(chc1, dic, 3)
+    return Background_Image(abstract_channel_creator=chc1,
+                            ccd_operation_mode=dic,
+                            ccd_gain=3,
+                            bias_level=500)
 
 
 # ------------------------ Initialize the class --------------------------
@@ -72,6 +75,10 @@ def test_t_exp(bgi):
 
 def test_ccd_gain(bgi):
     assert bgi.ccd_gain == 3
+
+
+def test_bias_level(bgi):
+    assert bgi.bias_level == 500
 
 
 # ----------------------- Calculate sky flux -----------------------------
