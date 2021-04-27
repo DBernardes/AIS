@@ -1,4 +1,4 @@
-|Documentation|
+|Unit Tests| |Documentation|
 
 Introduction
 ============
@@ -185,4 +185,7 @@ References
 .. |Documentation| image:: https://readthedocs.org/projects/ais/badge/?version=latest
 	:target: https://ais.readthedocs.io/en/latest/?badge=latest
 	:alt: Documentation Status
+.. |Unit Tests| image:: https://github.com/DBernardes/AIS/actions/workflows/python-unittests.yml/badge.svg
+	:target: https://github.com/DBernardes/AIS/actions/workflows/python-unittests.yml
+	:alt: Unit Tests
       
