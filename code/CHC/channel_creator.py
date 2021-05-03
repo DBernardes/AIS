@@ -28,14 +28,17 @@ class Abstract_Channel_Creator:
     ----------
     ccd_temp : float
         The CCD temperature in ºC
+    sparc4_acquisition_mode : [phot, pol]
+        Acquisition mode of the SPARC4: photometric or polarimetric
     """
 
     _CHANNEL_ID = 0
     _SERIAL_NUMBER = 0
 
-    def __init__(self, ccd_temp):
+    def __init__(self, ccd_temp, sparc4_acquisition_mode):
         """Initialize the class."""
         self.ccd_temp = ccd_temp
+        self.sparc4_acquisition_mode = sparc4_acquisition_mode
 
     def _factory_method(self):
         pass
@@ -55,7 +58,7 @@ class Abstract_Channel_Creator:
         """
         return self._SERIAL_NUMBER
 
-    def calc_dark_current(self):
+    def calculate_dark_current(self):
         """Calculate the cark current.
 
         This function calculates the dark current for each SPARC4 CCD. This is
@@ -96,7 +99,7 @@ class Concrete_Channel_1(Abstract_Channel_Creator):
     def _factory_method(self):
         pass
 
-    def calc_dark_current(self):
+    def calculate_dark_current(self):
         """Calculate the dark current.
 
         This function extends the function of the Abstract Channel Creator
@@ -128,7 +131,7 @@ class Concrete_Channel_2(Abstract_Channel_Creator):
     def _factory_method(self):
         pass
 
-    def calc_dark_current(self):
+    def calculate_dark_current(self):
         """Calculate the dark current.
 
         This function extends the function of the Abstract Channel Creator
@@ -160,7 +163,7 @@ class Concrete_Channel_3(Abstract_Channel_Creator):
     def _factory_method(self):
         pass
 
-    def calc_dark_current(self):
+    def calculate_dark_current(self):
         """Calculate the dark current.
 
         This function extends the function of the Abstract Channel Creator
@@ -192,7 +195,7 @@ class Concrete_Channel_4(Abstract_Channel_Creator):
     def _factory_method(self):
         pass
 
-    def calc_dark_current(self):
+    def calculate_dark_current(self):
         """Calculate the dark current.
 
         This function extends the function of the Abstract Channel Creator

@@ -16,7 +16,7 @@ if __name__ == "__main__":
                                 'ccd_temp': -70}
 
     ais = Artificial_Image_Simulator(
-        star_flux=100, sky_flux=10, gaussian_std=3,
+        star_magnitude=100, sky_magnitude=10, gaussian_std=3,
         ccd_operation_mode=ccd_operation_mode, channel=1,
         image_dir=r'C:\Users\denis\Desktop\AIS')
 

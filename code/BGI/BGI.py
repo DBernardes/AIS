@@ -80,7 +80,7 @@ class Background_Image:
         self.sky_flux = self.FC.calc_sky_flux()
 
     def _calculate_dark_current(self):
-        self.dark_current = self.CHC.calc_dark_current()
+        self.dark_current = self.CHC.calculate_dark_current()
 
     def _calculate_read_noise(self, ccd_operation_mode):
         self.read_noise = self.CHC.calculate_read_noise(ccd_operation_mode)

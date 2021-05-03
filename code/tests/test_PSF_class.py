@@ -22,7 +22,8 @@ dic = {'em_gain': 1, 'binn': 1, 't_exp': 1}
 
 @pytest.fixture
 def chc1():
-    return Concrete_Channel_1(ccd_temp=-70)
+    return Concrete_Channel_1(ccd_temp=-70,
+                              sparc4_acquisition_mode='phot')
 
 
 @pytest.fixture

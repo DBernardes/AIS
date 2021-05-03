@@ -160,13 +160,17 @@ class Artificial_Image_Simulator:
 
         CHC = 0
         if channel == 1:
-            CHC = Concrete_Channel_1(ccd_operation_mode['ccd_temp'])
+            CHC = Concrete_Channel_1(ccd_operation_mode['ccd_temp'],
+                                     sparc4_acquisition_mode='phot')
         elif channel == 2:
-            CHC = Concrete_Channel_2(ccd_operation_mode['ccd_temp'])
+            CHC = Concrete_Channel_2(ccd_operation_mode['ccd_temp'],
+                                     sparc4_acquisition_mode='phot')
         elif channel == 3:
-            CHC = Concrete_Channel_3(ccd_operation_mode['ccd_temp'])
+            CHC = Concrete_Channel_3(ccd_operation_mode['ccd_temp'],
+                                     sparc4_acquisition_mode='phot')
         elif channel == 4:
-            CHC = Concrete_Channel_4(ccd_operation_mode['ccd_temp'])
+            CHC = Concrete_Channel_4(ccd_operation_mode['ccd_temp'],
+                                     sparc4_acquisition_mode='phot')
         self.CHC = CHC
         self.PSF = Point_Spread_Function(
             CHC, ccd_operation_mode, self.ccd_gain, self.gaussian_std)
