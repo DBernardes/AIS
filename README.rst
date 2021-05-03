@@ -3,7 +3,7 @@
 Introduction
 ============
 
-oi!
+oi! tire isto aqui
 
 This repo contains the software of the Artificial Images Simulator (AIS). The AIS was developed using python 3 language to 
 create cubes of artificial star images, simulating those images that would be acquired by using the SPARC4 [#SPARC4]_ CCD cameras 
@@ -15,6 +15,9 @@ Also, it is presented a simple execution example.
 .. image:: /docs/images/artificial_star.png   
    :alt: Artificial star image
    :align: center
+
+
+oi de novo
 
 
 Software Description
