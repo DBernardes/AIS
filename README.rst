@@ -3,6 +3,8 @@
 Introduction
 ============
 
+oi!
+
 This repo contains the software of the Artificial Images Simulator (AIS). The AIS was developed using python 3 language to 
 create cubes of artificial star images, simulating those images that would be acquired by using the SPARC4 [#SPARC4]_ CCD cameras 
 in astronomical observations. To create the images, the AIS models the star flux distribution as a 2D-Gaussian Distribution. 
