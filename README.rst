@@ -192,3 +192,8 @@ References
       :target: https://codecov.io/gh/DBernardes/AIS
     
       
+
+
+.. image:: https://api.codacy.com/project/badge/Grade/f8749513e31f4a858e7840805d194959
+   :alt: Codacy Badge
+   :target: https://app.codacy.com/gh/DBernardes/AIS?utm_source=github.com&utm_medium=referral&utm_content=DBernardes/AIS&utm_campaign=Badge_Grade_Settings
