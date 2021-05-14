@@ -10,7 +10,7 @@ flux is added to an image with a background level given by counts distribution
 of an image of the SPARC4 cameras, as a function of its operation mode.
 """
 
-
+from sys import exit
 import openpyxl
 import astropy.io.fits as fits
 from PSF import Point_Spread_Function
@@ -30,9 +30,7 @@ class Artificial_Image_Simulator:
     star_magitude : float
         Magnitude of the star
     sky_magnitude: float
-        Magnitude of the sky
-    gaussian_stddev: int
-        Number of pixels of the gaussian standard deviation
+        Magnitude of the sky    
     ccd_operation_mode: dictionary
         A python dictionary with the CCD operation mode. The allowed keywords
         values for the dictionary are
@@ -61,11 +59,20 @@ class Artificial_Image_Simulator:
 
            Exposure time in seconds
 
-    ccd_temp: float, optional
-        CCD temperature
+        * ccd_temp: float
+            CCD temperature
 
-    serial_number: {9914, 9915, 9916 or 9917}, optional
-        CCD serial number
+    channel: {1, 2, 3, 4}, optional
+        The SPARC4 channel
+
+    gaussian_stddev: int
+        Number of pixels of the gaussian standard deviation
+
+    star_position: list
+        XY coordinates of the position of the star
+
+    image_size: int, optional
+        Image size in pixels
 
     bias_level: int, optional
         Bias level, in ADU, of the image
@@ -96,10 +103,13 @@ class Artificial_Image_Simulator:
     def __init__(self,
                  star_magnitude,
                  sky_magnitude,
-                 gaussian_std,
                  ccd_operation_mode,
-                 channel,
+                 channel=1,
+                 gaussian_std=3,
+                 star_position=[100, 100],
+                 image_size=200,
                  bias_level=500,
+                 sparc4_operation_mode='phot',
                  image_dir=''):
         """Initialize the class."""
         if type(star_magnitude) not in [int, float]:
@@ -119,23 +129,42 @@ class Artificial_Image_Simulator:
         else:
             self.sky_magnitude = sky_magnitude
 
-        if type(gaussian_std) is not int:
-            raise ValueError(
-                f'The gaussian standard deviation must be \
-                an integer: {gaussian_std}')
-        elif gaussian_std <= 0:
-            raise ValueError(
-                f'The gaussian standard deviation must be greater \
-                than zero: {gaussian_std}')
-        else:
-            self.gaussian_std = gaussian_std
-
         if channel in [1, 2, 3, 4]:
             self.channel = channel
         else:
             raise ValueError(
                 'There is no camera with the provided'
                 + f'serial number: {channel}')
+
+        if type(gaussian_std) is not int:
+            raise ValueError(
+                'The gaussian standard deviation must be'
+                + f'an integer: {gaussian_std}')
+        elif gaussian_std <= 0:
+            raise ValueError(
+                r'The gaussian standard deviation must be greater'
+                + f'than zero: {gaussian_std}')
+        else:
+            self.gaussian_std = gaussian_std
+
+        for coord in star_position:
+            if type(coord) is not int:
+                raise ValueError(
+                    'The star coordinates must be an integer: {coord}')
+            elif coord <= 0:
+                raise ValueError(
+                    'The star coordinates must be greater than zero: {coord}')
+            else:
+                self.star_position = star_position
+
+        if type(image_size) is not int:
+            raise ValueError(
+                f'The image size must be an integer: {image_size}')
+        elif image_size <= 0:
+            raise ValueError(
+                f'The image size must be greater than zero: {image_size}')
+        else:
+            self.image_size = image_size
 
         if type(bias_level) is not int:
             raise ValueError(
@@ -144,6 +173,16 @@ class Artificial_Image_Simulator:
             raise ValueError(f'The bias level must be positive: {bias_level}')
         else:
             self.bias_level = bias_level
+
+        if type(sparc4_operation_mode) is not str:
+            raise ValueError(
+                r'The SPARC4 operation mode must be a string: '
+                + f'{sparc4_operation_mode}')
+        elif sparc4_operation_mode not in ['phot', 'pol']:
+            raise ValueError('The SPARC4 operation mode must be "phot" '
+                             + f'or "pol": {sparc4_operation_mode}')
+        else:
+            self.sparc4_operation_mode = sparc4_operation_mode
 
         if type(image_dir) is not str:
             raise ValueError(
@@ -159,17 +198,18 @@ class Artificial_Image_Simulator:
         self._configure_image_name(ccd_operation_mode)
 
         CHC = 0
+        ccd_temp = ccd_operation_mode['ccd_temp']
         if channel == 1:
-            CHC = Concrete_Channel_1(ccd_operation_mode['ccd_temp'],
+            CHC = Concrete_Channel_1(ccd_temp,
                                      sparc4_acquisition_mode='phot')
         elif channel == 2:
-            CHC = Concrete_Channel_2(ccd_operation_mode['ccd_temp'],
+            CHC = Concrete_Channel_2(ccd_temp,
                                      sparc4_acquisition_mode='phot')
         elif channel == 3:
-            CHC = Concrete_Channel_3(ccd_operation_mode['ccd_temp'],
+            CHC = Concrete_Channel_3(ccd_temp,
                                      sparc4_acquisition_mode='phot')
         elif channel == 4:
-            CHC = Concrete_Channel_4(ccd_operation_mode['ccd_temp'],
+            CHC = Concrete_Channel_4(ccd_temp,
                                      sparc4_acquisition_mode='phot')
         self.CHC = CHC
         self.PSF = Point_Spread_Function(
@@ -181,14 +221,6 @@ class Artificial_Image_Simulator:
 
     def _verify_ccd_operation_mode(self, ccd_operation_mode):
         """Verify if the provided CCD operation mode is correct."""
-        em_mode = ccd_operation_mode['em_mode']
-        em_gain = ccd_operation_mode['em_gain']
-        hss = ccd_operation_mode['hss']
-        preamp = ccd_operation_mode['preamp']
-        binn = ccd_operation_mode['binn']
-        t_exp = ccd_operation_mode['t_exp']
-        ccd_temp = ccd_operation_mode['ccd_temp']
-
         dic_keywords_list = [
             'binn', 'ccd_temp', 'em_gain', 'em_mode', 'hss', 'preamp', 't_exp']
 
@@ -197,9 +229,19 @@ class Artificial_Image_Simulator:
                 raise ValueError(
                     f'The name provided is not a CCD parameter: {key}')
 
-        if list(ccd_operation_mode.keys()).sort() != dic_keywords_list.sort():
+        keyvalues = list(ccd_operation_mode.keys())
+        keyvalues.sort()
+        if keyvalues != dic_keywords_list:
             raise ValueError(
                 'There is a missing parameter of the CCD operation mode')
+
+        em_mode = ccd_operation_mode['em_mode']
+        em_gain = ccd_operation_mode['em_gain']
+        hss = ccd_operation_mode['hss']
+        preamp = ccd_operation_mode['preamp']
+        binn = ccd_operation_mode['binn']
+        t_exp = ccd_operation_mode['t_exp']
+        ccd_temp = ccd_operation_mode['ccd_temp']
 
         if em_mode not in [0, 1]:
             raise ValueError(
@@ -298,7 +340,7 @@ class Artificial_Image_Simulator:
             tab_index += 2
 
         spreadsheet = openpyxl.load_workbook(
-            f'code/RNC/spreadsheet/Channel {self.channel}'
+            f'./RNC/spreadsheet/Channel {self.channel}'
             + '/Read_noise_and_gain_values.xlsx').active
         self.ccd_gain = spreadsheet.cell(tab_index, 5).value
 
