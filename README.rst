@@ -1,4 +1,4 @@
-|Unit Tests| |Documentation| |Code Cov|
+|Unit Tests| |Documentation| |Code Cov| |Codacy| 
 
 Introduction
 ============
@@ -190,5 +190,7 @@ References
 	:alt: Unit Tests
 .. |Code Cov| image:: https://codecov.io/gh/DBernardes/AIS/branch/main/graph/badge.svg?token=aPhVaeHkOh
       :target: https://codecov.io/gh/DBernardes/AIS
-    
+      
+.. |Codacy| image:: https://app.codacy.com/project/badge/Grade/b2724af0f0b043bc84f768659f73fb77    
+    :target: https://www.codacy.com/gh/DBernardes/AIS/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DBernardes/AIS&amp;utm_campaign=Badge_Grade
       
