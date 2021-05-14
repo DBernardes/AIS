@@ -1,5 +1,5 @@
 """
-Background Image 
+Background Image
 ================
 
 This is the Background Image Class used to generate a back ground image like
@@ -124,3 +124,68 @@ class Background_Image:
                                                  stddev=noise)
 
         return self.background_image
+
+    def create_dark_image(self):
+        """Create a dark image.
+
+        This functions creates a dark image with a background level given
+        by the ccd operation mode, the dc noise, and the bias
+        level. Over this image there is a noise given by a gaussian
+        distribution over the read noise and dc noise. Also, the
+        extra noise of the EM amplification is considered.
+
+        Returns
+        -------
+        dark_image: array like
+            A dark image for the respective CCD operation mode and the dc level
+
+        """
+        t_exp = self.t_exp
+        em_gain = self.em_gain
+        ccd_gain = self.ccd_gain
+        bias = self.bias_level
+        dc = self.dark_current * t_exp
+        rn = self.read_noise
+        nf = self.NOISE_FACTOR
+        binn = self.binn
+
+        shape = (200, 200)
+        dark_level = bias \
+            + (dc) * t_exp * em_gain * binn**2 / ccd_gain
+
+        noise = np.sqrt(rn**2 + (dc)*t_exp
+                        * nf**2 * em_gain**2 * binn**2)/ccd_gain
+
+        self.dark_image = make_noise_image(shape,
+                                           distribution='gaussian',
+                                           mean=dark_level,
+                                           stddev=noise)
+
+        return self.dark_image
+
+    def create_bias_image(self):
+        """Create the bias image.
+
+        This functions creates a bias image with the provided bias level given
+        as a function of the ccd operation mode. Over this image there is a
+        noise given by a gaussian distribution over the read noise.
+
+
+        Returns
+        -------
+        bias_image: array like
+            A bias image for the respective CCD operation mode.
+
+        """
+        ccd_gain = self.ccd_gain
+        bias = self.bias_level
+        rn = self.read_noise
+
+        shape = (200, 200)
+        noise = rn/ccd_gain
+        self.bias_image = make_noise_image(shape,
+                                           distribution='gaussian',
+                                           mean=bias,
+                                           stddev=noise)
+
+        return self.bias_image

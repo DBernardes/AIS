@@ -486,7 +486,29 @@ def test_configure_gain(ais, em_mode, em_gain, hss, preamp, binn, ccd_gain):
 # --------------------------- test create artificial image ----------------
 
 
-def test_create_artificial_image(ais):
+def test_create_artificial_image():
     dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
-    Artificial_Image_Simulator(100, 10, dic)
+    ais = Artificial_Image_Simulator(100, 10, dic)
+    ais.create_artificial_image()
+
+
+def test_create_background_image():
+    dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
+           'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
+    ais = Artificial_Image_Simulator(100, 10, dic)
+    ais.create_background_image()
+
+
+def test_creat_bias_image():
+    dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
+           'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
+    ais = Artificial_Image_Simulator(100, 10, dic)
+    ais.create_bias_image()
+
+
+def test_creat_dark_image():
+    dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
+           'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
+    ais = Artificial_Image_Simulator(100, 10, dic)
+    ais.create_dark_image()

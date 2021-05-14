@@ -105,7 +105,13 @@ def test_calculate_read_noise(bgi):
 # ----------------------- Calculate Background Image -------------------------
 
 
-'''Como testar ?'''
+def test_create_background_image(bgi):
+    bgi.create_background_image()
 
-# def test_create_background_image(bgi):
-#     assert bgi.create_background_image() == []
+
+def test_create_bias_image(bgi):
+    bgi.create_bias_image()
+
+
+def test_create_dark_image(bgi):
+    bgi.create_dark_image()

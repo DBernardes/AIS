@@ -363,3 +363,58 @@ class Artificial_Image_Simulator:
 
         fits.writeto(self.image_dir + self.image_name + '.fits',
                      background + star_PSF, overwrite=True, header=header)
+
+    def create_background_image(self):
+        """Create the background image.
+
+        This function creates the background image, similar to those
+        acquired by the SPARC4 cameras.
+
+
+        Returns
+        -------
+        Background Image:
+            A FITS file with the calculated background image
+        """
+        background = self.BGI.create_background_image()
+        header = self.HDR.create_header()
+
+        fits.writeto(self.image_dir + self.image_name + '_BG.fits',
+                     background, overwrite=True, header=header)
+
+    def create_dark_image(self):
+        """Create a dark image.
+
+        This function creates a dark image, similar to those
+        acquired by the SPARC4 cameras.
+
+
+        Returns
+        -------
+        Dark Image:
+            A FITS file with the calculated dark image
+        """
+        dark_image = self.BGI.create_dark_image()
+        header = self.HDR.create_header()
+
+        fits.writeto(self.image_dir + self.image_name + '_DARK.fits',
+                     dark_image, overwrite=True, header=header)
+
+    def create_bias_image(self):
+        """Create a bias image.
+
+        This function creates a bias image, similar to those
+        acquired by the SPARC4 cameras.
+
+
+        Returns
+        -------
+        Bias Image:
+            A FITS file with the calculated bias image
+        """
+        bias = self.BGI.create_bias_image()
+        header = self.HDR.create_header()
+        header['EXPOSURE'] = 1e-5
+
+        fits.writeto(self.image_dir + self.image_name + '_BIAS.fits',
+                     bias, overwrite=True, header=header)

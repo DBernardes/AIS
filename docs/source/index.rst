@@ -7,10 +7,10 @@ star images, simulating those images that would be acquired by using the
 SPARC4 [#SPARC4]_ CCD cameras in astronomical observations. To create the 
 images, the AIS models the star flux distribution as a 2D-Gaussian 
 Distribution. This result is added to a noise image, created based on the 
-noise information of the SPARC4 CCDs, as a function of their operation mode. 
-Figure below presents an example of an image created by the AIS. This page 
-explains the step-by-step procedure of the AIS to create the images. 
-Also, it is presented a simple execution example. 
+noise information of the SPARC4 CCDs added to the sky flux, as a function 
+of their operation mode. Figure below presents an example of an image created 
+by the AIS. This page explains the step-by-step procedure of the AIS to create
+the images. Also, it is presented a simple execution example. 
 
 .. image:: ../images/artificial_star.png   
    :alt: Artificial star image
