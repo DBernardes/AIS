@@ -197,7 +197,7 @@ class Artificial_Image_Simulator:
         else:
             if image_dir != "":
                 if "/" not in image_dir[-1]:
-                    image_dir += "/"
+                    image_dir += "\\"
             self.image_dir = image_dir
 
         self._verify_ccd_operation_mode(ccd_operation_mode)
