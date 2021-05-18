@@ -6,9 +6,7 @@ The Point Spread Function (PSF) class calculates the star flux distribution
 based on a gaussian 2D distributiopn
 """
 
-from FC import Flux_Calculation
-from Telescope_SR import Telescope_Spectral_Response
-from Atmosphere_SR import Atmosphere_Spectral_Response
+
 from astropy.table import Table
 from photutils.datasets import make_gaussian_sources_image
 import numpy as np
@@ -45,9 +43,6 @@ class Point_Spread_Function:
                  gaussian_std):
         """Initialize the class."""
         self.CHC = Abstract_Channel_Creator
-        self.FC = Flux_Calculation()
-        self.TSR = Telescope_Spectral_Response()
-        self.ASR = Atmosphere_Spectral_Response()
 
         self.em_gain = ccd_operation_mode['em_gain']
         self.binn = ccd_operation_mode['binn']
@@ -55,12 +50,7 @@ class Point_Spread_Function:
         self.ccd_gain = ccd_gain
         self.gaussian_std = gaussian_std
 
-        self._calculate_star_flux()
-
-    def _calculate_star_flux(self):
-        self.star_flux = self.FC.calc_star_flux()
-
-    def create_star_PSF(self):
+    def create_star_PSF(self, star_flux):
         """Create the artificial image cube."""
         t_exp = self.t_exp
         em_gain = self.em_gain
@@ -68,7 +58,7 @@ class Point_Spread_Function:
         binn = self.binn
         gaussian_std = self.gaussian_std
 
-        gaussian_amplitude = self.star_flux \
+        gaussian_amplitude = star_flux \
             * t_exp * em_gain * binn**2 / ccd_gain
         shape = (200, 200)
         table = Table()

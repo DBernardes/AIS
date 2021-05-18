@@ -6,4 +6,4 @@ This package calculates the flux of an astronomical object as a funtion of its
 magnitude. 
 """
 
-from .flux_calculation import Flux_Calculation
+from .spectrum_calculation import Spectrum_Calculation

@@ -33,34 +33,6 @@ def psf(chc1):
 
 # ------------------------ Initialize the class --------------------------
 
-def test_CHC(psf):
-    var = 0
-    if psf.CHC:
-        var = 1
-    assert var == 1
-
-
-def test_FC(psf):
-    var = 0
-    if psf.FC:
-        var = 1
-    assert var == 1
-
-
-def test_TSR(psf):
-    var = 0
-    if psf.TSR:
-        var = 1
-    assert var == 1
-
-
-def test_ASR(psf):
-    var = 0
-    if psf.ASR:
-        var = 1
-    assert var == 1
-
-
 def test_em_gain(psf):
     assert psf.em_gain == 1
 
@@ -79,12 +51,6 @@ def test_ccd_gain(psf):
 
 # ----------------------- Calculate star PSF -----------------------------
 
-def test_calc_star_flux(psf):
-    psf._calculate_star_flux()
-    assert psf.star_flux == 100
-
-
-# ----------------------- Calculate star PSF -----------------------------
 
 def test_calculate_star_PSF(psf):
     em_gain = dic['em_gain']
@@ -106,4 +72,4 @@ def test_calculate_star_PSF(psf):
 
     star_image = make_gaussian_sources_image(shape, table)
 
-    assert np.sum(psf.create_star_PSF()) == np.sum(star_image)
+    assert np.sum(psf.create_star_PSF(star_flux)) == np.sum(star_image)

@@ -92,6 +92,34 @@ def test_sparc4_operation_mode(ais):
 def test_image_dir(ais):
     assert ais.image_dir == 'a/'
 
+
+def test_CHC(ais):
+    var = 0
+    if ais.CHC:
+        var = 1
+    assert var == 1
+
+
+def test_SC(ais):
+    var = 0
+    if ais.SC:
+        var = 1
+    assert var == 1
+
+
+def test_TSR(ais):
+    var = 0
+    if ais.TSR:
+        var = 1
+    assert var == 1
+
+
+def test_ASR(ais):
+    var = 0
+    if ais.ASR:
+        var = 1
+    assert var == 1
+
 # -----------------Provide a string value to the parameters--------------------
 
 
@@ -416,6 +444,47 @@ def test_Channel_output_4():
     ais = Artificial_Image_Simulator(100.0, 10.0, dic, channel=4)
     assert ais.get_channel_ID() == 'Channel 4'
 
+# ----------------------- Calculate dark current  -------------------------
+
+
+def test_calculate_dark_current(ais):
+    ais._calculate_dark_current()
+    assert round(ais.dark_current, 7) == 5.86e-5
+
+
+# -------------------------Calculate Read Noise -------------------------
+
+def test_calculate_read_noise(ais):
+    ais._calculate_read_noise(dic)
+    assert ais.read_noise == 6.67
+
+# ----------------------- Apply spectruns ---------------------------
+
+
+def test_calcualte_star_spectrum(ais):
+    ais._calculate_star_spectrum()
+    assert ais.star_spectrum == [100]
+
+
+def test_calculate_sky_spectrum(ais):
+    ais._calculate_sky_spectrum()
+    assert ais.sky_spectrum == [100]
+
+
+def test_apply_atmosphere_spectral_response(ais):
+    ais.apply_atmosphere_spectral_response()
+    assert ais.star_spectrum == [100]
+
+
+def test_apply_telescope_spectral_response(ais):
+    ais.apply_atmosphere_spectral_response()
+    assert ais.star_spectrum == [100]
+
+
+def test_apply_sparc4_spectral_response(ais):
+    ais.apply_sparc4_spectral_response()
+    assert ais.star_spectrum == [100]
+
 # -----------------------------test _create_image_name------------------------
 
 
@@ -489,26 +558,30 @@ def test_configure_gain(ais, em_mode, em_gain, hss, preamp, binn, ccd_gain):
 def test_create_artificial_image():
     dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
-    ais = Artificial_Image_Simulator(100, 10, dic)
+    ais = Artificial_Image_Simulator(100, 10, dic,
+                                     image_dir=r'C:\Users\denis\Desktop')
     ais.create_artificial_image()
 
 
 def test_create_background_image():
     dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
-    ais = Artificial_Image_Simulator(100, 10, dic)
+    ais = Artificial_Image_Simulator(100, 10, dic,
+                                     image_dir=r'C:\Users\denis\Desktop')
     ais.create_background_image()
 
 
 def test_creat_bias_image():
     dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
-    ais = Artificial_Image_Simulator(100, 10, dic)
+    ais = Artificial_Image_Simulator(100, 10, dic,
+                                     image_dir=r'C:\Users\denis\Desktop')
     ais.create_bias_image()
 
 
 def test_creat_dark_image():
     dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
            'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
-    ais = Artificial_Image_Simulator(100, 10, dic)
+    ais = Artificial_Image_Simulator(100, 10, dic,
+                                     image_dir=r'C:\Users\denis\Desktop')
     ais.create_dark_image()

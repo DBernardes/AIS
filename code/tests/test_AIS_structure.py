@@ -42,12 +42,12 @@ def chc1():
 
 @pytest.fixture
 def psf(chc1):
-    return Point_Spread_Function(chc1, dic, 3, 3)
+    return Point_Spread_Function(dic, 3, 3)
 
 
 @pytest.fixture
 def bgi(chc1):
-    return Background_Image(chc1, dic, 3, 500)
+    return Background_Image(dic, 3, 500)
 
 
 # -------------------- Testing the AIS structure -----------------------------
@@ -81,62 +81,22 @@ def test_HDR(ais):
     assert var == 1
 
 
-# -------------------- Testing the PSF structure -----------------------------
-
-
-def test_Point_Spread_Function_Channel_Creator(psf):
+def test_Spectrum_Calculation(ais):
     var = 0
-    if psf.CHC:
+    if ais.SC:
         var = 1
     assert var == 1
 
 
-def test_Point_Spread_Function_Flux_Calculation(psf):
+def test_Telescope_Spectral_Response(ais):
     var = 0
-    if psf.FC:
+    if ais.TSR:
         var = 1
     assert var == 1
 
 
-def test_Point_Spread_Function_Telescope_Spectral_Response(psf):
+def test_Atmosphere_Spectral_Response(ais):
     var = 0
-    if psf.TSR:
-        var = 1
-    assert var == 1
-
-
-def test_Point_Spread_Function_Atmosphere_Spectral_Response(psf):
-    var = 0
-    if psf.ASR:
-        var = 1
-    assert var == 1
-
-# -------------------- Testing the BGI structure -----------------------------
-
-
-def test_Background_Image_Channel_Creator(bgi):
-    var = 0
-    if bgi.CHC:
-        var = 1
-    assert var == 1
-
-
-def test_Background_Image_Flux_Calculation(bgi):
-    var = 0
-    if bgi.FC:
-        var = 1
-    assert var == 1
-
-
-def test_Background_Imagen_Telescope_Spectral_Response(bgi):
-    var = 0
-    if bgi.TSR:
-        var = 1
-    assert var == 1
-
-
-def test_Background_Image_Atmosphere_Spectral_Response(bgi):
-    var = 0
-    if bgi.ASR:
+    if ais.ASR:
         var = 1
     assert var == 1

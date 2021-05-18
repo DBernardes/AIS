@@ -6,9 +6,6 @@ This is the Background Image Class used to generate a back ground image like
 a bias image acquired by the SPARC4 cameras.
 """
 
-from FC import Flux_Calculation
-from Telescope_SR import Telescope_Spectral_Response
-from Atmosphere_SR import Atmosphere_Spectral_Response
 import numpy as np
 
 
@@ -51,15 +48,12 @@ class Background_Image:
         The bias level of the image in ADU.
         """
 
-    def __init__(self, abstract_channel_creator,
-                 ccd_operation_mode,
-                 ccd_gain, bias_level):
+    def __init__(self, ccd_operation_mode, ccd_gain, dark_current, read_noise,
+                 bias_level):
         """Initialize the Background Image class."""
-        self.CHC = abstract_channel_creator
-        self.FC = Flux_Calculation()
-        self.TSR = Telescope_Spectral_Response()
-        self.ASR = Atmosphere_Spectral_Response()
         self.ccd_gain = ccd_gain
+        self.dark_current = dark_current
+        self.read_noise = read_noise
         self.bias_level = bias_level
 
         self.em_gain = ccd_operation_mode['em_gain']
@@ -72,20 +66,7 @@ class Background_Image:
         if ccd_operation_mode['em_mode'] == 1:
             self.NOISE_FACTOR = 1.4
 
-        self._calculate_sky_flux()
-        self._calculate_dark_current()
-        self._calculate_read_noise(ccd_operation_mode)
-
-    def _calculate_sky_flux(self):
-        self.sky_flux = self.FC.calc_sky_flux()
-
-    def _calculate_dark_current(self):
-        self.dark_current = self.CHC.calculate_dark_current()
-
-    def _calculate_read_noise(self, ccd_operation_mode):
-        self.read_noise = self.CHC.calculate_read_noise(ccd_operation_mode)
-
-    def create_background_image(self):
+    def create_background_image(self, sky_flux):
         """Create the background image.
 
         This functions creates a background image with a background level given
@@ -107,7 +88,7 @@ class Background_Image:
         bias = self.bias_level
         dc = self.dark_current * t_exp
         rn = self.read_noise
-        sky = self.sky_flux
+        sky = sky_flux
         nf = self.NOISE_FACTOR
         binn = self.binn
 
