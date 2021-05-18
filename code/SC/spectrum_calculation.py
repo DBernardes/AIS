@@ -1,6 +1,6 @@
 """
-Flux Calculation Class
-======================
+Spectral Calculation Class
+===========================
 
 This class calculates the spectrum of an astronomical object as a function of its
 magnitude
