@@ -10,34 +10,43 @@ Created on Fri Apr 16 09:10:51 2021
 """
 
 
-from AIS import Artificial_Image_Simulator
-from PSF import Point_Spread_Function
-from BGI import Background_Image
-from HDR import Header
-from CHC import (Concrete_Channel_1,
-                 Concrete_Channel_2,
-                 Concrete_Channel_3,
-                 Concrete_Channel_4)
 import pytest
+from code.AIS.AIS import Artificial_Image_Simulator
+from code.BGI.BGI import Background_Image
+from code.CHC.CHC import (
+    Concrete_Channel_1,
+    Concrete_Channel_2,
+    Concrete_Channel_3,
+    Concrete_Channel_4,
+)
+from code.HDR.HDR import Header
+from code.PSF.PSF import Point_Spread_Function
 
-
-dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
-       'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
+dic = {
+    "em_mode": 0,
+    "em_gain": 1,
+    "preamp": 1,
+    "hss": 1,
+    "binn": 1,
+    "t_exp": 1,
+    "ccd_temp": -70,
+}
 
 
 @pytest.fixture
 def ais():
-    return Artificial_Image_Simulator(star_magnitude=15,
-                                      sky_magnitude=20,
-                                      gaussian_std=3,
-                                      ccd_operation_mode=dic,
-                                      channel=1)
+    return Artificial_Image_Simulator(
+        star_magnitude=15,
+        sky_magnitude=20,
+        gaussian_std=3,
+        ccd_operation_mode=dic,
+        channel=1,
+    )
 
 
 @pytest.fixture
 def chc1():
-    return Concrete_Channel_1(ccd_temp=-70,
-                              sparc4_acquisition_mode='phot')
+    return Concrete_Channel_1(ccd_temp=-70, sparc4_acquisition_mode="phot")
 
 
 @pytest.fixture

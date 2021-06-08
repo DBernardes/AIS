@@ -35,7 +35,7 @@ Created on Fri Apr 16 09:10:51 2021
 
 
 import pytest
-from AIS import Artificial_Image_Simulator
+from code.AIS.AIS import Artificial_Image_Simulator
 
 dic = {
     "em_mode": 0,

@@ -6,8 +6,10 @@ This is the package for the calculation of the ouput flux of an astronomical
 object as a funtion of the SPARC4 spectral response.
 """
 
-from .sparc4_spectral_resp import (Abstract_SPARC4_Spectral_Response,
-                                   Concrete_SPARC4_Spectral_Response_1,
-                                   Concrete_SPARC4_Spectral_Response_2,
-                                   Concrete_SPARC4_Spectral_Response_3,
-                                   Concrete_SPARC4_Spectral_Response_4)
+from .S4_SR import (
+    Abstract_SPARC4_Spectral_Response,
+    Concrete_SPARC4_Spectral_Response_1,
+    Concrete_SPARC4_Spectral_Response_2,
+    Concrete_SPARC4_Spectral_Response_3,
+    Concrete_SPARC4_Spectral_Response_4,
+)

@@ -9,11 +9,18 @@ Created on Fri Apr 16 11:53:12 2021
 """
 
 
-from HDR import Header
+from code.HDR.HDR import Header
 import pytest
 
-dic = {'em_mode': 0, 'em_gain': 1, 'preamp': 1,
-       'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
+dic = {
+    "em_mode": 0,
+    "em_gain": 1,
+    "preamp": 1,
+    "hss": 1,
+    "binn": 1,
+    "t_exp": 1,
+    "ccd_temp": -70,
+}
 
 
 @pytest.fixture
@@ -33,8 +40,15 @@ def test_noise_factor_1(hdr):
 
 
 def test_noise_factor_2():
-    dic = {'em_mode': 1, 'em_gain': 2, 'preamp': 1,
-           'hss': 1, 'binn': 1, 't_exp': 1, 'ccd_temp': -70}
+    dic = {
+        "em_mode": 1,
+        "em_gain": 2,
+        "preamp": 1,
+        "hss": 1,
+        "binn": 1,
+        "t_exp": 1,
+        "ccd_temp": -70,
+    }
     hdr = Header(dic, 3, 9914)
     assert hdr.noise_factor == 1.41
 
@@ -72,49 +86,50 @@ def test_ccd_gain(hdr):
 def test_serial_number(hdr):
     assert hdr.serial_number == 9914
 
+
 # -----------------------------test _create_image_header---------------------
 
 
 def test_NAXIS1(hdr):
     hdr.create_header()
-    assert hdr.hdr['NAXIS1'] == 200
+    assert hdr.hdr["NAXIS1"] == 200
 
 
 def test_NAXIS2(hdr):
     hdr.create_header()
-    assert hdr.hdr['NAXIS2'] == 200
+    assert hdr.hdr["NAXIS2"] == 200
 
 
 def test_HBIN(hdr):
     hdr.create_header()
-    assert hdr.hdr['HBIN'] == 1
+    assert hdr.hdr["HBIN"] == 1
 
 
 def test_VBIN1(hdr):
     hdr.create_header()
-    assert hdr.hdr['VBIN'] == 1
+    assert hdr.hdr["VBIN"] == 1
 
 
 def test_EXPOSURE(hdr):
     hdr.create_header()
-    assert hdr.hdr['EXPOSURE'] == 1
+    assert hdr.hdr["EXPOSURE"] == 1
 
 
 def test_TEMP(hdr):
     hdr.create_header()
-    assert hdr.hdr['READTIME'] == '1.0E-006'
+    assert hdr.hdr["READTIME"] == "1.0E-006"
 
 
 def test_GAIN(hdr):
     hdr.create_header()
-    assert hdr.hdr['GAIN'] == 3.0
+    assert hdr.hdr["GAIN"] == 3.0
 
 
 def test_OUTPTAMP(hdr):
     hdr.create_header()
-    assert hdr.hdr['OUTPTAMP'] == 'Conventional'
+    assert hdr.hdr["OUTPTAMP"] == "Conventional"
 
 
 def test_SERNO(hdr):
     hdr.create_header()
-    assert hdr.hdr['SERNO'] == 9914
+    assert hdr.hdr["SERNO"] == 9914

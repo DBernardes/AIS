@@ -13,18 +13,19 @@ of an image of the SPARC4 cameras, as a function of its operation mode.
 
 import astropy.io.fits as fits
 import openpyxl
-from Atmosphere_SR import Atmosphere_Spectral_Response
-from BGI import Background_Image
-from CHC import (
+
+from ..ATM_SR import Atmosphere_Spectral_Response
+from ..BGI import Background_Image
+from ..CHC import (
     Concrete_Channel_1,
     Concrete_Channel_2,
     Concrete_Channel_3,
     Concrete_Channel_4,
 )
-from HDR import Header
-from PSF import Point_Spread_Function
-from SC import Spectrum_Calculation
-from Telescope_SR import Telescope_Spectral_Response
+from ..HDR import Header
+from ..PSF import Point_Spread_Function
+from ..SC import Spectrum_Calculation
+from ..TEL_SR import Telescope_Spectral_Response
 
 
 class Artificial_Image_Simulator:

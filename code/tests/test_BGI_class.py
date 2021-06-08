@@ -9,20 +9,21 @@ Created on Thu Apr 22 13:44:35 2021
 """
 
 
-from BGI import Background_Image
+from code.BGI.BGI import Background_Image
 import pytest
 
-dic = {'em_mode': 0, 'em_gain': 1, 'binn': 1,
-       't_exp': 1, 'preamp': 1, 'hss': 1}
+dic = {"em_mode": 0, "em_gain": 1, "binn": 1, "t_exp": 1, "preamp": 1, "hss": 1}
 
 
 @pytest.fixture
 def bgi():
-    return Background_Image(ccd_operation_mode=dic,
-                            ccd_gain=3,
-                            dark_current=1e-5,
-                            read_noise=6.3,
-                            bias_level=500)
+    return Background_Image(
+        ccd_operation_mode=dic,
+        ccd_gain=3,
+        dark_current=1e-5,
+        read_noise=6.3,
+        bias_level=500,
+    )
 
 
 # ------------------------ Initialize the class --------------------------
