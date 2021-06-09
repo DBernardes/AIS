@@ -34,8 +34,9 @@ Created on Fri Apr 16 09:10:51 2021
 """
 
 
-import pytest
 from code.AIS.AIS import Artificial_Image_Simulator
+
+import pytest
 
 dic = {
     "em_mode": 0,
@@ -45,6 +46,7 @@ dic = {
     "binn": 1,
     "t_exp": 1,
     "ccd_temp": -70,
+    "image_size": 200,
 }
 
 
@@ -56,8 +58,7 @@ def ais():
         ccd_operation_mode=dic,
         channel=1,
         gaussian_std=3,
-        star_position=[100, 100],
-        image_size=200,
+        star_coordinates=(100, 100),
         bias_level=500,
         sparc4_operation_mode="phot",
         image_dir="a",
@@ -83,12 +84,8 @@ def test_gaussian_std_positive_value(ais):
     assert ais.gaussian_std == 3
 
 
-def test_star_position_value(ais):
-    assert ais.star_position == [100, 100]
-
-
-def test_image_size(ais):
-    assert ais.image_size == 200
+def test_star_coordinates_value(ais):
+    assert ais.star_coordinates == (100, 100)
 
 
 def test_bias_level(ais):
@@ -149,14 +146,9 @@ def test_gaussian_stddev_isnot_number():
         Artificial_Image_Simulator(20, 10, dic, gaussian_std="a")
 
 
-def test_star_position_isnot_number():
+def test_star_coordinates_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(20, 10, dic, star_position=["a", 10])
-
-
-def test_image_size_isnot_number():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(20, 10, dic, image_size="a")
+        Artificial_Image_Simulator(20, 10, dic, star_coordinates=("a", 10))
 
 
 def test_bias_level_isnot_number():
@@ -192,14 +184,9 @@ def test_gaussian_stddev_negative_value():
         Artificial_Image_Simulator(100, 10, dic, gaussian_std=-1)
 
 
-def test_star_position_negative_value():
+def test_star_coordinates_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic, star_position=[-1, -1])
-
-
-def test_image_size_negative_value():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic, image_size=-1)
+        Artificial_Image_Simulator(100, 10, dic, star_coordinates=(-1, -1))
 
 
 def test_bias_level_negative_value():
@@ -225,14 +212,9 @@ def test_gaussian_stddev_zero_value():
         Artificial_Image_Simulator(100, 10, dic, gaussian_std=0)
 
 
-def test_star_position_zero_value():
+def test_star_coordinates_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic, star_position=[0, 0])
-
-
-def test_image_size_zero_value():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic, image_size=0)
+        Artificial_Image_Simulator(100, 10, dic, star_coordinates=(0, 0))
 
 
 def test_bias_level_zero_value():
@@ -252,6 +234,7 @@ def test_ccd_operation_mode_wrong_keyword_em_mode():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -266,6 +249,7 @@ def test_ccd_operation_mode_wrong_keyword_em_gain():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -280,6 +264,7 @@ def test_ccd_operation_mode_wrong_keyword_preamp():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -294,6 +279,7 @@ def test_ccd_operation_mode_wrong_keyword_hss():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -308,6 +294,7 @@ def test_ccd_operation_mode_wrong_keyword_bin():
         "bin": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -322,6 +309,7 @@ def test_ccd_operation_mode_wrong_keyword_t_exp():
         "binn": 1,
         "t_expp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -336,6 +324,22 @@ def test_ccd_operation_mode_wrong_keyword_ccd_temp():
         "binn": 1,
         "t_exp": 1,
         "ccd_tempp": -70,
+        "image_size": 200,
+    }
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(100, 10, dic)
+
+
+def test_ccd_operation_mode_wrong_keyword_image_size():
+    dic = {
+        "em_mode": 0,
+        "em_gain": 2,
+        "preamp": 1,
+        "hss": 1,
+        "binn": 1,
+        "t_exp": 1,
+        "ccd_temp": -70,
+        "image_sizee": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -353,6 +357,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_mode():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -367,6 +372,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_1():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -381,6 +387,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_2():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -395,6 +402,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_3():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -409,6 +417,7 @@ def test_ccd_operation_mode_wrong_keyvalue_preamp():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -423,6 +432,7 @@ def test_ccd_operation_mode_wrong_keyvalue_hss():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -437,6 +447,7 @@ def test_ccd_operation_mode_wrong_keyvalue_bin():
         "binn": 3,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -451,6 +462,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_exp_1():
         "binn": 1,
         "t_exp": 0,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -465,6 +477,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_exp_2():
         "binn": 1,
         "t_exp": "a",
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -479,6 +492,7 @@ def test_ccd_operation_mode_wrong_keyvalue_ccd_temp_1():
         "binn": 1,
         "t_exp": 0,
         "ccd_temp": 50,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -493,6 +507,52 @@ def test_ccd_operation_mode_wrong_keyvalue_t_ccd_temp_2():
         "binn": 1,
         "t_exp": "a",
         "ccd_temp": -70,
+        "image_size": 200,
+    }
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(100, 10, dic)
+
+
+def test_ccd_operation_mode_wrong_keyvalue_t_image_size_1():
+    dic = {
+        "em_mode": 0,
+        "em_gain": 1,
+        "preamp": 1,
+        "hss": 1,
+        "binn": 1,
+        "t_exp": "a",
+        "ccd_temp": -70,
+        "image_size": -1,
+    }
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(100, 10, dic)
+
+
+def test_ccd_operation_mode_wrong_keyvalue_t_image_size_2():
+    dic = {
+        "em_mode": 0,
+        "em_gain": 1,
+        "preamp": 1,
+        "hss": 1,
+        "binn": 1,
+        "t_exp": "a",
+        "ccd_temp": -70,
+        "image_size": 0,
+    }
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(100, 10, dic)
+
+
+def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
+    dic = {
+        "em_mode": 0,
+        "em_gain": 1,
+        "preamp": 1,
+        "hss": 1,
+        "binn": 1,
+        "t_exp": "a",
+        "ccd_temp": -70,
+        "image_size": 1.1,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -515,19 +575,43 @@ def test_channel_wrong_value():
 
 
 def test_ccd_operation_mode_missing_parameter_em_mode():
-    dic = {"em_gain": 1, "preamp": 1, "hss": 1, "binn": 1, "t_exp": 1, "ccd_temp": -70}
+    dic = {
+        "em_gain": 1,
+        "preamp": 1,
+        "hss": 1,
+        "binn": 1,
+        "t_exp": 1,
+        "ccd_temp": -70,
+        "image_size": 200,
+    }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
 
 
 def test_ccd_operation_mode_missing_parameter_em_gain():
-    dic = {"em_mode": 0, "preamp": 1, "hss": 1, "binn": 1, "t_exp": 1, "ccd_temp": -70}
+    dic = {
+        "em_mode": 0,
+        "preamp": 1,
+        "hss": 1,
+        "binn": 1,
+        "t_exp": 1,
+        "ccd_temp": -70,
+        "image_size": 200,
+    }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
 
 
 def test_ccd_operation_mode_missing_parameter_preamp():
-    dic = {"em_mode": 0, "em_gain": 1, "hss": 1, "binn": 1, "t_exp": 1, "ccd_temp": -70}
+    dic = {
+        "em_mode": 0,
+        "em_gain": 1,
+        "hss": 1,
+        "binn": 1,
+        "t_exp": 1,
+        "ccd_temp": -70,
+        "image_size": 200,
+    }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
 
@@ -540,6 +624,7 @@ def test_ccd_operation_mode_missing_parameter_hss():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -553,6 +638,7 @@ def test_ccd_operation_mode_missing_parameter_t_exp():
         "hss": 1,
         "binn": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
@@ -566,13 +652,36 @@ def test_ccd_operation_mode_missing_parameter_bin():
         "hss": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
 
 
 def test_ccd_operation_mode_missing_parameter_ccd_temp():
-    dic = {"em_mode": 0, "em_gain": 1, "preamp": 1, "hss": 1, "binn": 1, "t_exp": 1}
+    dic = {
+        "em_mode": 0,
+        "em_gain": 1,
+        "preamp": 1,
+        "hss": 1,
+        "binn": 1,
+        "t_exp": 1,
+        "image_size": 200,
+    }
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(100, 10, dic)
+
+
+def test_ccd_operation_mode_missing_parameter_image_size():
+    dic = {
+        "em_mode": 0,
+        "em_gain": 1,
+        "preamp": 1,
+        "hss": 1,
+        "binn": 1,
+        "t_exp": 1,
+        "ccd_temp": -70,
+    }
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(100, 10, dic)
 
@@ -739,6 +848,7 @@ def test_create_artificial_image():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     ais = Artificial_Image_Simulator(
         100, 10, dic, image_dir=r"C:\Users\denis\Desktop\FITS"
@@ -755,6 +865,7 @@ def test_create_background_image():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     ais = Artificial_Image_Simulator(
         100, 10, dic, image_dir=r"C:\Users\denis\Desktop\FITS"
@@ -771,6 +882,7 @@ def test_creat_bias_image():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     ais = Artificial_Image_Simulator(
         100, 10, dic, image_dir=r"C:\Users\denis\Desktop\FITS"
@@ -787,6 +899,7 @@ def test_creat_dark_image():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 200,
     }
     ais = Artificial_Image_Simulator(
         100, 10, dic, image_dir=r"C:\Users\denis\Desktop\FITS"

@@ -1,4 +1,4 @@
-.. automodule:: CHC.channel_creator
+.. automodule:: CHC.CHC
    :members:
    :undoc-members:
    :show-inheritance:

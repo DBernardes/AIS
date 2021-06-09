@@ -16,32 +16,33 @@ from code.CHC.CHC import (
     Concrete_Channel_3,
     Concrete_Channel_4,
 )
+
 import pytest
 
 
 @pytest.fixture
 def abs_chc():
-    return Abstract_Channel_Creator(ccd_temp=-70, sparc4_acquisition_mode="phot")
+    return Abstract_Channel_Creator(ccd_temp=-70, sparc4_operation_mode="phot")
 
 
 @pytest.fixture
 def chc1():
-    return Concrete_Channel_1(ccd_temp=-70, sparc4_acquisition_mode="phot")
+    return Concrete_Channel_1(ccd_temp=-70, sparc4_operation_mode="phot")
 
 
 @pytest.fixture
 def chc2():
-    return Concrete_Channel_2(ccd_temp=-70, sparc4_acquisition_mode="phot")
+    return Concrete_Channel_2(ccd_temp=-70, sparc4_operation_mode="phot")
 
 
 @pytest.fixture
 def chc3():
-    return Concrete_Channel_3(ccd_temp=-70, sparc4_acquisition_mode="phot")
+    return Concrete_Channel_3(ccd_temp=-70, sparc4_operation_mode="phot")
 
 
 @pytest.fixture
 def chc4():
-    return Concrete_Channel_4(ccd_temp=-70, sparc4_acquisition_mode="phot")
+    return Concrete_Channel_4(ccd_temp=-70, sparc4_operation_mode="phot")
 
 
 # ------------------------ Initialize the class --------------------------
@@ -52,7 +53,7 @@ def test_ccd_temp(abs_chc):
 
 
 def test_sparc_acquisition_mode(abs_chc):
-    assert abs_chc.sparc4_acquisition_mode == "phot"
+    assert abs_chc.sparc4_operation_mode == "phot"
 
 
 def test_channel_ID_abs(abs_chc):

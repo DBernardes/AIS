@@ -1,4 +1,4 @@
-.. automodule:: HDR.header
+.. automodule:: HDR.HDR
    :members:
    :undoc-members:
    :show-inheritance:

@@ -10,9 +10,19 @@ Created on Thu Apr 22 13:44:35 2021
 
 
 from code.BGI.BGI import Background_Image
+
 import pytest
 
-dic = {"em_mode": 0, "em_gain": 1, "binn": 1, "t_exp": 1, "preamp": 1, "hss": 1}
+dic = {
+    "em_mode": 0,
+    "em_gain": 1,
+    "preamp": 1,
+    "hss": 1,
+    "binn": 1,
+    "t_exp": 1,
+    "ccd_temp": -70,
+    "image_size": 200,
+}
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-.. automodule:: RNC.read_noise_calculation
+.. automodule:: RNC.RNC
    :members:
    :undoc-members:
    :show-inheritance:

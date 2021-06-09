@@ -3,9 +3,9 @@ Code
 
 .. toctree::
    :maxdepth: 2   
-
+   
    AIS
-   Atmosphere_SR
+   ATM_SR
    BGI
    CHC
    SC
@@ -13,4 +13,4 @@ Code
    PSF
    RNC
    S4_SR
-   Telescope_SR
+   TEL_SR

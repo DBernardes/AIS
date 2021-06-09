@@ -10,7 +10,6 @@ Created on Fri Apr 16 09:10:51 2021
 """
 
 
-import pytest
 from code.AIS.AIS import Artificial_Image_Simulator
 from code.BGI.BGI import Background_Image
 from code.CHC.CHC import (
@@ -22,6 +21,8 @@ from code.CHC.CHC import (
 from code.HDR.HDR import Header
 from code.PSF.PSF import Point_Spread_Function
 
+import pytest
+
 dic = {
     "em_mode": 0,
     "em_gain": 1,
@@ -30,6 +31,7 @@ dic = {
     "binn": 1,
     "t_exp": 1,
     "ccd_temp": -70,
+    "image_size": 200,
 }
 
 

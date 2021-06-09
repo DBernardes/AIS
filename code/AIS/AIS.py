@@ -9,23 +9,24 @@ the AIS models as star flux as a 2D gaussian distribution. Then, the star
 flux is added to an image with a background level given by counts distribution
 of an image of the SPARC4 cameras, as a function of its operation mode.
 """
+import sys
+from random import randint
 
-
+sys.path.append("..")
 import astropy.io.fits as fits
 import openpyxl
-
-from ..ATM_SR import Atmosphere_Spectral_Response
-from ..BGI import Background_Image
-from ..CHC import (
+from ATM_SR import Atmosphere_Spectral_Response
+from BGI import Background_Image
+from CHC import (
     Concrete_Channel_1,
     Concrete_Channel_2,
     Concrete_Channel_3,
     Concrete_Channel_4,
 )
-from ..HDR import Header
-from ..PSF import Point_Spread_Function
-from ..SC import Spectrum_Calculation
-from ..TEL_SR import Telescope_Spectral_Response
+from HDR import Header
+from PSF import Point_Spread_Function
+from SC import Spectrum_Calculation
+from TEL_SR import Telescope_Spectral_Response
 
 
 class Artificial_Image_Simulator:
@@ -66,7 +67,12 @@ class Artificial_Image_Simulator:
            Exposure time in seconds
 
         * ccd_temp: float
+
             CCD temperature
+
+        * image_size: int, optional
+
+            Image size in pixels
 
     channel: {1, 2, 3, 4}, optional
         The SPARC4 channel
@@ -74,11 +80,8 @@ class Artificial_Image_Simulator:
     gaussian_stddev: int
         Number of pixels of the gaussian standard deviation
 
-    star_position: list
-        XY coordinates of the position of the star
-
-    image_size: int, optional
-        Image size in pixels
+    star_coordinates: tuple
+        XY star coordinates in the image
 
     bias_level: int, optional
         Bias level, in ADU, of the image
@@ -113,8 +116,7 @@ class Artificial_Image_Simulator:
         ccd_operation_mode,
         channel=1,
         gaussian_std=3,
-        star_position=[100, 100],
-        image_size=200,
+        star_coordinates=(100, 100),
         bias_level=500,
         sparc4_operation_mode="phot",
         image_dir="",
@@ -156,7 +158,7 @@ class Artificial_Image_Simulator:
         else:
             self.gaussian_std = gaussian_std
 
-        for coord in star_position:
+        for coord in star_coordinates:
             if type(coord) is not int:
                 raise ValueError("The star coordinates must be an integer: {coord}")
             elif coord <= 0:
@@ -164,14 +166,7 @@ class Artificial_Image_Simulator:
                     "The star coordinates must be greater than zero: {coord}"
                 )
             else:
-                self.star_position = star_position
-
-        if type(image_size) is not int:
-            raise ValueError(f"The image size must be an integer: {image_size}")
-        elif image_size <= 0:
-            raise ValueError(f"The image size must be greater than zero: {image_size}")
-        else:
-            self.image_size = image_size
+                self.star_coordinates = star_coordinates
 
         if type(bias_level) is not int:
             raise ValueError(f"The bias level must be an integer: {bias_level}")
@@ -208,18 +203,28 @@ class Artificial_Image_Simulator:
         CHC = 0
         ccd_temp = ccd_operation_mode["ccd_temp"]
         if channel == 1:
-            CHC = Concrete_Channel_1(ccd_temp, sparc4_acquisition_mode="phot")
+            CHC = Concrete_Channel_1(
+                ccd_temp, sparc4_operation_mode=sparc4_operation_mode
+            )
         elif channel == 2:
-            CHC = Concrete_Channel_2(ccd_temp, sparc4_acquisition_mode="phot")
+            CHC = Concrete_Channel_2(
+                ccd_temp, sparc4_operation_mode=sparc4_operation_mode
+            )
         elif channel == 3:
-            CHC = Concrete_Channel_3(ccd_temp, sparc4_acquisition_mode="phot")
+            CHC = Concrete_Channel_3(
+                ccd_temp, sparc4_operation_mode=sparc4_operation_mode
+            )
         elif channel == 4:
-            CHC = Concrete_Channel_4(ccd_temp, sparc4_acquisition_mode="phot")
+            CHC = Concrete_Channel_4(
+                ccd_temp, sparc4_operation_mode=sparc4_operation_mode
+            )
         self.CHC = CHC
         self._calculate_dark_current()
         self._calculate_read_noise(ccd_operation_mode)
         self.PSF = Point_Spread_Function(
-            CHC, ccd_operation_mode, self.ccd_gain, self.gaussian_std
+            CHC,
+            ccd_operation_mode,
+            self.ccd_gain,
         )
         self.BGI = Background_Image(
             ccd_operation_mode,
@@ -243,6 +248,7 @@ class Artificial_Image_Simulator:
             "em_gain",
             "em_mode",
             "hss",
+            "image_size",
             "preamp",
             "t_exp",
         ]
@@ -263,6 +269,7 @@ class Artificial_Image_Simulator:
         binn = ccd_operation_mode["binn"]
         t_exp = ccd_operation_mode["t_exp"]
         ccd_temp = ccd_operation_mode["ccd_temp"]
+        image_size = ccd_operation_mode["image_size"]
 
         if em_mode not in [0, 1]:
             raise ValueError(f"Invalid value for the EM mode: {em_mode}")
@@ -285,6 +292,13 @@ class Artificial_Image_Simulator:
 
         if binn not in [1, 2]:
             raise ValueError(f"Invalid value for the binning: {bin}")
+
+        if type(image_size) is not int:
+            raise ValueError(f"The image size must be an integer: {image_size}")
+        elif image_size <= 0:
+            raise ValueError(f"The image size must be greater than zero: {image_size}")
+        else:
+            self.image_size = image_size
 
         if type(t_exp) not in [float, int]:
             raise ValueError(f"The exposure time must be a number: {t_exp}")
@@ -416,7 +430,9 @@ class Artificial_Image_Simulator:
         """
         self._integrate_spectruns()
         background = self.BGI.create_background_image(self.sky_flux)
-        star_PSF = self.PSF.create_star_PSF(self.star_flux)
+        star_PSF = self.PSF.create_star_PSF(
+            self.star_flux, self.star_coordinates, self.gaussian_std
+        )
         header = self.HDR.create_header()
 
         fits.writeto(
@@ -490,6 +506,44 @@ class Artificial_Image_Simulator:
         fits.writeto(
             self.image_dir + self.image_name + "_BIAS.fits",
             bias,
+            overwrite=True,
+            header=header,
+        )
+
+    def create_radom_image(self, n=10):
+        """Create a random star image.
+
+        This function creates an artificial image with a set of random stars.
+        The number of star created by the function can be provided to the class. Otherwise,
+        the number 10 will be used. Then, all the star images will be sumed with the background image.
+
+        Parameters
+        ----------
+
+        n: int, optional
+            The number of star in the image.
+
+        Returns
+        -------
+        Star Image:
+            A FITS file with the calculated random artificial image.
+        """
+
+        self._integrate_spectruns()
+        random_image = self.BGI.create_background_image(self.sky_flux)
+        for i in range(n):
+            x_coord = randint(50, self.image_size - 50)
+            y_coord = randint(1, self.image_size)
+            star_flux = randint(10, 4000)
+            gaussian_std = randint(1, 8)
+            random_image += self.PSF.create_star_PSF(
+                star_flux, (x_coord, y_coord), gaussian_std
+            )
+        header = self.HDR.create_header()
+
+        fits.writeto(
+            self.image_dir + self.image_name + ".fits",
+            random_image,
             overwrite=True,
             header=header,
         )

@@ -1,4 +1,5 @@
-.. automodule:: S4_SR.S4_SR
+.. automodule:: ATM_SR.atmosphere_spectral_response
    :members:
    :undoc-members:
    :show-inheritance:
+

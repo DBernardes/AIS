@@ -7,10 +7,8 @@ a bias image acquired by the SPARC4 cameras.
 """
 
 import numpy as np
-
-
-from photutils.datasets import make_noise_image
 from astropy.table import Table
+from photutils.datasets import make_noise_image
 
 
 class Background_Image:
@@ -42,28 +40,34 @@ class Background_Image:
 
            Number of the binned pixels
 
+        * image_size: int
+
+           Size of the image in pixels
+
     ccd_gain : float
         CCD gain in e-/ADU.
     bias_level : integer
         The bias level of the image in ADU.
-        """
+    """
 
-    def __init__(self, ccd_operation_mode, ccd_gain, dark_current, read_noise,
-                 bias_level):
+    def __init__(
+        self, ccd_operation_mode, ccd_gain, dark_current, read_noise, bias_level
+    ):
         """Initialize the Background Image class."""
         self.ccd_gain = ccd_gain
         self.dark_current = dark_current
         self.read_noise = read_noise
         self.bias_level = bias_level
 
-        self.em_gain = ccd_operation_mode['em_gain']
-        self.binn = ccd_operation_mode['binn']
-        self.t_exp = ccd_operation_mode['t_exp']
-        self.preamp = ccd_operation_mode['preamp']
-        self.hss = ccd_operation_mode['hss']
+        self.em_gain = ccd_operation_mode["em_gain"]
+        self.binn = ccd_operation_mode["binn"]
+        self.t_exp = ccd_operation_mode["t_exp"]
+        self.preamp = ccd_operation_mode["preamp"]
+        self.hss = ccd_operation_mode["hss"]
+        self.image_size = ccd_operation_mode["image_size"]
 
         self.NOISE_FACTOR = 1.0
-        if ccd_operation_mode['em_mode'] == 1:
+        if ccd_operation_mode["em_mode"] == 1:
             self.NOISE_FACTOR = 1.4
 
     def create_background_image(self, sky_flux):
@@ -91,18 +95,19 @@ class Background_Image:
         sky = sky_flux
         nf = self.NOISE_FACTOR
         binn = self.binn
+        image_size = self.image_size
 
-        shape = (200, 200)
-        background_level = bias \
-            + (dc + sky) * t_exp * em_gain * binn**2 / ccd_gain
+        shape = (image_size, image_size)
+        background_level = bias + (dc + sky) * t_exp * em_gain * binn ** 2 / ccd_gain
 
-        noise = np.sqrt(rn**2 + (sky + dc)*t_exp
-                        * nf**2 * em_gain**2 * binn**2)/ccd_gain
+        noise = (
+            np.sqrt(rn ** 2 + (sky + dc) * t_exp * nf ** 2 * em_gain ** 2 * binn ** 2)
+            / ccd_gain
+        )
 
-        self.background_image = make_noise_image(shape,
-                                                 distribution='gaussian',
-                                                 mean=background_level,
-                                                 stddev=noise)
+        self.background_image = make_noise_image(
+            shape, distribution="gaussian", mean=background_level, stddev=noise
+        )
 
         return self.background_image
 
@@ -129,18 +134,19 @@ class Background_Image:
         rn = self.read_noise
         nf = self.NOISE_FACTOR
         binn = self.binn
+        image_size = self.image_size
 
-        shape = (200, 200)
-        dark_level = bias \
-            + (dc) * t_exp * em_gain * binn**2 / ccd_gain
+        shape = (image_size, image_size)
+        dark_level = bias + (dc) * t_exp * em_gain * binn ** 2 / ccd_gain
 
-        noise = np.sqrt(rn**2 + (dc)*t_exp
-                        * nf**2 * em_gain**2 * binn**2)/ccd_gain
+        noise = (
+            np.sqrt(rn ** 2 + (dc) * t_exp * nf ** 2 * em_gain ** 2 * binn ** 2)
+            / ccd_gain
+        )
 
-        self.dark_image = make_noise_image(shape,
-                                           distribution='gaussian',
-                                           mean=dark_level,
-                                           stddev=noise)
+        self.dark_image = make_noise_image(
+            shape, distribution="gaussian", mean=dark_level, stddev=noise
+        )
 
         return self.dark_image
 
@@ -161,12 +167,12 @@ class Background_Image:
         ccd_gain = self.ccd_gain
         bias = self.bias_level
         rn = self.read_noise
+        image_size = self.image_size
 
-        shape = (200, 200)
-        noise = rn/ccd_gain
-        self.bias_image = make_noise_image(shape,
-                                           distribution='gaussian',
-                                           mean=bias,
-                                           stddev=noise)
+        shape = (image_size, image_size)
+        noise = rn / ccd_gain
+        self.bias_image = make_noise_image(
+            shape, distribution="gaussian", mean=bias, stddev=noise
+        )
 
         return self.bias_image

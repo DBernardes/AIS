@@ -12,7 +12,7 @@ of their operation mode. Figure below presents an example of an image created
 by the AIS. This page explains the step-by-step procedure of the AIS to create
 the images. Also, it is presented a simple execution example. 
 
-.. image:: ../images/artificial_star.png   
+.. image:: ../images/random_image.png   
    :alt: Artificial star image
    :align: center  
 
@@ -27,8 +27,8 @@ References
 .. toctree::    
     :hidden:       
     
-    software_description      
-    Code <code/modules>
+    software_description        
+    Code <code/modules>  
     license
     contact
 

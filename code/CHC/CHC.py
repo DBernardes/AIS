@@ -12,9 +12,13 @@ class will call the correct concrete channel creator for the respective desired
 image.
 """
 
+import sys
+
+sys.path.append("..")
+
 import numpy as np
-from ..RNC import Read_Noise_Calculation
-from ..S4_SR import Abstract_SPARC4_Spectral_Response
+from RNC import Read_Noise_Calculation
+from S4_SR import Abstract_SPARC4_Spectral_Response
 
 
 class Abstract_Channel_Creator:
@@ -35,10 +39,10 @@ class Abstract_Channel_Creator:
     _CHANNEL_ID = 0
     _SERIAL_NUMBER = 0
 
-    def __init__(self, ccd_temp, sparc4_acquisition_mode):
+    def __init__(self, ccd_temp, sparc4_operation_mode):
         """Initialize the class."""
         self.ccd_temp = ccd_temp
-        self.sparc4_acquisition_mode = sparc4_acquisition_mode
+        self.sparc4_operation_mode = sparc4_operation_mode
 
     def _factory_method(self):
         pass
