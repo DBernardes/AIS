@@ -1,16 +1,17 @@
-Code
+code
 ====
 
 .. toctree::
-   :maxdepth: 2   
-   
-   AIS
-   ATM_SR
-   BGI
-   CHC
-   SC
-   HDR
-   PSF
-   RNC
-   S4_SR
-   TEL_SR
+   :hidden:
+
+   Artificial_Image_Simulator
+   Atmosphere_Spectral_Response
+   Background_Image
+   Channel_Creator
+   Header
+   Point_Spread_Function
+   Read_Noise_Calculation
+   SPARC4_Spectral_Response
+   Spectrum_Calculation
+   Telescope_Spectral_Response  
+

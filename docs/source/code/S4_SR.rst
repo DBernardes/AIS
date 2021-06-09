@@ -1,4 +1,0 @@
-.. automodule:: S4_SR.S4_SR
-   :members:
-   :undoc-members:
-   :show-inheritance:
