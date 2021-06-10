@@ -10,6 +10,7 @@ flux is added to an image with a background level given by counts distribution
 of an image of the SPARC4 cameras, as a function of its operation mode.
 """
 import sys
+import time
 from random import randint
 
 sys.path.append("..")
@@ -196,9 +197,10 @@ class Artificial_Image_Simulator:
                     image_dir += "\\"
             self.image_dir = image_dir
 
-        self._verify_ccd_operation_mode(ccd_operation_mode)
-        self._configure_gain(ccd_operation_mode)
-        self._configure_image_name(ccd_operation_mode)
+        self.ccd_operation_mode = ccd_operation_mode
+        self._verify_ccd_operation_mode()
+        self._configure_gain()
+        self._configure_image_name()
 
         CHC = 0
         ccd_temp = ccd_operation_mode["ccd_temp"]
@@ -240,7 +242,7 @@ class Artificial_Image_Simulator:
         self._calculate_sky_spectrum()
         self._calculate_star_spectrum()
 
-    def _verify_ccd_operation_mode(self, ccd_operation_mode):
+    def _verify_ccd_operation_mode(self):
         """Verify if the provided CCD operation mode is correct."""
         dic_keywords_list = [
             "binn",
@@ -252,7 +254,7 @@ class Artificial_Image_Simulator:
             "preamp",
             "t_exp",
         ]
-
+        ccd_operation_mode = self.ccd_operation_mode
         for key in ccd_operation_mode.keys():
             if key not in dic_keywords_list:
                 raise ValueError(f"The name provided is not a CCD parameter: {key}")
@@ -360,7 +362,7 @@ class Artificial_Image_Simulator:
         self.star_flux = sum(self.star_spectrum)
         self.sky_flux = sum(self.sky_spectrum)
 
-    def _configure_image_name(self, ccd_operation_mode, include_star_mag=False):
+    def _configure_image_name(self, include_star_mag=False):
         """Create the image name.
 
         The image name will be created based on the provided information
@@ -371,7 +373,7 @@ class Artificial_Image_Simulator:
             Indicate if it is needed to include the star flux value in the
             image name
         """
-        dic = ccd_operation_mode
+        dic = self.ccd_operation_mode
         em_gain = "_G" + str(dic["em_gain"])
         em_mode = "CONV"
         if dic["em_mode"] == 1:
@@ -386,8 +388,9 @@ class Artificial_Image_Simulator:
             star_flux = "_S" + str(self.star_magnitude)
             self.image_name += star_flux
 
-    def _configure_gain(self, ccd_operation_mode):
+    def _configure_gain(self):
         """Configure the CCD gain based on its operation mode."""
+        ccd_operation_mode = self.ccd_operation_mode
         em_mode = ccd_operation_mode["em_mode"]
         hss = ccd_operation_mode["hss"]
         preamp = ccd_operation_mode["preamp"]

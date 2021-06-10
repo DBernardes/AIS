@@ -183,7 +183,7 @@ class Background_Image:
         This functions creates a flat image with a background level of
         half of the CCD's pixel depth. Over this background, the read noise,
         the Poisson noise, and the pixel sensibility noise are summed.
-         Also, the extra noise of the EM amplification is considered.
+        Also, the extra noise of the EM amplification is considered.
 
         Returns
         -------

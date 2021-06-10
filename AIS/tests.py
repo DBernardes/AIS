@@ -30,3 +30,5 @@ ais = Artificial_Image_Simulator(
     sparc4_operation_mode="phot",
     image_dir=r"C:\Users\denis\Desktop\FITS",
 )
+
+ais.apply_sparc4_spectral_response()
