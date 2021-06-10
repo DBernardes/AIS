@@ -36,11 +36,11 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |   
-        cd code
+        cd AIS
         python -m pytest -x  
     - name: Generate coverage report
       run: |
-        cd code
+        cd AIS
         pip install pytest-cov        
         python -m pytest -x --cov=./  
     - name: Upload coverage to Codecov
