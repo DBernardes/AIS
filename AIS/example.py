@@ -32,5 +32,5 @@ ais = Artificial_Image_Simulator(
     star_wavelength_interval=(350, 1100, 50),
 )
 
-# ais.apply_sparc4_spectral_response()
+ais.apply_sparc4_spectral_response()
 ais.create_artificial_image()

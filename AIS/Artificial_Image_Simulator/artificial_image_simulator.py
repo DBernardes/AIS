@@ -240,16 +240,16 @@ class Artificial_Image_Simulator:
         )
         self.HDR = Header(ccd_operation_mode, self.ccd_gain, CHC.get_serial_number())
 
-        l_init, l_final, l_step = (
+        self.l_init, self.l_final, self.l_step = (
             self.star_wavelength_interval[0],
             self.star_wavelength_interval[1],
             self.star_wavelength_interval[2],
         )
         self.SC = Spectrum_Calculation(
             temperature=self.star_temperature,
-            l_init=l_init,
-            l_final=l_final,
-            l_step=l_step,
+            l_init=self.l_init,
+            l_final=self.l_final,
+            l_step=self.l_step,
         )
         self.TSR = Telescope_Spectral_Response()
         self.ASR = Atmosphere_Spectral_Response()
@@ -353,7 +353,10 @@ class Artificial_Image_Simulator:
         """
         star_specific_flux = self.star_specific_flux
         self.star_specific_flux = self.ASR.apply_atmosphere_spectral_response(
-            star_specific_flux
+            star_specific_flux,
+            l_init=self.l_init,
+            l_final=self.l_final,
+            l_step=self.l_step,
         )
 
     def apply_telescope_spectral_response(self):
@@ -365,7 +368,10 @@ class Artificial_Image_Simulator:
         """
         star_specific_flux = self.star_specific_flux
         self.star_specific_flux = self.TSR.apply_telescope_spectral_response(
-            star_specific_flux
+            star_specific_flux,
+            l_init=self.l_init,
+            l_final=self.l_final,
+            l_step=self.l_step,
         )
 
     def apply_sparc4_spectral_response(self):
@@ -374,14 +380,12 @@ class Artificial_Image_Simulator:
         This functions applies the SPARC4 spectral response on the
         calculated star specific flux.
         """
-        l_init, l_final, l_step = (
-            self.star_wavelength_interval[0],
-            self.star_wavelength_interval[1],
-            self.star_wavelength_interval[2],
-        )
 
         self.star_specific_flux = self.CHC.apply_sparc4_spectral_response(
-            self.star_specific_flux, l_init=l_init, l_final=l_final, l_step=l_step
+            self.star_specific_flux,
+            l_init=self.l_init,
+            l_final=self.l_final,
+            l_step=self.l_step,
         )
 
     def _integrate_specific_fluxes(self):
