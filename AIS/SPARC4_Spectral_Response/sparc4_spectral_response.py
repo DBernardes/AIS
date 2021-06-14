@@ -6,8 +6,14 @@ This is the SPARC4 Spectral Reponse Class for the calculation of the output
 flux of an astronomical object as a funtction of the SPARC4 instrumental
 response.
 """
+
+
+import sys
+
 import numpy as np
 import pandas as pd
+import scipy
+from scipy.interpolate import splev, splrep
 
 
 class Abstract_SPARC4_Spectral_Response:
@@ -29,112 +35,88 @@ class Abstract_SPARC4_Spectral_Response:
         """
         return self._CHANNEL_ID
 
-    def write_spectrum(self, spectrum):
-        """Write spectrum.
+    def write_specific_flux(self, specific_flux, wavelength_interval):
+        """Write the specific flux.
 
-        This function writes the spectrum of the object in the class.
+        This function writes the specific flux of the object in the class.
 
         Parameters
         ----------
 
-        spectrum: array-like
-            Spectrum of the object.
+        specific_flux: array-like
+            Specific flux of the object.
+
+        wavelength_interval: array-like.
+            Wavelength interval of the specific flux.
+        """
+        self.specific_flux = specific_flux
+        self.wavelength_interval = wavelength_interval
+        self.specific_flux_length = len(specific_flux)
+
+    def get_specific_flux(self):
+        """Get the specific flux.
+
+        This function returns the specific flux of the object.
         """
 
-        temp = np.asarray(spectrum)
-        self.spectrum_length = len(spectrum)
-        spectrum = np.zeros((4, self.spectrum_length))
-        spectrum[0, :] = temp
-        self.spectrum = spectrum
+        return self.specific_flux
 
-    def get_spectrum(self):
-        """Get spectrum.
+    def apply_photometric_component_spectral_response(self, name):
+        """Apply photometric spectral response.
 
-        This function returns the spectrum of the object.
+        Apllies the spectral response of a photometric component.
+
+        Parameters
+        ----------
+
+        name: string
+            The name of the photometric component.
+        """
+        file = self._DIR_PATH + f"Channel {self._CHANNEL_ID}/" + name + ".xlsx"
+        wavelength_interv, transmitance = self._read_spreadsheet(file)
+        new_transmitance = self._calculate_spline(transmitance, wavelength_interv)
+        self.specific_flux = np.multiply(self.specific_flux, new_transmitance)
+
+    def apply_polarimetric_component_spectral_response(self, name):
+        """Apply polarimetric spectral response.
+
+        Apllies the spectral response of the polarimetric component.
+
+        Parameters
+        ----------
+
+        name: string
+            The name of the polarimetric compoent.
         """
 
-        return self.spectrum
-
-    def calibration_wheel(self):
-        """Calibration wheel spectrum response.
-
-        Apllies the calibration wheel spectral response on the flux.
-        """
-        file = self._DIR_PATH + "calibration_wheel.xlsx"
-        stokes = self._read_spreadsheet(file)
-
-        for i in range(self.spectrum_length):
-            self.spectrum[:, i] = np.dot(stokes, self.spectrum[:, i])
-
-    def retarder(self):
-        """Retarder spectrum response.
-
-        Apllies the retarder spectral response on the flux.
-        """
-        file = self._DIR_PATH + "retarder.xlsx"
-        stokes = self._read_spreadsheet(file)
-
-        for i in range(self.spectrum_length):
-            self.spectrum[:, i] = np.dot(stokes, self.spectrum[:, i])
-
-    def analyzer(self):
-        """Analyzer spectrum response.
-
-        Apllies the analyzer spectral response on the flux.
-        """
-        file = self._DIR_PATH + "analyser.xlsx"
-        stokes = self._read_spreadsheet(file)
-
-        for i in range(self.spectrum_length):
-            self.spectrum[:, i] = np.dot(stokes, self.spectrum[:, i])
+        file = self._DIR_PATH + name + ".xlsx"
+        stokes = np.asarray(pd.read_excel(file))
+        self._multiply_matrices(stokes, self.specific_flux)
 
     def collimator(self):
-        """Collimator spectrum response.
+        """Collimator spectral response.
 
         Apllies the collimator spectral response on the flux.
         """
         file = self._DIR_PATH + "collimator.xlsx"
-        stokes = self._read_spreadsheet(file)
-
-        for i in range(self.spectrum_length):
-            self.spectrum[:, i] = np.dot(stokes, self.spectrum[:, i])
-
-    def dichroic(self):
-        """Dichroic spectrum response.
-
-        Apllies the dichroic spectral response on the flux.
-        """
-        file = self._DIR_PATH + f"Channel {self._CHANNEL_ID}/" + "dichroic.xlsx"
-        stokes = self._read_spreadsheet(file)
-
-        for i in range(self.spectrum_length):
-            self.spectrum[:, i] = np.dot(stokes, self.spectrum[:, i])
-
-    def camera(self):
-        """Camera spectrum response.
-
-        Apllies the camera spectral response on the flux.
-        """
-        file = self._DIR_PATH + f"Channel {self._CHANNEL_ID}/" + "camera.xlsx"
-        stokes = self._read_spreadsheet(file)
-
-        for i in range(self.spectrum_length):
-            self.spectrum[:, i] = np.dot(stokes, self.spectrum[:, i])
-
-    def ccd(self):
-        """CCD spectrum response.
-
-        Apllies the CCD spectral response on the flux.
-        """
-        file = self._DIR_PATH + f"Channel {self._CHANNEL_ID}/" + "ccd.xlsx"
-        stokes = self._read_spreadsheet(file)
-
-        for i in range(self.spectrum_length):
-            self.spectrum[:, i] = np.dot(stokes, self.spectrum[:, i])
+        coll_wavelength_interv, coll_transmitance = self._read_spreadsheet(file)
+        transmitance = self._calculate_spline(coll_transmitance, coll_wavelength_interv)
+        self.specific_flux = np.multiply(self.specific_flux[0, :], transmitance)
 
     def _read_spreadsheet(self, file):
         ss = np.asarray(pd.read_excel(file))
-        return ss
+        wavelength = [float(value) for value in ss[1:, 0]]
+        transmitance = [float(value) / 100 for value in ss[1:, 1]]
+        return wavelength, transmitance
+
+    def _multiply_matrices(self, a, b):
+        for i in range(self.specific_flux_length):
+            self.specific_flux[:, i] = np.dot(a, b[:, i])
+
+    def _calculate_spline(self, transmitance, component_wavelength_interv):
+        spl = splrep(component_wavelength_interv, transmitance)
+        transmitance = splev(self.wavelength_interval, spl)
+        return transmitance
 
 
 class Concrete_SPARC4_Spectral_Response_1(Abstract_SPARC4_Spectral_Response):

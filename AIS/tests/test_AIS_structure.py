@@ -10,6 +10,7 @@ Created on Fri Apr 16 09:10:51 2021
 """
 
 
+import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 from AIS.Background_Image import Background_Image
 from AIS.Channel_Creator import (
@@ -20,8 +21,6 @@ from AIS.Channel_Creator import (
 )
 from AIS.Header import Header
 from AIS.Point_Spread_Function import Point_Spread_Function
-
-import pytest
 
 dic = {
     "em_mode": 0,
@@ -38,8 +37,6 @@ dic = {
 @pytest.fixture
 def ais():
     return Artificial_Image_Simulator(
-        star_magnitude=15,
-        sky_magnitude=20,
         gaussian_std=3,
         ccd_operation_mode=dic,
         channel=1,

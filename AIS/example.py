@@ -25,8 +25,12 @@ ais = Artificial_Image_Simulator(
     ccd_operation_mode=dic,
     channel=1,
     gaussian_std=3,
-    star_coordinates=[100, 100],
+    star_coordinates=[512, 512],
     bias_level=500,
-    sparc4_operation_mode="phot",
+    sparc4_operation_mode="pol",
     image_dir=r"C:\Users\denis\Desktop\FITS",
+    star_wavelength_interval=(350, 1100, 50),
 )
+
+# ais.apply_sparc4_spectral_response()
+ais.create_artificial_image()

@@ -9,11 +9,10 @@ Created on Fri Apr 16 11:53:12 2021
 """
 
 
-from AIS.Channel_Creator import Concrete_Channel_1
-from AIS.Point_Spread_Function import Point_Spread_Function
-
 import numpy as np
 import pytest
+from AIS.Channel_Creator import Concrete_Channel_1
+from AIS.Point_Spread_Function import Point_Spread_Function
 from astropy.table import Table
 from photutils.datasets import make_gaussian_sources_image
 
@@ -31,7 +30,7 @@ dic = {
 
 @pytest.fixture
 def chc1():
-    return Concrete_Channel_1(ccd_temp=-70, sparc4_operation_mode="phot")
+    return Concrete_Channel_1(sparc4_operation_mode="phot")
 
 
 @pytest.fixture

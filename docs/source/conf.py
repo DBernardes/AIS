@@ -55,8 +55,12 @@ extensions = [
     "matplotlib.sphinxext.plot_directive",
     "IPython.sphinxext.ipython_console_highlighting",
     "IPython.sphinxext.ipython_directive",
-    "sphinx.ext.imgmath",
+    "sphinx.ext.mathjax",
 ]
+# imgmath_image_format = "svg"
+# imgmath_latex = "latex"
+# imgmath_latex_args = ["--no-pdf"]
+# imgmath_latex_preamble = "\\usepackage{unicode-math}\\setmathfont{XITS Math}"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

@@ -5,30 +5,14 @@ Created on Tue Apr 27 10:23:27 2021
 @author: denis
 """
 
-from Artificial_Image_Simulator import Artificial_Image_Simulator
+import matplotlib.pyplot as plt
+import numpy as np
 
-dic = {
-    "em_mode": 0,
-    "em_gain": 1,
-    "preamp": 1,
-    "hss": 1,
-    "binn": 1,
-    "t_exp": 1,
-    "ccd_temp": -70,
-    "image_size": 1024,
-}
+from Channel_Creator import Abstract_Channel_Creator
 
-
-ais = Artificial_Image_Simulator(
-    star_magnitude=15,
-    sky_magnitude=10,
-    ccd_operation_mode=dic,
-    channel=1,
-    gaussian_std=3,
-    star_coordinates=[100, 100],
-    bias_level=500,
-    sparc4_operation_mode="phot",
-    image_dir=r"C:\Users\denis\Desktop\FITS",
-)
-
-ais.apply_sparc4_spectral_response()
+l_init, l_final, l_step = 350, 1100, 50
+wl = range(l_init, l_final, l_step)
+n = len(wl)
+specific_flux = np.ones((4, n))
+abs = Abstract_Channel_Creator(-70, "pol")
+abs.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)

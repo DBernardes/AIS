@@ -13,6 +13,8 @@ import sys
 import time
 from random import randint
 
+import numpy as np
+
 sys.path.append("..")
 import astropy.io.fits as fits
 import openpyxl
@@ -35,10 +37,6 @@ class Artificial_Image_Simulator:
 
     Parameters
     ----------
-    star_magitude : float
-        Magnitude of the star
-    sky_magnitude: float
-        Magnitude of the sky
     ccd_operation_mode: dictionary
         A python dictionary with the CCD operation mode. The allowed keywords
         values for the dictionary are
@@ -78,10 +76,10 @@ class Artificial_Image_Simulator:
     channel: {1, 2, 3, 4}, optional
         The SPARC4 channel
 
-    gaussian_stddev: int
+    gaussian_stddev: int, optional
         Number of pixels of the gaussian standard deviation
 
-    star_coordinates: tuple
+    star_coordinates: tuple, optional
         XY star coordinates in the image
 
     bias_level: int, optional
@@ -90,6 +88,11 @@ class Artificial_Image_Simulator:
     image_dir: str, optional
         Directory where the image should be saved
 
+    star_wavelength_interval: (350, 1100, 50), optional
+        Wavelength interval of the star for the calculation of the specific flux.
+
+    star_temperature: 5700, optional
+        Temperature of the star in Kelvin.
 
     Yields
     ------
@@ -112,8 +115,6 @@ class Artificial_Image_Simulator:
 
     def __init__(
         self,
-        star_magnitude,
-        sky_magnitude,
         ccd_operation_mode,
         channel=1,
         gaussian_std=3,
@@ -121,23 +122,10 @@ class Artificial_Image_Simulator:
         bias_level=500,
         sparc4_operation_mode="phot",
         image_dir="",
+        star_wavelength_interval=(350, 1100, 50),
+        star_temperature=5700,
     ):
         """Initialize the class."""
-        if type(star_magnitude) not in [int, float]:
-            raise ValueError("The star flux must be a number: " + f"{star_magnitude}")
-        elif star_magnitude <= 0:
-            raise ValueError(
-                f"The star flux must be greater than zero: {star_magnitude}"
-            )
-        else:
-            self.star_magnitude = star_magnitude
-
-        if type(sky_magnitude) not in [int, float]:
-            raise ValueError(f"The sky flux must be a number: {sky_magnitude}")
-        elif sky_magnitude <= 0:
-            raise ValueError(f"The sky flux must be greater than zero: {sky_magnitude}")
-        else:
-            self.sky_magnitude = sky_magnitude
 
         if channel in [1, 2, 3, 4]:
             self.channel = channel
@@ -197,29 +185,44 @@ class Artificial_Image_Simulator:
                     image_dir += "\\"
             self.image_dir = image_dir
 
+        for wavelength in star_wavelength_interval:
+            if type(wavelength) is not int:
+                raise ValueError(
+                    f"The star waveelength interval must be an integer: {wavelength}"
+                )
+            elif wavelength <= 0:
+                raise ValueError(
+                    f"The star waveelength interval must be positive: {wavelength}"
+                )
+            else:
+                self.star_wavelength_interval = star_wavelength_interval
+
+        if type(star_temperature) not in [int, float]:
+            raise ValueError(
+                "The star temperature must be" + f"a number: {star_temperature}"
+            )
+        elif star_temperature <= 0:
+            raise ValueError(
+                r"The star temperature must be greater"
+                + f"than zero: {star_temperature}"
+            )
+        else:
+            self.star_temperature = star_temperature
+
         self.ccd_operation_mode = ccd_operation_mode
         self._verify_ccd_operation_mode()
         self._configure_gain()
         self._configure_image_name()
 
         CHC = 0
-        ccd_temp = ccd_operation_mode["ccd_temp"]
         if channel == 1:
-            CHC = Concrete_Channel_1(
-                ccd_temp, sparc4_operation_mode=sparc4_operation_mode
-            )
+            CHC = Concrete_Channel_1(sparc4_operation_mode)
         elif channel == 2:
-            CHC = Concrete_Channel_2(
-                ccd_temp, sparc4_operation_mode=sparc4_operation_mode
-            )
+            CHC = Concrete_Channel_2(sparc4_operation_mode)
         elif channel == 3:
-            CHC = Concrete_Channel_3(
-                ccd_temp, sparc4_operation_mode=sparc4_operation_mode
-            )
+            CHC = Concrete_Channel_3(sparc4_operation_mode)
         elif channel == 4:
-            CHC = Concrete_Channel_4(
-                ccd_temp, sparc4_operation_mode=sparc4_operation_mode
-            )
+            CHC = Concrete_Channel_4(sparc4_operation_mode)
         self.CHC = CHC
         self._calculate_dark_current()
         self._calculate_read_noise(ccd_operation_mode)
@@ -236,11 +239,22 @@ class Artificial_Image_Simulator:
             self.bias_level,
         )
         self.HDR = Header(ccd_operation_mode, self.ccd_gain, CHC.get_serial_number())
-        self.SC = Spectrum_Calculation()
+
+        l_init, l_final, l_step = (
+            self.star_wavelength_interval[0],
+            self.star_wavelength_interval[1],
+            self.star_wavelength_interval[2],
+        )
+        self.SC = Spectrum_Calculation(
+            temperature=self.star_temperature,
+            l_init=l_init,
+            l_final=l_final,
+            l_step=l_step,
+        )
         self.TSR = Telescope_Spectral_Response()
         self.ASR = Atmosphere_Spectral_Response()
-        self._calculate_sky_spectrum()
-        self._calculate_star_spectrum()
+        self._calculate_sky_specific_flux()
+        self._calculate_star_specific_flux()
 
     def _verify_ccd_operation_mode(self):
         """Verify if the provided CCD operation mode is correct."""
@@ -317,52 +331,65 @@ class Artificial_Image_Simulator:
         return self.CHC.get_channel_ID()
 
     def _calculate_dark_current(self):
-        self.dark_current = self.CHC.calculate_dark_current()
+        self.dark_current = self.CHC.calculate_dark_current(
+            self.ccd_operation_mode["ccd_temp"]
+        )
 
     def _calculate_read_noise(self, ccd_operation_mode):
         self.read_noise = self.CHC.calculate_read_noise(ccd_operation_mode)
 
-    def _calculate_star_spectrum(self):
-        self.star_spectrum = self.SC.calculate_star_spectrum()
+    def _calculate_star_specific_flux(self):
+        self.star_specific_flux = self.SC.calculate_star_specific_flux()
 
-    def _calculate_sky_spectrum(self):
-        self.sky_spectrum = self.SC.calculate_sky_spectrum()
+    def _calculate_sky_specific_flux(self):
+        self.sky_specific_flux = self.SC.calculate_sky_specific_flux()
 
     def apply_atmosphere_spectral_response(self):
         """Apply the atmosphere spectral response.
 
         This functions applies the atmosphere spectral response on the
-        calculated star spectrum.
+        calculated star specific flux.
 
         """
-        star_spectrum = self.star_spectrum
-        self.star_spectrum = self.ASR.apply_atmosphere_spectral_response(star_spectrum)
+        star_specific_flux = self.star_specific_flux
+        self.star_specific_flux = self.ASR.apply_atmosphere_spectral_response(
+            star_specific_flux
+        )
 
     def apply_telescope_spectral_response(self):
         """Apply the telescope spectral response.
 
         This functions applies the telescope spectral response on the
-        calculated star spectrum.
+        calculated star specific flux.
 
         """
-        star_spectrum = self.star_spectrum
-        self.star_spectrum = self.TSR.apply_telescope_spectral_response(star_spectrum)
+        star_specific_flux = self.star_specific_flux
+        self.star_specific_flux = self.TSR.apply_telescope_spectral_response(
+            star_specific_flux
+        )
 
     def apply_sparc4_spectral_response(self):
         """Apply the SPARC4 spectral response.
 
         This functions applies the SPARC4 spectral response on the
-        calculated star spectrum.
+        calculated star specific flux.
         """
-        star_spectrum = self.star_spectrum
-        self.star_spectrum = self.CHC.apply_sparc4_spectral_response(star_spectrum)
+        l_init, l_final, l_step = (
+            self.star_wavelength_interval[0],
+            self.star_wavelength_interval[1],
+            self.star_wavelength_interval[2],
+        )
 
-    def _integrate_spectruns(self):
-        """Integra the star and the sky spectrums."""
-        self.star_flux = sum(self.star_spectrum)
-        self.sky_flux = sum(self.sky_spectrum)
+        self.star_specific_flux = self.CHC.apply_sparc4_spectral_response(
+            self.star_specific_flux, l_init=l_init, l_final=l_final, l_step=l_step
+        )
 
-    def _configure_image_name(self, include_star_mag=False):
+    def _integrate_specific_fluxes(self):
+        """Integra the star and the sky specific fluxes."""
+        self.star_flux = np.sum(self.star_specific_flux)
+        self.sky_flux = np.sum(self.sky_specific_flux)
+
+    def _configure_image_name(self):
         """Create the image name.
 
         The image name will be created based on the provided information
@@ -383,10 +410,6 @@ class Artificial_Image_Simulator:
         binn = "_B" + str(dic["binn"])
         t_exp = "_TEXP" + str(dic["t_exp"])
         self.image_name = em_mode + hss + preamp + binn + t_exp + em_gain
-
-        if include_star_mag:
-            star_flux = "_S" + str(self.star_magnitude)
-            self.image_name += star_flux
 
     def _configure_gain(self):
         """Configure the CCD gain based on its operation mode."""
@@ -431,7 +454,7 @@ class Artificial_Image_Simulator:
         Star Image:
             A FITS file with the calculated artificial image
         """
-        self._integrate_spectruns()
+        self._integrate_specific_fluxes()
         background = self.BGI.create_background_image(self.sky_flux)
         star_PSF = self.PSF.create_star_PSF(
             self.star_flux, self.star_coordinates, self.gaussian_std
@@ -457,7 +480,7 @@ class Artificial_Image_Simulator:
         Background Image:
             A FITS file with the calculated background image
         """
-        self._integrate_spectruns()
+        self._integrate_specific_fluxes()
         background = self.BGI.create_background_image(self.sky_flux)
         header = self.HDR.create_header()
 
@@ -532,7 +555,7 @@ class Artificial_Image_Simulator:
             A FITS file with the calculated random artificial image.
         """
 
-        self._integrate_spectruns()
+        self._integrate_specific_fluxes()
         random_image = self.BGI.create_background_image(self.sky_flux)
         for i in range(n):
             x_coord = randint(50, self.image_size - 50)

@@ -30,37 +30,37 @@ dic = {
     "image_size": 1024,
 }
 
+l_init, l_final, l_step = 350, 1100, 50
+wavelength_interval = range(l_init, l_final, l_step)
+n = len(wavelength_interval)
+
 
 @pytest.fixture
 def abs_chc():
-    return Abstract_Channel_Creator(ccd_temp=-70, sparc4_operation_mode="phot")
+    return Abstract_Channel_Creator(sparc4_operation_mode="phot")
 
 
 @pytest.fixture
 def chc1():
-    return Concrete_Channel_1(ccd_temp=-70, sparc4_operation_mode="phot")
+    return Concrete_Channel_1(sparc4_operation_mode="phot")
 
 
 @pytest.fixture
 def chc2():
-    return Concrete_Channel_2(ccd_temp=-70, sparc4_operation_mode="phot")
+    return Concrete_Channel_2(sparc4_operation_mode="phot")
 
 
 @pytest.fixture
 def chc3():
-    return Concrete_Channel_3(ccd_temp=-70, sparc4_operation_mode="phot")
+    return Concrete_Channel_3(sparc4_operation_mode="phot")
 
 
 @pytest.fixture
 def chc4():
-    return Concrete_Channel_4(ccd_temp=-70, sparc4_operation_mode="phot")
+    return Concrete_Channel_4(sparc4_operation_mode="phot")
 
 
 # ------------------------ Initialize the class --------------------------
-
-
-def test_ccd_temp(abs_chc):
-    assert abs_chc.ccd_temp == -70
 
 
 def test_sparc_operation_mode(abs_chc):
@@ -111,22 +111,22 @@ def test_serial_number_4(chc4):
 
 
 def test_calculate_dark_current_1(chc1):
-    chc1.calculate_dark_current()
+    chc1.calculate_dark_current(dic["ccd_temp"])
     assert round(chc1.dark_current, 7) == 5.86e-5
 
 
 def test_calculate_dark_current_2(chc2):
-    chc2.calculate_dark_current()
+    chc2.calculate_dark_current(dic["ccd_temp"])
     assert chc2.dark_current, 7 == 0.0001467
 
 
 def test_calculate_dark_current_3(chc3):
-    chc3.calculate_dark_current()
+    chc3.calculate_dark_current(dic["ccd_temp"])
     assert round(chc3.dark_current, 7) == 8.69e-05
 
 
 def test_calculate_dark_current_4(chc4):
-    chc4.calculate_dark_current()
+    chc4.calculate_dark_current(dic["ccd_temp"])
     assert chc4.dark_current, 7 == 0.0002313
 
 
@@ -157,60 +157,68 @@ def test_calculate_read_noise_4(chc4):
 
 
 def test_apply_sparc4_spectral_response_photometric_1(chc1):
-    spectrum = np.ones((1, 4))[0]
-    new_spectrum = chc1.apply_sparc4_spectral_response(spectrum)[0]
-    for i in range(4):
-        assert spectrum[i] == new_spectrum[i]
+    spectrum = np.ones((4, n))
+    new_spectrum = chc1.apply_sparc4_spectral_response(
+        spectrum, l_init, l_final, l_step
+    )
+    assert spectrum.all() == new_spectrum.all()
 
 
 def test_apply_sparc4_spectral_response_polarimetric_1():
-    chc1 = Concrete_Channel_1(ccd_temp=-70, sparc4_operation_mode="pol")
-    spectrum = np.ones((1, 4))[0]
-    new_spectrum = chc1.apply_sparc4_spectral_response(spectrum)[0]
-    for i in range(4):
-        assert spectrum[i] == new_spectrum[i]
+    chc1 = Concrete_Channel_1(sparc4_operation_mode="pol")
+    spectrum = np.ones((4, n))
+    new_spectrum = chc1.apply_sparc4_spectral_response(
+        spectrum, l_init, l_final, l_step
+    )
+    assert spectrum.all() == new_spectrum.all()
 
 
 def test_apply_sparc4_spectral_response_photometric_2(chc2):
-    spectrum = np.ones((1, 4))[0]
-    new_spectrum = chc2.apply_sparc4_spectral_response(spectrum)[0]
-    for i in range(4):
-        assert spectrum[i] == new_spectrum[i]
+    spectrum = np.ones((4, n))
+    new_spectrum = chc2.apply_sparc4_spectral_response(
+        spectrum, l_init, l_final, l_step
+    )
+    assert spectrum.all() == new_spectrum.all()
 
 
 def test_apply_sparc4_spectral_response_polarimetric_2():
-    chc2 = Concrete_Channel_2(ccd_temp=-70, sparc4_operation_mode="pol")
-    spectrum = np.ones((1, 4))[0]
-    new_spectrum = chc2.apply_sparc4_spectral_response(spectrum)[0]
-    for i in range(4):
-        assert spectrum[i] == new_spectrum[i]
+    chc2 = Concrete_Channel_2(sparc4_operation_mode="pol")
+    spectrum = np.ones((4, n))
+    new_spectrum = chc2.apply_sparc4_spectral_response(
+        spectrum, l_init, l_final, l_step
+    )
+    assert spectrum.all() == new_spectrum.all()
 
 
 def test_apply_sparc4_spectral_response_photometric_3(chc3):
-    spectrum = np.ones((1, 4))[0]
-    new_spectrum = chc3.apply_sparc4_spectral_response(spectrum)[0]
-    for i in range(4):
-        assert spectrum[i] == new_spectrum[i]
+    spectrum = np.ones((4, n))
+    new_spectrum = chc3.apply_sparc4_spectral_response(
+        spectrum, l_init, l_final, l_step
+    )
+    assert spectrum.all() == new_spectrum.all()
 
 
 def test_apply_sparc4_spectral_response_polarimetric_3():
-    chc3 = Concrete_Channel_3(ccd_temp=-70, sparc4_operation_mode="pol")
-    spectrum = np.ones((1, 4))[0]
-    new_spectrum = chc3.apply_sparc4_spectral_response(spectrum)[0]
-    for i in range(4):
-        assert spectrum[i] == new_spectrum[i]
+    chc3 = Concrete_Channel_3(sparc4_operation_mode="pol")
+    spectrum = np.ones((4, n))
+    new_spectrum = chc3.apply_sparc4_spectral_response(
+        spectrum, l_init, l_final, l_step
+    )
+    assert spectrum.all() == new_spectrum.all()
 
 
 def test_apply_sparc4_spectral_response_photometric_4(chc4):
-    spectrum = np.ones((1, 4))[0]
-    new_spectrum = chc4.apply_sparc4_spectral_response(spectrum)[0]
-    for i in range(4):
-        assert spectrum[i] == new_spectrum[i]
+    spectrum = np.ones((4, n))
+    new_spectrum = chc4.apply_sparc4_spectral_response(
+        spectrum, l_init, l_final, l_step
+    )
+    assert spectrum.all() == new_spectrum.all()
 
 
-def test_apply_sparc4_spectral_response_polarimetric():
-    chc4 = Concrete_Channel_4(ccd_temp=-70, sparc4_operation_mode="pol")
-    spectrum = np.ones((1, 4))[0]
-    new_spectrum = chc4.apply_sparc4_spectral_response(spectrum)[0]
-    for i in range(4):
-        assert spectrum[i] == new_spectrum[i]
+def test_apply_sparc4_spectral_response_polarimetric_4():
+    chc4 = Concrete_Channel_4(sparc4_operation_mode="pol")
+    spectrum = np.ones((4, n))
+    new_spectrum = chc4.apply_sparc4_spectral_response(
+        spectrum, l_init, l_final, l_step
+    )
+    assert spectrum.all() == new_spectrum.all()

@@ -46,8 +46,6 @@ dic = {
 @pytest.fixture
 def ais():
     return Artificial_Image_Simulator(
-        star_magnitude=15,
-        sky_magnitude=10,
         ccd_operation_mode=dic,
         channel=1,
         gaussian_std=3,
@@ -55,18 +53,12 @@ def ais():
         bias_level=500,
         sparc4_operation_mode="phot",
         image_dir="a",
+        star_wavelength_interval=(350, 1100, 50),
+        star_temperature=5700,
     )
 
 
 # -------------------- Testing the AIS class --------------------------------
-
-
-def test_star_magnitude_positive_value(ais):
-    assert ais.star_magnitude == 15
-
-
-def test_sky_magnitude_positive_value(ais):
-    assert ais.sky_magnitude == 10
 
 
 def test_channel_value(ais):
@@ -91,6 +83,14 @@ def test_sparc4_operation_mode(ais):
 
 def test_image_dir(ais):
     assert ais.image_dir == "a\\"
+
+
+def test_star_wavelength_interval(ais):
+    assert ais.star_wavelength_interval == (350, 1100, 50)
+
+
+def test_star_temperature(ais):
+    assert ais.star_temperature == 5700
 
 
 def test_CHC(ais):
@@ -124,95 +124,97 @@ def test_ASR(ais):
 # -----------------Provide a string value to the parameters--------------------
 
 
-def test_star_magnitude_isnot_a_number():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator("a", 10, dic)
-
-
-def test_sky_magnitude_isnot_a_number():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(20, "a", dic)
-
-
 def test_gaussian_stddev_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(20, 10, dic, gaussian_std="a")
+        Artificial_Image_Simulator(dic, gaussian_std="a")
 
 
 def test_star_coordinates_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(20, 10, dic, star_coordinates=("a", 10))
+        Artificial_Image_Simulator(dic, star_coordinates=("a", 10))
 
 
 def test_bias_level_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic, bias_level="a")
+        Artificial_Image_Simulator(dic, bias_level="a")
 
 
 def test_sparc4_operation_mode_isnot_string():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic, image_dir=1)
+        Artificial_Image_Simulator(dic, sparc4_operation_mode=1)
 
 
 def test_image_dir_isnot_string():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic, image_dir=1)
+        Artificial_Image_Simulator(dic, image_dir=1)
+
+
+def test_star_wavelength_interval_isnot_number():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, star_wavelength_interval="a")
+
+
+def test_star_temperature_isnot_number():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, star_temperature="a")
 
 
 # ------------------provide a negative value to the parameters-----------------
 
 
-def test_star_magnitude_negative_value():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(-100, 10, dic)
-
-
-def test_sky_magnitude_negative_value():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, -10, dic)
-
-
 def test_gaussian_stddev_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic, gaussian_std=-1)
+        Artificial_Image_Simulator(dic, gaussian_std=-1)
 
 
 def test_star_coordinates_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic, star_coordinates=(-1, -1))
+        Artificial_Image_Simulator(dic, star_coordinates=(-1, -1))
 
 
 def test_bias_level_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic, bias_level=-1)
+        Artificial_Image_Simulator(dic, bias_level=-1)
+
+
+def test_star_wavelength_interval_negative_value():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, star_wavelength_interval=(-20, 20, 20))
+
+
+def test_star_temperature_negative_value():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, star_temperature=-1)
 
 
 # ----------------provide zero to the parameters----------------------
 
 
-def test_star_magnitude_zero_value():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(0, 10, dic)
-
-
-def test_sky_magnitude_zero_value():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 0, dic)
-
-
 def test_gaussian_stddev_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic, gaussian_std=0)
+        Artificial_Image_Simulator(dic, gaussian_std=0)
 
 
 def test_star_coordinates_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic, star_coordinates=(0, 0))
+        Artificial_Image_Simulator(dic, star_coordinates=(0, 0))
 
 
 def test_bias_level_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, 0, dic, bias_level=0)
+        Artificial_Image_Simulator(dic, bias_level=0)
+
+
+def test_star_wavelength_interval_zero_value():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(
+            100, 10, 0, dic, star_wavelength_interval=(0, 20, 20)
+        )
+
+
+def test_star_temperature_zero_value():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, star_temperature=0)
 
 
 # -------  provide a wrong parameter to the CCD operation mode---------------
@@ -230,7 +232,7 @@ def test_ccd_operation_mode_wrong_keyword_em_mode():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyword_em_gain():
@@ -245,7 +247,7 @@ def test_ccd_operation_mode_wrong_keyword_em_gain():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyword_preamp():
@@ -260,7 +262,7 @@ def test_ccd_operation_mode_wrong_keyword_preamp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyword_hss():
@@ -275,7 +277,7 @@ def test_ccd_operation_mode_wrong_keyword_hss():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyword_bin():
@@ -290,7 +292,7 @@ def test_ccd_operation_mode_wrong_keyword_bin():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyword_t_exp():
@@ -305,7 +307,7 @@ def test_ccd_operation_mode_wrong_keyword_t_exp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyword_ccd_temp():
@@ -320,7 +322,7 @@ def test_ccd_operation_mode_wrong_keyword_ccd_temp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyword_image_size():
@@ -335,7 +337,7 @@ def test_ccd_operation_mode_wrong_keyword_image_size():
         "image_sizee": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 # ------------ provide a wrong value to the CCD operation mode-------------
@@ -353,7 +355,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_mode():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_1():
@@ -368,7 +370,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_1():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_2():
@@ -383,7 +385,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_2():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_3():
@@ -398,7 +400,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_3():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_preamp():
@@ -413,7 +415,7 @@ def test_ccd_operation_mode_wrong_keyvalue_preamp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_hss():
@@ -428,7 +430,7 @@ def test_ccd_operation_mode_wrong_keyvalue_hss():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_bin():
@@ -443,7 +445,7 @@ def test_ccd_operation_mode_wrong_keyvalue_bin():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_exp_1():
@@ -458,7 +460,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_exp_1():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_exp_2():
@@ -473,7 +475,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_exp_2():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_ccd_temp_1():
@@ -488,7 +490,7 @@ def test_ccd_operation_mode_wrong_keyvalue_ccd_temp_1():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_ccd_temp_2():
@@ -503,7 +505,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_ccd_temp_2():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_image_size_1():
@@ -518,7 +520,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_1():
         "image_size": -1,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_image_size_2():
@@ -533,7 +535,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_2():
         "image_size": 0,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
@@ -548,7 +550,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
         "image_size": 1.1,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 # ---------------------------miscelaneous-------------------------------------
@@ -556,12 +558,12 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
 
 def test_gaussian_stddev_float_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(-100, 10, dic, gaussian_std=3.0)
+        Artificial_Image_Simulator(dic, gaussian_std=3.0)
 
 
 def test_channel_wrong_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(20, 10, dic, channel=5)
+        Artificial_Image_Simulator(dic, channel=5)
 
 
 # ---------------------------Missing CCD operation mode parameter -------------
@@ -578,7 +580,7 @@ def test_ccd_operation_mode_missing_parameter_em_mode():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_missing_parameter_em_gain():
@@ -592,7 +594,7 @@ def test_ccd_operation_mode_missing_parameter_em_gain():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_missing_parameter_preamp():
@@ -606,7 +608,7 @@ def test_ccd_operation_mode_missing_parameter_preamp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_missing_parameter_hss():
@@ -620,7 +622,7 @@ def test_ccd_operation_mode_missing_parameter_hss():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_missing_parameter_t_exp():
@@ -634,7 +636,7 @@ def test_ccd_operation_mode_missing_parameter_t_exp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_missing_parameter_bin():
@@ -648,7 +650,7 @@ def test_ccd_operation_mode_missing_parameter_bin():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_missing_parameter_ccd_temp():
@@ -662,7 +664,7 @@ def test_ccd_operation_mode_missing_parameter_ccd_temp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 def test_ccd_operation_mode_missing_parameter_image_size():
@@ -676,27 +678,27 @@ def test_ccd_operation_mode_missing_parameter_image_size():
         "ccd_temp": -70,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, dic)
+        Artificial_Image_Simulator(dic)
 
 
 # ----------------------- Channels ID --------------------------------
 
 
 def test_Channel_output_1():
-    ais = Artificial_Image_Simulator(100.0, 10.0, dic, channel=1)
+    ais = Artificial_Image_Simulator(dic, channel=1)
     assert ais.get_channel_ID() == "Channel 1"
 
 
 def test_Channel_output_2():
-    ais = Artificial_Image_Simulator(100.0, 10.0, dic, channel=2)
+    ais = Artificial_Image_Simulator(dic, channel=2)
     assert ais.get_channel_ID() == "Channel 2"
 
 
 def test_Channel_output_3():
-    ais = Artificial_Image_Simulator(100.0, 10.0, dic, channel=3)
+    ais = Artificial_Image_Simulator(dic, channel=3)
     assert ais.get_channel_ID() == "Channel 3"
 
 
 def test_Channel_output_4():
-    ais = Artificial_Image_Simulator(100.0, 10.0, dic, channel=4)
+    ais = Artificial_Image_Simulator(dic, channel=4)
     assert ais.get_channel_ID() == "Channel 4"
