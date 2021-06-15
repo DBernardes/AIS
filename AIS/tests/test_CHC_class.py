@@ -37,27 +37,27 @@ n = len(wavelength_interval)
 
 # -----------------------------------------------------------------------------------------------------------
 ccd_transmitance_c1 = np.asarray(
-    pd.read_excel(r".\SPARC4_Spectral_Response\Channel 1\ccd.xlsx")
+    pd.read_excel(r"./SPARC4_Spectral_Response/Channel 1/ccd.xlsx")
 )[1:, 1]
 ccd_transmitance_c1 = np.asarray([float(value) for value in ccd_transmitance_c1])
 
 ccd_transmitance_c2 = np.asarray(
-    pd.read_excel(r".\SPARC4_Spectral_Response\Channel 2\ccd.xlsx")
+    pd.read_excel(r"./SPARC4_Spectral_Response/Channel 2/ccd.xlsx")
 )[1:, 1]
 ccd_transmitance_c2 = np.asarray([float(value) for value in ccd_transmitance_c2])
 
 ccd_transmitance_c3 = np.asarray(
-    pd.read_excel(r".\SPARC4_Spectral_Response\Channel 3\ccd.xlsx")
+    pd.read_excel(r"./SPARC4_Spectral_Response/Channel 3/ccd.xlsx")
 )[1:, 1]
 ccd_transmitance_c3 = np.asarray([float(value) for value in ccd_transmitance_c3])
 
 ccd_transmitance_c4 = np.asarray(
-    pd.read_excel(r".\SPARC4_Spectral_Response\Channel 4\ccd.xlsx")
+    pd.read_excel(r"./SPARC4_Spectral_Response/Channel 4/ccd.xlsx")
 )[1:, 1]
 ccd_transmitance_c4 = np.asarray([float(value) for value in ccd_transmitance_c4])
 
 ccd_transmitance_abs = np.asarray(
-    pd.read_excel(r".\SPARC4_Spectral_Response\Channel 0\ccd.xlsx")
+    pd.read_excel(r"./SPARC4_Spectral_Response/Channel 0/ccd.xlsx")
 )[1:, 1]
 ccd_transmitance_abs = np.asarray([float(value) for value in ccd_transmitance_abs])
 

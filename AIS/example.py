@@ -25,10 +25,18 @@ ais = Artificial_Image_Simulator(
     gaussian_std=3,
     star_coordinates=[512, 512],
     bias_level=500,
-    sparc4_operation_mode="pol",
+    sparc4_operation_mode="phot",
     image_dir=r"C:\Users\denis\Desktop\FITS",
     star_wavelength_interval=(350, 1100, 50),
 )
 
+
+ais.apply_atmosphere_spectral_response()
+ais.apply_telescope_spectral_response()
 ais.apply_sparc4_spectral_response()
-ais.create_random_image(n=10)
+ais.create_artificial_image()
+ais.create_background_image()
+ais.create_bias_image()
+ais.create_dark_image()
+ais.create_flat_image()
+ais.create_random_image()
