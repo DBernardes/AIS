@@ -20,8 +20,6 @@ dic = {
 
 
 ais = Artificial_Image_Simulator(
-    star_magnitude=15,
-    sky_magnitude=10,
     ccd_operation_mode=dic,
     channel=1,
     gaussian_std=3,
@@ -33,4 +31,4 @@ ais = Artificial_Image_Simulator(
 )
 
 ais.apply_sparc4_spectral_response()
-ais.create_artificial_image()
+ais.create_random_image(n=10)

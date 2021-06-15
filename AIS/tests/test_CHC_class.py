@@ -10,6 +10,7 @@ Created on Thu Apr 22 13:44:35 2021
 
 
 import numpy as np
+import pandas as pd
 import pytest
 from AIS.Channel_Creator import (
     Abstract_Channel_Creator,
@@ -30,9 +31,37 @@ dic = {
     "image_size": 1024,
 }
 
-l_init, l_final, l_step = 350, 1100, 50
+l_init, l_final, l_step = 350, 1150, 50
 wavelength_interval = range(l_init, l_final, l_step)
 n = len(wavelength_interval)
+
+# -----------------------------------------------------------------------------------------------------------
+ccd_transmitance_c1 = np.asarray(
+    pd.read_excel(r".\SPARC4_Spectral_Response\Channel 1\ccd.xlsx")
+)[1:, 1]
+ccd_transmitance_c1 = np.asarray([float(value) for value in ccd_transmitance_c1])
+
+ccd_transmitance_c2 = np.asarray(
+    pd.read_excel(r".\SPARC4_Spectral_Response\Channel 2\ccd.xlsx")
+)[1:, 1]
+ccd_transmitance_c2 = np.asarray([float(value) for value in ccd_transmitance_c2])
+
+ccd_transmitance_c3 = np.asarray(
+    pd.read_excel(r".\SPARC4_Spectral_Response\Channel 3\ccd.xlsx")
+)[1:, 1]
+ccd_transmitance_c3 = np.asarray([float(value) for value in ccd_transmitance_c3])
+
+ccd_transmitance_c4 = np.asarray(
+    pd.read_excel(r".\SPARC4_Spectral_Response\Channel 4\ccd.xlsx")
+)[1:, 1]
+ccd_transmitance_c4 = np.asarray([float(value) for value in ccd_transmitance_c4])
+
+ccd_transmitance_abs = np.asarray(
+    pd.read_excel(r".\SPARC4_Spectral_Response\Channel 0\ccd.xlsx")
+)[1:, 1]
+ccd_transmitance_abs = np.asarray([float(value) for value in ccd_transmitance_abs])
+
+# --------------------------------------------------------------------------------------------------------------------
 
 
 @pytest.fixture
@@ -158,67 +187,91 @@ def test_calculate_read_noise_4(chc4):
 
 def test_apply_sparc4_spectral_response_photometric_1(chc1):
     spectrum = np.ones((4, n))
-    new_spectrum = chc1.apply_sparc4_spectral_response(
-        spectrum, l_init, l_final, l_step
-    )
-    assert spectrum.all() == new_spectrum.all()
+    (
+        specific_ordinary_ray,
+        specific_extra_ordinary_ray,
+    ) = chc1.apply_sparc4_spectral_response(spectrum, l_init, l_final, l_step)
+    spectrum = spectrum[0, :] * ccd_transmitance_c1 / 100
+    assert np.allclose(specific_ordinary_ray, spectrum)
+    assert np.allclose(specific_extra_ordinary_ray, 0)
 
 
 def test_apply_sparc4_spectral_response_polarimetric_1():
     chc1 = Concrete_Channel_1(sparc4_operation_mode="pol")
     spectrum = np.ones((4, n))
-    new_spectrum = chc1.apply_sparc4_spectral_response(
-        spectrum, l_init, l_final, l_step
-    )
-    assert spectrum.all() == new_spectrum.all()
+    (
+        specific_ordinary_ray,
+        specific_extra_ordinary_ray,
+    ) = chc1.apply_sparc4_spectral_response(spectrum, l_init, l_final, l_step)
+    spectrum = spectrum[0, :] * ccd_transmitance_c1 / 100
+    assert np.allclose(specific_ordinary_ray, spectrum)
+    assert np.allclose(specific_extra_ordinary_ray, spectrum)
 
 
 def test_apply_sparc4_spectral_response_photometric_2(chc2):
     spectrum = np.ones((4, n))
-    new_spectrum = chc2.apply_sparc4_spectral_response(
-        spectrum, l_init, l_final, l_step
-    )
-    assert spectrum.all() == new_spectrum.all()
+    (
+        specific_ordinary_ray,
+        specific_extra_ordinary_ray,
+    ) = chc2.apply_sparc4_spectral_response(spectrum, l_init, l_final, l_step)
+    spectrum = spectrum[0, :] * ccd_transmitance_c2 / 100
+    assert np.allclose(specific_ordinary_ray, spectrum)
+    assert np.allclose(specific_extra_ordinary_ray, 0)
 
 
 def test_apply_sparc4_spectral_response_polarimetric_2():
     chc2 = Concrete_Channel_2(sparc4_operation_mode="pol")
     spectrum = np.ones((4, n))
-    new_spectrum = chc2.apply_sparc4_spectral_response(
-        spectrum, l_init, l_final, l_step
-    )
-    assert spectrum.all() == new_spectrum.all()
+    (
+        specific_ordinary_ray,
+        specific_extra_ordinary_ray,
+    ) = chc2.apply_sparc4_spectral_response(spectrum, l_init, l_final, l_step)
+    spectrum = spectrum[0, :] * ccd_transmitance_c2 / 100
+    assert np.allclose(specific_ordinary_ray, spectrum)
+    assert np.allclose(specific_extra_ordinary_ray, spectrum)
 
 
 def test_apply_sparc4_spectral_response_photometric_3(chc3):
     spectrum = np.ones((4, n))
-    new_spectrum = chc3.apply_sparc4_spectral_response(
-        spectrum, l_init, l_final, l_step
-    )
-    assert spectrum.all() == new_spectrum.all()
+    (
+        specific_ordinary_ray,
+        specific_extra_ordinary_ray,
+    ) = chc3.apply_sparc4_spectral_response(spectrum, l_init, l_final, l_step)
+    spectrum = spectrum[0, :] * ccd_transmitance_c3 / 100
+    assert np.allclose(specific_ordinary_ray, spectrum)
+    assert np.allclose(specific_extra_ordinary_ray, 0)
 
 
 def test_apply_sparc4_spectral_response_polarimetric_3():
     chc3 = Concrete_Channel_3(sparc4_operation_mode="pol")
     spectrum = np.ones((4, n))
-    new_spectrum = chc3.apply_sparc4_spectral_response(
-        spectrum, l_init, l_final, l_step
-    )
-    assert spectrum.all() == new_spectrum.all()
+    (
+        specific_ordinary_ray,
+        specific_extra_ordinary_ray,
+    ) = chc3.apply_sparc4_spectral_response(spectrum, l_init, l_final, l_step)
+    spectrum = spectrum[0, :] * ccd_transmitance_c3 / 100
+    assert np.allclose(specific_ordinary_ray, spectrum)
+    assert np.allclose(specific_extra_ordinary_ray, spectrum)
 
 
 def test_apply_sparc4_spectral_response_photometric_4(chc4):
     spectrum = np.ones((4, n))
-    new_spectrum = chc4.apply_sparc4_spectral_response(
-        spectrum, l_init, l_final, l_step
-    )
-    assert spectrum.all() == new_spectrum.all()
+    (
+        specific_ordinary_ray,
+        specific_extra_ordinary_ray,
+    ) = chc4.apply_sparc4_spectral_response(spectrum, l_init, l_final, l_step)
+    spectrum = spectrum[0, :] * ccd_transmitance_c4 / 100
+    assert np.allclose(specific_ordinary_ray, spectrum)
+    assert np.allclose(specific_extra_ordinary_ray, 0)
 
 
 def test_apply_sparc4_spectral_response_polarimetric_4():
     chc4 = Concrete_Channel_4(sparc4_operation_mode="pol")
     spectrum = np.ones((4, n))
-    new_spectrum = chc4.apply_sparc4_spectral_response(
-        spectrum, l_init, l_final, l_step
-    )
-    assert spectrum.all() == new_spectrum.all()
+    (
+        specific_ordinary_ray,
+        specific_extra_ordinary_ray,
+    ) = chc4.apply_sparc4_spectral_response(spectrum, l_init, l_final, l_step)
+    spectrum = spectrum[0, :] * ccd_transmitance_c4 / 100
+    assert np.allclose(specific_ordinary_ray, spectrum)
+    assert np.allclose(specific_extra_ordinary_ray, spectrum)

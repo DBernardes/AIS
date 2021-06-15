@@ -17,6 +17,7 @@ Created on Fri Apr 16 09:10:51 2021
 
 
 import numpy as np
+import pandas as pd
 import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 from Spectrum_Calculation import Spectrum_Calculation
@@ -32,11 +33,15 @@ dic = {
     "image_size": 200,
 }
 
-sc = Spectrum_Calculation(5700, 350, 1100, 50)
+sc = Spectrum_Calculation(5700, 350, 1150, 50)
 star_specific_flux = sc.calculate_star_specific_flux()
 sky_specific_flux = sc.calculate_sky_specific_flux()
 specific_flux_length = len(star_specific_flux)
-wavelength_interval = range(350, 1100, 50)
+wavelength_interval = range(350, 1150, 50)
+ccd_transmitance_c1 = np.asarray(
+    pd.read_excel(r".\SPARC4_Spectral_Response\Channel 1\ccd.xlsx")
+)[1:, 1]
+ccd_transmitance_c1 = np.asarray([float(value) for value in ccd_transmitance_c1])
 
 
 @pytest.fixture
@@ -47,9 +52,9 @@ def ais():
         gaussian_std=3,
         star_coordinates=(100, 100),
         bias_level=500,
-        sparc4_operation_mode="phot",
+        sparc4_operation_mode="pol",
         image_dir="a",
-        star_wavelength_interval=(350, 1100, 50),
+        star_wavelength_interval=(350, 1150, 50),
         star_temperature=5700,
     )
 
@@ -75,42 +80,47 @@ def test_calculate_read_noise(ais):
 
 def test_calculate_star_specific_flux(ais):
     ais._calculate_star_specific_flux()
-    assert ais.star_specific_flux.all() == star_specific_flux.all()
+    boolean_test = ais.star_specific_flux == star_specific_flux
+    assert boolean_test.all()
 
 
 def test_calculate_sky_specific_flux(ais):
     ais._calculate_sky_specific_flux()
-    assert ais.sky_specific_flux.all() == sky_specific_flux.all()
+    boolean_test = ais.sky_specific_flux == sky_specific_flux
+    assert boolean_test.all()
 
 
 def test_apply_atmosphere_spectral_response_star(ais):
     ais.apply_atmosphere_spectral_response()
-    assert ais.star_specific_flux.all() == star_specific_flux.all()
+    assert np.allclose(ais.star_specific_flux, star_specific_flux)
 
 
-def test_apply_atmosphere_spectral_response_sky(ais):
-    ais.apply_atmosphere_spectral_response()
-    assert ais.sky_specific_flux.all() == sky_specific_flux.all()
+# def test_apply_atmosphere_spectral_response_sky(ais):
+#     ais.apply_atmosphere_spectral_response()
+#     assert np.allclose(ais.sky_specific_flux, sky_specific_flux)
 
 
 def test_apply_telescope_spectral_response_star(ais):
     ais.apply_atmosphere_spectral_response()
-    assert ais.star_specific_flux.all() == star_specific_flux.all()
+    assert np.allclose(ais.star_specific_flux, star_specific_flux)
 
 
-def test_apply_telescope_spectral_response_sky(ais):
-    ais.apply_atmosphere_spectral_response()
-    assert ais.sky_specific_flux.all() == sky_specific_flux.all()
+# def test_apply_telescope_spectral_response_sky(ais):
+#     ais.apply_atmosphere_spectral_response()
+#     assert np.allclose(ais.sky_specific_flux, sky_specific_flux)
 
 
 def test_apply_sparc4_spectral_response_star(ais):
+    specific_flux = np.multiply(star_specific_flux[0, :], ccd_transmitance_c1) / 100
     ais.apply_sparc4_spectral_response()
-    assert ais.star_specific_flux.all() == star_specific_flux[0, :].all()
+    assert np.allclose(ais.specific_ordinary_ray, specific_flux)
+    assert np.allclose(ais.specific_extra_ordinary_ray, specific_flux)
 
 
-def test_apply_sparc4_spectral_response_sky(ais):
-    ais.apply_sparc4_spectral_response()
-    assert ais.sky_specific_flux.all() == sky_specific_flux.all()
+# def test_apply_sparc4_spectral_response_sky(ais):
+#     specific_flux = np.multiply(sky_specific_flux[0, :], ccd_transmitance_c1) / 100
+#     ais.apply_sparc4_spectral_response()
+#     assert np.allclose(ais.ordinary_ray, specific_flux)
 
 
 # -----------------------------test _create_image_name------------------------
@@ -157,7 +167,7 @@ def test_create_image_name(ais, em_mode, em_gain, hss, preamp, binn, t_exp, imag
         "ccd_temp": -70,
         "image_size": 200,
     }
-    ais.ccd_operation_mode = dic
+    ais = Artificial_Image_Simulator(dic)
     ais._configure_image_name()
     assert ais.image_name == image_name
 
@@ -200,7 +210,7 @@ def test_configure_gain(ais, em_mode, em_gain, hss, preamp, binn, ccd_gain):
 # --------------------------- test create artificial image ----------------
 
 
-def test_create_artificial_image():
+def test_create_artificial_image_phot():
     dic = {
         "em_mode": 0,
         "em_gain": 1,
@@ -212,6 +222,24 @@ def test_create_artificial_image():
         "image_size": 200,
     }
     ais = Artificial_Image_Simulator(dic, image_dir=r"C:\Users\denis\Desktop\FITS")
+    ais.apply_sparc4_spectral_response()
+    ais.create_artificial_image()
+
+
+def test_create_artificial_image_pol():
+    dic = {
+        "em_mode": 0,
+        "em_gain": 1,
+        "preamp": 1,
+        "hss": 1,
+        "binn": 1,
+        "t_exp": 1,
+        "ccd_temp": -70,
+        "image_size": 200,
+    }
+    ais = Artificial_Image_Simulator(
+        dic, image_dir=r"C:\Users\denis\Desktop\FITS", sparc4_operation_mode="pol"
+    )
     ais.apply_sparc4_spectral_response()
     ais.create_artificial_image()
 

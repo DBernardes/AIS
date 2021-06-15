@@ -227,9 +227,7 @@ class Artificial_Image_Simulator:
         self._calculate_dark_current()
         self._calculate_read_noise(ccd_operation_mode)
         self.PSF = Point_Spread_Function(
-            CHC,
-            ccd_operation_mode,
-            self.ccd_gain,
+            CHC, ccd_operation_mode, self.ccd_gain, self.sparc4_operation_mode
         )
         self.BGI = Background_Image(
             ccd_operation_mode,
@@ -295,7 +293,7 @@ class Artificial_Image_Simulator:
                     "The EM Gain must be 1 for the Conventional" + f" Mode: {em_gain}"
                 )
         else:
-            if em_gain not in [float, int]:
+            if type(em_gain) not in [float, int]:
                 raise ValueError(f"The EM gain must be a number: {em_gain}")
             elif em_gain < 2 or em_gain > 300:
                 raise ValueError(f"EM gain out of range [2, 300]: {em_gain}")
@@ -381,7 +379,10 @@ class Artificial_Image_Simulator:
         calculated star specific flux.
         """
 
-        self.star_specific_flux = self.CHC.apply_sparc4_spectral_response(
+        (
+            self.specific_ordinary_ray,
+            self.specific_extra_ordinary_ray,
+        ) = self.CHC.apply_sparc4_spectral_response(
             self.star_specific_flux,
             l_init=self.l_init,
             l_final=self.l_final,
@@ -389,8 +390,9 @@ class Artificial_Image_Simulator:
         )
 
     def _integrate_specific_fluxes(self):
-        """Integra the star and the sky specific fluxes."""
-        self.star_flux = np.sum(self.star_specific_flux)
+        """Integrate the star and the sky specific fluxes."""
+        self.ordinary_ray = np.sum(self.specific_ordinary_ray)
+        self.extra_ordinary_ray = np.sum(self.specific_extra_ordinary_ray)
         self.sky_flux = np.sum(self.sky_specific_flux)
 
     def _configure_image_name(self):
@@ -414,6 +416,8 @@ class Artificial_Image_Simulator:
         binn = "_B" + str(dic["binn"])
         t_exp = "_TEXP" + str(dic["t_exp"])
         self.image_name = em_mode + hss + preamp + binn + t_exp + em_gain
+        if self.sparc4_operation_mode == "pol":
+            self.image_name += "_POL"
 
     def _configure_gain(self):
         """Configure the CCD gain based on its operation mode."""
@@ -461,7 +465,10 @@ class Artificial_Image_Simulator:
         self._integrate_specific_fluxes()
         background = self.BGI.create_background_image(self.sky_flux)
         star_PSF = self.PSF.create_star_PSF(
-            self.star_flux, self.star_coordinates, self.gaussian_std
+            self.ordinary_ray,
+            self.extra_ordinary_ray,
+            self.star_coordinates,
+            self.gaussian_std,
         )
         header = self.HDR.create_header()
 
@@ -564,10 +571,11 @@ class Artificial_Image_Simulator:
         for i in range(n):
             x_coord = randint(50, self.image_size - 50)
             y_coord = randint(1, self.image_size)
-            star_flux = randint(10, 4000)
+            ordinary_ray = randint(10, 4000)
+            extra_ordinary_ray = ordinary_ray
             gaussian_std = randint(1, 8)
             random_image += self.PSF.create_star_PSF(
-                star_flux, (x_coord, y_coord), gaussian_std
+                ordinary_ray, extra_ordinary_ray, (x_coord, y_coord), gaussian_std
             )
         header = self.HDR.create_header()
 

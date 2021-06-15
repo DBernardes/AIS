@@ -33,9 +33,8 @@ class Point_Spread_Function:
     gaussian_std: int
         Standard deviation of the gaussian 2D distribution.
 
-    Returns
-    -------
-    None.
+    sparc4_operation_mode: ['phot', 'pol']
+        Operation mode of the SPARC4: photometric or polarimetric.
     """
 
     def __init__(
@@ -43,6 +42,7 @@ class Point_Spread_Function:
         Abstract_Channel_Creator,
         ccd_operation_mode,
         ccd_gain,
+        sparc4_operation_mode,
     ):
         """Initialize the class."""
         self.CHC = Abstract_Channel_Creator
@@ -52,15 +52,21 @@ class Point_Spread_Function:
         self.t_exp = ccd_operation_mode["t_exp"]
         self.image_size = ccd_operation_mode["image_size"]
         self.ccd_gain = ccd_gain
+        self.sparc4_operation_mode = sparc4_operation_mode
 
-    def create_star_PSF(self, star_flux, star_coordinates, gaussian_std):
+    def create_star_PSF(
+        self, ordinary_ray, extra_ordinary_ray, star_coordinates, gaussian_std
+    ):
         """Create the artificial image cube.
 
         Parameters
         ----------
 
-        star_flux: float
-            Photons/s radiated by the star.
+        ordinary_ray: float
+            Photons/s of the ordinary ray flux.
+
+        extra_ordinary_ray: float
+            Photons/s of the extra ordinary ray flux.
 
         star_coordinates: tuple
             XY star coordinates in the image.
@@ -82,7 +88,7 @@ class Point_Spread_Function:
         x_coord = star_coordinates[0]
         y_coord = star_coordinates[1]
 
-        gaussian_amplitude = star_flux * t_exp * em_gain * binn ** 2 / ccd_gain
+        gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
         shape = (image_size, image_size)
         table = Table()
         table["amplitude"] = [gaussian_amplitude]
@@ -93,5 +99,14 @@ class Point_Spread_Function:
         table["theta"] = np.radians(np.array([0]))
 
         self.star_image = make_gaussian_sources_image(shape, table)
+
+        if self.sparc4_operation_mode == "pol":
+            gaussian_amplitude = (
+                extra_ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
+            )
+            table["amplitude"] = [gaussian_amplitude]
+            table["x_mean"] = [x_coord - 20]
+            table["y_mean"] = [y_coord - 20]
+            self.star_image += make_gaussian_sources_image(shape, table)
 
         return self.star_image

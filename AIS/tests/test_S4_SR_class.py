@@ -14,7 +14,7 @@ from AIS.SPARC4_Spectral_Response import (
     Concrete_SPARC4_Spectral_Response_4,
 )
 
-wavelength_interval = range(350, 1100, 50)
+wavelength_interval = range(350, 1150, 50)
 n = len(wavelength_interval)
 specific_flux = np.ones((4, n))
 
@@ -59,12 +59,14 @@ def c4_s4_sr():
 
 def test_specific_flux_abs(abs_s4_sr):
     vec = abs_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    boolean_test = vec == specific_flux
+    assert boolean_test.all()
 
 
 def test_specific_flux_c1(c1_s4_sr):
-    vec = c1_s4_sr.get_specific_flux()[0, :]
-    assert vec.all() == specific_flux.all()
+    vec = c1_s4_sr.get_specific_flux()
+    boolean_test = vec == specific_flux
+    assert boolean_test.all()
 
 
 # -------------------- Channel ID -----------------------
@@ -94,93 +96,98 @@ def test_channel_ID_c4(c4_s4_sr):
 
 
 def test_calibration_wheel(abs_s4_sr):
-    abs_s4_sr.apply_polarimetric_component_spectral_response("calibration_wheel")
+    abs_s4_sr.apply_calibration_wheel()
     vec = abs_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    boolean_test = vec == specific_flux
+    assert boolean_test.all()
 
 
 def test_retarder(abs_s4_sr):
-    abs_s4_sr.apply_polarimetric_component_spectral_response("retarder")
+    abs_s4_sr.apply_retarder()
     vec = abs_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    boolean_test = vec == specific_flux
+    assert boolean_test.all()
 
 
 def test_analyzer(abs_s4_sr):
-    abs_s4_sr.apply_polarimetric_component_spectral_response("analyser")
+    abs_s4_sr.apply_analyser()
     vec = abs_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    boolean_test = vec == specific_flux
+    assert boolean_test.all()
 
 
 def test_collimator(abs_s4_sr):
-    abs_s4_sr.collimator()
-    vec = abs_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux[0, :].all()
+    abs_s4_sr.apply_analyser()
+    abs_s4_sr.apply_collimator()
+    assert np.allclose(abs_s4_sr.specific_ordinary_ray, specific_flux[0, :])
+    assert np.allclose(abs_s4_sr.specific_extra_ordinary_ray, specific_flux[0, :])
 
 
 def test_dichroic_abs(abs_s4_sr):
-    abs_s4_sr.apply_photometric_component_spectral_response("dichroic")
-    vec = abs_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    abs_s4_sr.apply_analyser()
+    abs_s4_sr.apply_dichroic()
 
 
 def test_dichroic_c1(c1_s4_sr):
-    c1_s4_sr.apply_photometric_component_spectral_response("dichroic")
-    vec = c1_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    c1_s4_sr.apply_analyser()
+    c1_s4_sr.apply_dichroic()
 
 
 def test_dichroic_c2(c2_s4_sr):
-    c2_s4_sr.apply_photometric_component_spectral_response("dichroic")
-    vec = c2_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    c2_s4_sr.apply_analyser()
+    c2_s4_sr.apply_dichroic()
 
 
 def test_dichroic_c3(c3_s4_sr):
-    c3_s4_sr.apply_photometric_component_spectral_response("dichroic")
-    vec = c3_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    c3_s4_sr.apply_analyser()
+    c3_s4_sr.apply_dichroic()
 
 
 def test_dichroic_c4(c4_s4_sr):
-    c4_s4_sr.apply_photometric_component_spectral_response("dichroic")
-    vec = c4_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    c4_s4_sr.apply_analyser()
+    c4_s4_sr.apply_dichroic()
 
 
 def test_camera_abs(abs_s4_sr):
-    abs_s4_sr.apply_photometric_component_spectral_response("camera")
-    vec = abs_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    abs_s4_sr.apply_analyser()
+    abs_s4_sr.apply_camera()
+    assert np.allclose(abs_s4_sr.specific_ordinary_ray, specific_flux[0, :])
+    assert np.allclose(abs_s4_sr.specific_extra_ordinary_ray, specific_flux[0, :])
 
 
 def test_camera_c1(c1_s4_sr):
-    c1_s4_sr.apply_photometric_component_spectral_response("camera")
-    vec = c1_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    c1_s4_sr.apply_analyser()
+    c1_s4_sr.apply_camera()
+    assert np.allclose(c1_s4_sr.specific_ordinary_ray, specific_flux[0, :])
+    assert np.allclose(c1_s4_sr.specific_extra_ordinary_ray, specific_flux[0, :])
 
 
 def test_camera_c2(c2_s4_sr):
-    c2_s4_sr.apply_photometric_component_spectral_response("camera")
-    vec = c2_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    c2_s4_sr.apply_analyser()
+    c2_s4_sr.apply_camera()
+    assert np.allclose(c2_s4_sr.specific_ordinary_ray, specific_flux[0, :])
+    assert np.allclose(c2_s4_sr.specific_extra_ordinary_ray, specific_flux[0, :])
 
 
 def test_camera_c3(c3_s4_sr):
-    c3_s4_sr.apply_photometric_component_spectral_response("camera")
-    vec = c3_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    c3_s4_sr.apply_analyser()
+    c3_s4_sr.apply_camera()
+    assert np.allclose(c3_s4_sr.specific_ordinary_ray, specific_flux[0, :])
+    assert np.allclose(c3_s4_sr.specific_extra_ordinary_ray, specific_flux[0, :])
 
 
 def test_camera_c4(c4_s4_sr):
-    c4_s4_sr.apply_photometric_component_spectral_response("camera")
-    vec = c4_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    c4_s4_sr.apply_analyser()
+    c4_s4_sr.apply_camera()
+    assert np.allclose(c4_s4_sr.specific_ordinary_ray, specific_flux[0, :])
+    assert np.allclose(c4_s4_sr.specific_extra_ordinary_ray, specific_flux[0, :])
 
 
 def test_ccd_abs(abs_s4_sr):
-    abs_s4_sr.apply_photometric_component_spectral_response("ccd")
-    vec = abs_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    abs_s4_sr.apply_analyser()
+    abs_s4_sr.apply_ccd()
+    assert np.allclose(abs_s4_sr.specific_ordinary_ray, specific_flux[0, :])
+    assert np.allclose(abs_s4_sr.specific_extra_ordinary_ray, specific_flux[0, :])
 
 
 def test_ccd_c1(c1_s4_sr):
@@ -202,9 +209,11 @@ def test_ccd_c1(c1_s4_sr):
         1.56,
         0.35,
     ]
-    c1_s4_sr.apply_photometric_component_spectral_response("ccd")
-    vec = c1_s4_sr.get_specific_flux()
-    assert vec.all() == np.asarray(transmitance).all()
+    new_specific_flux = specific_flux[0, :] * np.asarray(transmitance) / 100
+    c1_s4_sr.apply_analyser()
+    c1_s4_sr.apply_ccd()
+    assert np.allclose(c1_s4_sr.specific_ordinary_ray, new_specific_flux)
+    assert np.allclose(c1_s4_sr.specific_extra_ordinary_ray, new_specific_flux)
 
 
 def test_ccd_c2(c2_s4_sr):
@@ -226,9 +235,11 @@ def test_ccd_c2(c2_s4_sr):
         1.25,
         0.27,
     ]
-    c2_s4_sr.apply_photometric_component_spectral_response("ccd")
-    vec = c2_s4_sr.get_specific_flux()
-    assert vec.all() == np.asarray(transmitance).all()
+    new_specific_flux = specific_flux[0, :] * np.asarray(transmitance) / 100
+    c2_s4_sr.apply_analyser()
+    c2_s4_sr.apply_ccd()
+    assert np.allclose(c2_s4_sr.specific_ordinary_ray, new_specific_flux)
+    assert np.allclose(c2_s4_sr.specific_extra_ordinary_ray, new_specific_flux)
 
 
 def test_ccd_c3(c3_s4_sr):
@@ -250,43 +261,51 @@ def test_ccd_c3(c3_s4_sr):
         1.33,
         0.35,
     ]
-    c3_s4_sr.apply_photometric_component_spectral_response("ccd")
-    vec = c3_s4_sr.get_specific_flux()
-    assert vec.all() == np.asarray(transmitance).all()
+    new_specific_flux = specific_flux[0, :] * np.asarray(transmitance) / 100
+    c3_s4_sr.apply_analyser()
+    c3_s4_sr.apply_ccd()
+    assert np.allclose(c3_s4_sr.specific_ordinary_ray, new_specific_flux)
+    assert np.allclose(c3_s4_sr.specific_extra_ordinary_ray, new_specific_flux)
 
 
 def test_ccd_c4(c4_s4_sr):
     transmitance = [
-        71.33,
-        79.5,
-        88.78,
-        96.43,
-        89.44,
-        88.56,
-        82.91,
-        69.85,
-        63.45,
-        57.65,
-        40.06,
-        26.09,
-        13.91,
-        6.65,
-        1.4,
-        0.34,
+        39.60,
+        61.93,
+        75.66,
+        87.12,
+        88.20,
+        88.67,
+        87.36,
+        86.55,
+        76.48,
+        64.63,
+        48.95,
+        32.34,
+        17.37,
+        6.60,
+        1.49,
+        0.38,
     ]
-    c4_s4_sr.apply_photometric_component_spectral_response("ccd")
-    vec = c4_s4_sr.get_specific_flux()
-    assert vec.all() == np.asarray(transmitance).all()
+    new_specific_flux = specific_flux[0, :] * np.asarray(transmitance) / 100
+    c4_s4_sr.apply_analyser()
+    c4_s4_sr.apply_ccd()
+    assert np.allclose(c4_s4_sr.specific_ordinary_ray, new_specific_flux)
+    assert np.allclose(c4_s4_sr.specific_extra_ordinary_ray, new_specific_flux)
 
 
 # --------------------write specific_flux--------------------
 
 
-def test_write_specific_flux(abs_s4_sr):
+def test_write_specific_flux():
     specific_flux = np.asanyarray(
         [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]]
     )
-    assert abs_s4_sr.get_specific_flux().all() == specific_flux.all()
+    wavelength_interval = range(350, 1150, 50)
+    s4_sr = Abstract_SPARC4_Spectral_Response()
+    s4_sr.write_specific_flux(specific_flux, wavelength_interval)
+    boolean_test = s4_sr.specific_flux == specific_flux
+    assert boolean_test.all()
 
 
 # ---------------------- get_specific_flux -----------------------------
@@ -294,7 +313,8 @@ def test_write_specific_flux(abs_s4_sr):
 
 def test_get_specific_flux(abs_s4_sr):
     vec = abs_s4_sr.get_specific_flux()
-    assert vec.all() == specific_flux.all()
+    boolean_test = vec.all() == specific_flux.all()
+    assert boolean_test.all()
 
 
 # ----------------------- read_spreadsheet---------------------------
@@ -310,8 +330,13 @@ def test_read_spreadsheet_retarder(abs_s4_sr):
     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_analyser(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/analyser.xlsx"
+def test_read_spreadsheet_analyser_ordinary(abs_s4_sr):
+    file = "./SPARC4_Spectral_Response/analyser_ordinary.xlsx"
+    abs_s4_sr._read_spreadsheet(file)
+
+
+def test_read_spreadsheet_analyser_extra_ordinary(abs_s4_sr):
+    file = "./SPARC4_Spectral_Response/analyser_extra_ordinary.xlsx"
     abs_s4_sr._read_spreadsheet(file)
 
 
@@ -400,9 +425,9 @@ def test_read_spreadsheet_ccd_4(abs_s4_sr):
 
 def test_multiply_matrices(abs_s4_sr):
     a = np.ones((4, 4))
-    abs_s4_sr._multiply_matrices(a, a)
-
-    assert abs_s4_sr.specific_flux.all() == a.all()
+    specific_flux = abs_s4_sr._multiply_matrices(a, a)
+    boolean_test = specific_flux == a
+    assert boolean_test.all()
 
 
 def test_calculate_spline():
@@ -410,4 +435,16 @@ def test_calculate_spline():
     chc = Abstract_SPARC4_Spectral_Response()
     chc.write_specific_flux(specific_flux, wavelength_interval)
     new_transmitance = chc._calculate_spline(transmitance, wavelength_interval)
-    assert new_transmitance.all() == transmitance.all()
+    assert np.allclose(new_transmitance, transmitance)
+
+
+def test_get_specific_ordinary_ray(abs_s4_sr):
+    abs_s4_sr.apply_analyser()
+    ord_ray = abs_s4_sr.get_specific_ordinary_ray()
+    assert np.allclose(ord_ray, specific_flux[0, :])
+
+
+def test_get_specific_extra_ordinary_ray(abs_s4_sr):
+    abs_s4_sr.apply_analyser()
+    eord_ray = abs_s4_sr.get_specific_extra_ordinary_ray()
+    assert np.allclose(eord_ray, specific_flux[0, :])

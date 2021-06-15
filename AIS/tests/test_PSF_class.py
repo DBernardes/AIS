@@ -35,7 +35,7 @@ def chc1():
 
 @pytest.fixture
 def psf(chc1):
-    return Point_Spread_Function(chc1, dic, 3)
+    return Point_Spread_Function(chc1, dic, 3, "phot")
 
 
 # ------------------------ Initialize the class --------------------------
@@ -57,6 +57,10 @@ def test_ccd_gain(psf):
     assert psf.ccd_gain == 3
 
 
+def test_sparc4_operation_mode(psf):
+    assert psf.sparc4_operation_mode == "phot"
+
+
 # ----------------------- Calculate star PSF -----------------------------
 
 
@@ -66,11 +70,12 @@ def test_calculate_star_PSF(psf):
     t_exp = dic["t_exp"]
     ccd_gain = 3
     gaussian_std = 3
-    star_flux = 100
+    ordinary_ray = 100
+    extra_ordinary_ray = 0
     image_size = 200
     star_coord = [100, 100]
 
-    gaussian_amplitude = star_flux * t_exp * em_gain * binn ** 2 / ccd_gain
+    gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
     shape = (image_size, image_size)
     table = Table()
     table["amplitude"] = [gaussian_amplitude]
@@ -82,6 +87,6 @@ def test_calculate_star_PSF(psf):
 
     star_image = make_gaussian_sources_image(shape, table)
 
-    assert np.sum(psf.create_star_PSF(star_flux, star_coord, gaussian_std)) == np.sum(
-        star_image
-    )
+    assert np.sum(
+        psf.create_star_PSF(ordinary_ray, extra_ordinary_ray, star_coord, gaussian_std)
+    ) == np.sum(star_image)

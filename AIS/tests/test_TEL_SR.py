@@ -25,4 +25,4 @@ def test_apply_telescope_spectral_response(tel_sr):
     new_specific_flux = tel_sr.apply_telescope_spectral_response(
         specific_flux, l_init, l_final, l_step
     )
-    assert new_specific_flux.all() == specific_flux.all()
+    assert np.allclose(specific_flux, new_specific_flux)
