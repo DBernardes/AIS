@@ -28,13 +28,20 @@ class Point_Spread_Function:
         A chield object of the Channel Creator class. This object is used
         to calculated the contribution of the instrument spectral response
         over the star flux as a function of the instrument channel.
+    ccd_operation_mode : dictionary
+        Operation mode parameters of the SPARC4 camera
+
+        em_gain : float
+            CCD Electron Multiplying gain
+        binn : [1, 2]
+            Binning of the pixels
+        t_exp : float
+            Exposure time in seconds
+        image_size : int
+            Image size in pixels
+
     ccd_gain : float
         Gain of the CCD in e-/ADU.
-    gaussian_std: int
-        Standard deviation of the gaussian 2D distribution.
-
-    sparc4_operation_mode: ['phot', 'pol']
-        Operation mode of the SPARC4: photometric or polarimetric.
     """
 
     def __init__(
@@ -42,7 +49,6 @@ class Point_Spread_Function:
         Abstract_Channel_Creator,
         ccd_operation_mode,
         ccd_gain,
-        sparc4_operation_mode,
     ):
         """Initialize the class."""
         self.CHC = Abstract_Channel_Creator
@@ -52,27 +58,30 @@ class Point_Spread_Function:
         self.t_exp = ccd_operation_mode["t_exp"]
         self.image_size = ccd_operation_mode["image_size"]
         self.ccd_gain = ccd_gain
-        self.sparc4_operation_mode = sparc4_operation_mode
 
     def create_star_PSF(
-        self, ordinary_ray, extra_ordinary_ray, star_coordinates, gaussian_std
+        self,
+        star_coordinates,
+        gaussian_std,
+        ordinary_ray,
+        extra_ordinary_ray=0,
     ):
-        """Create the artificial image cube.
+        """Create the star point spread function.
 
         Parameters
         ----------
-
-        ordinary_ray: float
-            Photons/s of the ordinary ray flux.
-
-        extra_ordinary_ray: float
-            Photons/s of the extra ordinary ray flux.
 
         star_coordinates: tuple
             XY star coordinates in the image.
 
         gaussian_std: int
-            Standard deviation of the gaussian 2D distribution.
+            Standard deviation of the gaussian 2D distribution in pixels.
+
+        ordinary_ray: float
+            Photons/s of the ordinary ray flux.
+
+        extra_ordinary_ray: float, optional
+            Photons/s of the extra ordinary ray flux.
 
         Returns
         -------
@@ -100,7 +109,7 @@ class Point_Spread_Function:
 
         self.star_image = make_gaussian_sources_image(shape, table)
 
-        if self.sparc4_operation_mode == "pol":
+        if extra_ordinary_ray != 0:
             gaussian_amplitude = (
                 extra_ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
             )

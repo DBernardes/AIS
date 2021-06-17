@@ -12,7 +12,7 @@ import numpy as np
 class Spectrum_Calculation:
     """Spectrum Calculation class.
 
-    This class calculates the star and the sky flux based on the object
+    This class calculates the star and the sky spectrum based on the object
     magnitude.
     """
 
@@ -81,15 +81,21 @@ class Spectrum_Calculation:
             )
             specific_flux.append(B)
 
-        temp = np.asarray(specific_flux)
+        temporary = np.asarray(specific_flux)
         self.specific_flux_length = len(specific_flux)
         specific_flux = np.zeros((4, self.specific_flux_length))
-        specific_flux[0, :] = temp
+        specific_flux[0, :] = temporary
 
         self.star_specific_flux = specific_flux
 
         return self.star_specific_flux
 
     def calculate_sky_specific_flux(self):
+        """Calculate sky specific flux.
+
+        This functions calculates the specific flux of the sky.
+        This flux correspond to 10 % of the star flux.
+        """
+
         self.sky_specific_flux = self.calculate_star_specific_flux() * 0.1
         return self.sky_specific_flux

@@ -17,15 +17,17 @@ from astropy.table import Table
 from photutils.datasets import make_gaussian_sources_image
 
 dic = {
-    "em_mode": 0,
     "em_gain": 1,
-    "preamp": 1,
-    "hss": 1,
     "binn": 1,
     "t_exp": 1,
-    "ccd_temp": -70,
     "image_size": 200,
 }
+ccd_gain = 3
+gaussian_std = 3
+ordinary_ray = 100
+extra_ordinary_ray = 0
+image_size = 200
+star_coord = [100, 100]
 
 
 @pytest.fixture
@@ -35,7 +37,7 @@ def chc1():
 
 @pytest.fixture
 def psf(chc1):
-    return Point_Spread_Function(chc1, dic, 3, "phot")
+    return Point_Spread_Function(chc1, dic, ccd_gain)
 
 
 # ------------------------ Initialize the class --------------------------
@@ -53,27 +55,21 @@ def test_t_exp(psf):
     assert psf.t_exp == 1
 
 
+def test_image_size(psf):
+    assert psf.image_size == 200
+
+
 def test_ccd_gain(psf):
     assert psf.ccd_gain == 3
-
-
-def test_sparc4_operation_mode(psf):
-    assert psf.sparc4_operation_mode == "phot"
 
 
 # ----------------------- Calculate star PSF -----------------------------
 
 
-def test_calculate_star_PSF(psf):
+def test_calculate_star_PSF_photometric(psf):
     em_gain = dic["em_gain"]
     binn = dic["binn"]
     t_exp = dic["t_exp"]
-    ccd_gain = 3
-    gaussian_std = 3
-    ordinary_ray = 100
-    extra_ordinary_ray = 0
-    image_size = 200
-    star_coord = [100, 100]
 
     gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
     shape = (image_size, image_size)
@@ -86,7 +82,34 @@ def test_calculate_star_PSF(psf):
     table["theta"] = np.radians(np.array([0]))
 
     star_image = make_gaussian_sources_image(shape, table)
+    psf_image = psf.create_star_PSF(star_coord, gaussian_std, ordinary_ray)
 
-    assert np.sum(
-        psf.create_star_PSF(ordinary_ray, extra_ordinary_ray, star_coord, gaussian_std)
-    ) == np.sum(star_image)
+    assert np.allclose(star_image, psf_image)
+
+
+def test_calculate_star_PSF_photometric_polarimetric(psf):
+    em_gain = dic["em_gain"]
+    binn = dic["binn"]
+    t_exp = dic["t_exp"]
+
+    gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
+    shape = (image_size, image_size)
+    table = Table()
+    table["amplitude"] = [gaussian_amplitude]
+    table["x_mean"] = [star_coord[0]]
+    table["y_mean"] = [star_coord[1]]
+    table["x_stddev"] = [gaussian_std / binn]
+    table["y_stddev"] = [gaussian_std / binn]
+    table["theta"] = np.radians(np.array([0]))
+    star_image = make_gaussian_sources_image(shape, table)
+
+    gaussian_amplitude = extra_ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
+    table["amplitude"] = [gaussian_amplitude]
+    table["x_mean"] = [star_coord[0]]
+    table["y_mean"] = [star_coord[1]]
+    star_image += make_gaussian_sources_image(shape, table)
+    psf_image = psf.create_star_PSF(
+        star_coord, gaussian_std, ordinary_ray, extra_ordinary_ray
+    )
+
+    assert np.allclose(star_image, psf_image)

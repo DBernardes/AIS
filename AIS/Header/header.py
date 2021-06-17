@@ -11,16 +11,33 @@ import astropy.io.fits as fits
 
 
 class Header:
-    """Images header class.
+    """Image header class.
 
     Parameters
     ----------
     dic : dictionary
-        Parameter of the operation mode of the SPARC4 camera
+        Operation mode parameters of the SPARC4 camera
 
-    Returns
-    -------
-    None.
+        em_mode : [0, 1]
+            CCD Electron Multiplying Mode
+        em_gain : float
+            CCD Electron Multiplying gain
+        hss : [0.1, 1, 10, 20, 30]
+            Horizontal Shift Speed of the pixels
+        preamp : [1, 2]
+            Pre-amplifier gain
+        binn : [1, 2]
+            Binning of the pixels
+        t_exp : float
+            Exposure time in seconds
+        ccd_temp : float
+            CCD temperature in ºC
+        image_size : int
+            Image size in pixels
+    ccd_gain : float
+        CCD gain in e-/ADU
+    serial_number:
+        CCD serial number
     """
 
     def __init__(self, ccd_operation_mode, ccd_gain, serial_number):
@@ -36,6 +53,7 @@ class Header:
         self.binn = ccd_operation_mode["binn"]
         self.t_exp = ccd_operation_mode["t_exp"]
         self.ccd_temp = ccd_operation_mode["ccd_temp"]
+        self.image_size = ccd_operation_mode["image_size"]
         self.ccd_gain = ccd_gain
         self.serial_number = serial_number
 
@@ -43,21 +61,21 @@ class Header:
         """Create the image header.
 
         This functions writes a simple header with the used parameters for
-        the CCD operation mode to the image cube file
+        the CCD operation mode for the image FITS file
         """
         hdr = fits.Header()
-        hdr["NAXIS1"] = (200, "length of data axis 1")
-        hdr["NAXIS2"] = (200, "length of data axis 2")
+        hdr["NAXIS1"] = (self.image_size, "length of data axis 1")
+        hdr["NAXIS2"] = (self.image_size, "length of data axis 2")
         hdr["EXTEND"] = ("T", "FITS dataset may contain extensions")
         hdr["COMMENT"] = (
             "and Astrophysics, volume 376, page 359; bibcode:" + "2001A&A...376..3"
         )
         hdr["ACQMODE"] = ("Single  ", "Acquisition Mode")
         hdr["READMODE"] = ("Image   ", "Readout Mode")
-        hdr["IMGRECT"] = ("1, 200,200, 1", "Image Format")
+        hdr["IMGRECT"] = (f"1, {self.image_size}, {self.image_size}, 1", "Image Format")
         hdr["HBIN"] = (self.binn, "Horizontal Binning")
         hdr["VBIN"] = (self.binn, "Vertical Binning")
-        hdr["TRIGGER"] = ("Internal", "Trigger Mode")
+        hdr["TRIGGER"] = ("External", "Trigger Mode")
         hdr["EXPOSURE"] = (self.t_exp, "Total Exposure Time")
         hdr["TEMP"] = (self.ccd_temp, "Temperature")
         hdr["READTIME"] = (str(1 / self.hss) + "E-006", "Pixel readout time ")

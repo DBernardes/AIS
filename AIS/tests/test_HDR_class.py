@@ -9,9 +9,8 @@ Created on Fri Apr 16 11:53:12 2021
 """
 
 
-from AIS.Header import Header
-
 import pytest
+from AIS.Header import Header
 
 dic = {
     "em_mode": 0,
@@ -21,12 +20,15 @@ dic = {
     "binn": 1,
     "t_exp": 1,
     "ccd_temp": -70,
+    "image_size": 1024,
 }
 
 
 @pytest.fixture
 def hdr():
-    return Header(dic, 3.0, 9914)
+    hdr = Header(dic, 3.0, 9914)
+    hdr.create_header()
+    return hdr
 
 
 # -----------------------teste cria classe -----------------------------
@@ -49,6 +51,7 @@ def test_noise_factor_2():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
+        "image_size": 1024,
     }
     hdr = Header(dic, 3, 9914)
     assert hdr.noise_factor == 1.41
@@ -59,8 +62,17 @@ def test_em_gain_1(hdr):
 
 
 def test_em_gain_2(hdr):
-    hdr.em_mode = 1
-    hdr.em_gain = 2
+    dic = {
+        "em_mode": 1,
+        "em_gain": 2,
+        "preamp": 1,
+        "hss": 1,
+        "binn": 1,
+        "t_exp": 1,
+        "ccd_temp": -70,
+        "image_size": 1024,
+    }
+    hdr = Header(dic, 3, 9914)
     assert hdr.em_gain == 2
 
 
@@ -92,43 +104,48 @@ def test_serial_number(hdr):
 
 
 def test_NAXIS1(hdr):
-    hdr.create_header()
-    assert hdr.hdr["NAXIS1"] == 200
+    assert hdr.hdr["NAXIS1"] == dic["image_size"]
 
 
 def test_NAXIS2(hdr):
-    hdr.create_header()
-    assert hdr.hdr["NAXIS2"] == 200
+    assert hdr.hdr["NAXIS2"] == dic["image_size"]
 
 
 def test_HBIN(hdr):
-    hdr.create_header()
-    assert hdr.hdr["HBIN"] == 1
+    assert hdr.hdr["HBIN"] == dic["binn"]
 
 
 def test_VBIN1(hdr):
-    hdr.create_header()
-    assert hdr.hdr["VBIN"] == 1
+    assert hdr.hdr["VBIN"] == dic["binn"]
 
 
 def test_EXPOSURE(hdr):
-    hdr.create_header()
-    assert hdr.hdr["EXPOSURE"] == 1
+    assert hdr.hdr["EXPOSURE"] == dic["t_exp"]
+
+
+def test_READTIME(hdr):
+    assert hdr.hdr["READTIME"] == f"{float(dic['hss'])}E-006"
 
 
 def test_TEMP(hdr):
-    hdr.create_header()
-    assert hdr.hdr["READTIME"] == "1.0E-006"
+    assert hdr.hdr["TEMP"] == dic["ccd_temp"]
 
 
 def test_GAIN(hdr):
-    hdr.create_header()
     assert hdr.hdr["GAIN"] == 3.0
 
 
 def test_OUTPTAMP(hdr):
     hdr.create_header()
     assert hdr.hdr["OUTPTAMP"] == "Conventional"
+
+
+def test_EM_GAIN(hdr):
+    assert hdr.hdr["EMGAIN"] == dic["em_gain"]
+
+
+def test_PREAMP(hdr):
+    assert hdr.hdr["PREAMP"] == f"{dic['preamp']}x"
 
 
 def test_SERNO(hdr):

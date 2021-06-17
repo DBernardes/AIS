@@ -5,6 +5,7 @@ This script tests the operation of the SPARC4 spectral response classes.
 """
 
 import numpy as np
+import pandas as pd
 import pytest
 from AIS.SPARC4_Spectral_Response import (
     Abstract_SPARC4_Spectral_Response,
@@ -17,6 +18,27 @@ from AIS.SPARC4_Spectral_Response import (
 wavelength_interval = range(350, 1150, 50)
 n = len(wavelength_interval)
 specific_flux = np.ones((4, n))
+
+ccd_transmitance_c1 = np.asarray(
+    pd.read_excel(r"./SPARC4_Spectral_Response/Channel 1/ccd.xlsx")
+)[1:, 1]
+ccd_transmitance_c1 = np.asarray([float(value) for value in ccd_transmitance_c1])
+
+ccd_transmitance_c2 = np.asarray(
+    pd.read_excel(r"./SPARC4_Spectral_Response/Channel 2/ccd.xlsx")
+)[1:, 1]
+ccd_transmitance_c2 = np.asarray([float(value) for value in ccd_transmitance_c2])
+
+ccd_transmitance_c3 = np.asarray(
+    pd.read_excel(r"./SPARC4_Spectral_Response/Channel 3/ccd.xlsx")
+)[1:, 1]
+ccd_transmitance_c3 = np.asarray([float(value) for value in ccd_transmitance_c3])
+
+ccd_transmitance_c4 = np.asarray(
+    pd.read_excel(r"./SPARC4_Spectral_Response/Channel 4/ccd.xlsx")
+)[1:, 1]
+ccd_transmitance_c4 = np.asarray([float(value) for value in ccd_transmitance_c4])
+# -------------------------------------------------------------------------------------------------------------
 
 
 @pytest.fixture
@@ -191,25 +213,7 @@ def test_ccd_abs(abs_s4_sr):
 
 
 def test_ccd_c1(c1_s4_sr):
-    transmitance = [
-        38.43,
-        85.39,
-        86.86,
-        85.12,
-        88.96,
-        89.12,
-        87.01,
-        84.12,
-        73.6,
-        61.44,
-        44.32,
-        30.32,
-        16.49,
-        5.67,
-        1.56,
-        0.35,
-    ]
-    new_specific_flux = specific_flux[0, :] * np.asarray(transmitance) / 100
+    new_specific_flux = specific_flux[0, :] * ccd_transmitance_c1 / 100
     c1_s4_sr.apply_analyser()
     c1_s4_sr.apply_ccd()
     assert np.allclose(c1_s4_sr.specific_ordinary_ray, new_specific_flux)
@@ -217,25 +221,7 @@ def test_ccd_c1(c1_s4_sr):
 
 
 def test_ccd_c2(c2_s4_sr):
-    transmitance = [
-        38.98,
-        50.04,
-        75.82,
-        95.8,
-        95.77,
-        92.86,
-        88.07,
-        81.16,
-        68.9,
-        56.67,
-        42.7,
-        27.75,
-        14.9,
-        6.24,
-        1.25,
-        0.27,
-    ]
-    new_specific_flux = specific_flux[0, :] * np.asarray(transmitance) / 100
+    new_specific_flux = specific_flux[0, :] * ccd_transmitance_c2 / 100
     c2_s4_sr.apply_analyser()
     c2_s4_sr.apply_ccd()
     assert np.allclose(c2_s4_sr.specific_ordinary_ray, new_specific_flux)
@@ -243,25 +229,8 @@ def test_ccd_c2(c2_s4_sr):
 
 
 def test_ccd_c3(c3_s4_sr):
-    transmitance = [
-        41.01,
-        57.93,
-        71.43,
-        86.17,
-        86.34,
-        87.13,
-        85.78,
-        85.07,
-        74.61,
-        62.76,
-        47.36,
-        30.75,
-        15.8,
-        6.58,
-        1.33,
-        0.35,
-    ]
-    new_specific_flux = specific_flux[0, :] * np.asarray(transmitance) / 100
+
+    new_specific_flux = specific_flux[0, :] * ccd_transmitance_c3 / 100
     c3_s4_sr.apply_analyser()
     c3_s4_sr.apply_ccd()
     assert np.allclose(c3_s4_sr.specific_ordinary_ray, new_specific_flux)
@@ -269,25 +238,8 @@ def test_ccd_c3(c3_s4_sr):
 
 
 def test_ccd_c4(c4_s4_sr):
-    transmitance = [
-        39.60,
-        61.93,
-        75.66,
-        87.12,
-        88.20,
-        88.67,
-        87.36,
-        86.55,
-        76.48,
-        64.63,
-        48.95,
-        32.34,
-        17.37,
-        6.60,
-        1.49,
-        0.38,
-    ]
-    new_specific_flux = specific_flux[0, :] * np.asarray(transmitance) / 100
+
+    new_specific_flux = specific_flux[0, :] * ccd_transmitance_c4 / 100
     c4_s4_sr.apply_analyser()
     c4_s4_sr.apply_ccd()
     assert np.allclose(c4_s4_sr.specific_ordinary_ray, new_specific_flux)
@@ -345,8 +297,13 @@ def test_read_spreadsheet_collimator(abs_s4_sr):
     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_dichroic(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 0/dichroic.xlsx"
+def test_read_spreadsheet_dichroic_1(abs_s4_sr):
+    file = "./SPARC4_Spectral_Response/Channel 0/dichroic 1.xlsx"
+    abs_s4_sr._read_spreadsheet(file)
+
+
+def test_read_spreadsheet_dichroic_2(abs_s4_sr):
+    file = "./SPARC4_Spectral_Response/Channel 0/dichroic 2.xlsx"
     abs_s4_sr._read_spreadsheet(file)
 
 
@@ -360,8 +317,13 @@ def test_read_spreadsheet_ccd(abs_s4_sr):
     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_dichroic_1(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 1/dichroic.xlsx"
+def test_read_spreadsheet_dichroic_1_1(abs_s4_sr):
+    file = "./SPARC4_Spectral_Response/Channel 1/dichroic 1.xlsx"
+    abs_s4_sr._read_spreadsheet(file)
+
+
+def test_read_spreadsheet_dichroic_1_2(abs_s4_sr):
+    file = "./SPARC4_Spectral_Response/Channel 1/dichroic 2.xlsx"
     abs_s4_sr._read_spreadsheet(file)
 
 
@@ -375,8 +337,13 @@ def test_read_spreadsheet_ccd_1(abs_s4_sr):
     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_dichroic_(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 2/dichroic.xlsx"
+def test_read_spreadsheet_dichroic_1_1(abs_s4_sr):
+    file = "./SPARC4_Spectral_Response/Channel 2/dichroic 1.xlsx"
+    abs_s4_sr._read_spreadsheet(file)
+
+
+def test_read_spreadsheet_dichroic_1_2(abs_s4_sr):
+    file = "./SPARC4_Spectral_Response/Channel 2/dichroic 2.xlsx"
     abs_s4_sr._read_spreadsheet(file)
 
 
@@ -390,8 +357,13 @@ def test_read_spreadsheet_ccd_2(abs_s4_sr):
     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_dichroic_3(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 3/dichroic.xlsx"
+def test_read_spreadsheet_dichroic_3_1(abs_s4_sr):
+    file = "./SPARC4_Spectral_Response/Channel 3/dichroic 2.xlsx"
+    abs_s4_sr._read_spreadsheet(file)
+
+
+def test_read_spreadsheet_dichroic_3_2(abs_s4_sr):
+    file = "./SPARC4_Spectral_Response/Channel 3/dichroic 2.xlsx"
     abs_s4_sr._read_spreadsheet(file)
 
 
@@ -405,8 +377,13 @@ def test_read_spreadsheet_ccd_3(abs_s4_sr):
     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_dichroic_4(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 4/dichroic.xlsx"
+def test_read_spreadsheet_dichroic_4_1(abs_s4_sr):
+    file = "./SPARC4_Spectral_Response/Channel 4/dichroic 1.xlsx"
+    abs_s4_sr._read_spreadsheet(file)
+
+
+def test_read_spreadsheet_dichroic_4_2(abs_s4_sr):
+    file = "./SPARC4_Spectral_Response/Channel 4/dichroic 2.xlsx"
     abs_s4_sr._read_spreadsheet(file)
 
 

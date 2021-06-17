@@ -6,9 +6,8 @@ Created on Fri Apr 23 11:59:02 2021
 @author: denis
 """
 
-from AIS.Read_Noise_Calculation import Read_Noise_Calculation
-
 import pytest
+from AIS.Read_Noise_Calculation import Read_Noise_Calculation
 
 dic = {"em_mode": 0, "em_gain": 1, "binn": 1, "preamp": 1, "hss": 1}
 
@@ -45,7 +44,7 @@ def test_directory(rnc):
     assert rnc.directory == "Channel 1"
 
 
-# -------------------------- Test calculate read noise funtction ------------
+# ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -85,3 +84,7 @@ def test_calc_read_noise(rnc, em_mode, em_gain, hss, preamp, binn, read_noise):
     rnc.binn = binn
     rn = rnc.calculate_read_noise()
     assert round(rn, 2) == read_noise
+
+
+def test_get_operation_mode(rnc):
+    rnc.get_operation_mode()

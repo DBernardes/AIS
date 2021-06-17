@@ -25,16 +25,16 @@ class Read_Noise_Calculation:
     Parameters
     ----------
     ccd_operation_mode: dictionary
-        A dictionary with the parameter of the CCD operation mode.
+        A dictionary with the parameters of the CCD operation mode.
 
         em_mode : [0, 1]
             CCD Electron Multiplying Mode
         em_gain : float
             CCD Electron Multiplying gain
         hss : [0.1, 1, 10, 20, 30]
-            Horizontal Shift Spedd of the pixels
+            Horizontal Shift Speed of the pixels
         preamp : [1, 2]
-            Pre-amplifer gain
+            Pre-amplifier gain
         binn : [1, 2]
             Binning of the pixels
     directory : string

@@ -6,6 +6,8 @@ This is the Background Image Class used to generate a back ground image like
 a bias image acquired by the SPARC4 cameras.
 """
 
+import sys
+
 import numpy as np
 from astropy.table import Table
 from photutils.datasets import make_noise_image
@@ -16,42 +18,42 @@ class Background_Image:
 
     Parameters
     ----------
-    Abstract_Channel_Creator : object
-        An object of the Channel Creator Class. This object is used to
-        calculate the contribution of the SPARC4 instrument in the sky flux
-
     ccd_operation_mode: dictionary
         A python dictionary with the CCD operation mode.
         The allowed keywords values for the dictionary are
 
-        * em_mode: {0, 1}
-
-           Use the 0 for the Conventional Mode and 1 for the EM Mode
-
-        * preamp: {1, 2}
-
-           Pre-amplification
-
-        * hss: {0.1, 1, 10, 20, 30}
-
-           Horizontal Shift Speed (readout rate) in MHz
-
-        * bin: int
-
-           Number of the binned pixels
-
-        * image_size: int
-
-           Size of the image in pixels
+        em_mode : [0, 1]
+            Electron Multiplying mode of the CCD.
+        em_gain : float
+            CCD Electron Multiplying gain
+        hss : [0.1, 1, 10, 20, 30]
+            Horizontal Shift Speed of the pixels
+        preamp : [1, 2]
+            Pre-amplifier gain
+        binn : [1, 2]
+            Binning of the pixels
+        t_exp : float
+            Exposure time in seconds
+        image_size : int
+            Image size in pixels
 
     ccd_gain : float
         CCD gain in e-/ADU.
+    dark_current : float
+        Dark current in e-/s of the CCD
+    read_noise :
+        Read noise in electrons of the CCD
     bias_level : integer
-        The bias level of the image in ADU.
+        The bias level of the image in ADU
     """
 
     def __init__(
-        self, ccd_operation_mode, ccd_gain, dark_current, read_noise, bias_level
+        self,
+        ccd_operation_mode,
+        ccd_gain,
+        dark_current,
+        read_noise,
+        bias_level,
     ):
         """Initialize the Background Image class."""
         self.ccd_gain = ccd_gain
@@ -70,8 +72,8 @@ class Background_Image:
         if ccd_operation_mode["em_mode"] == 1:
             self.NOISE_FACTOR = 1.4
 
-    def create_background_image(self, sky_flux):
-        """Create the background image.
+    def create_background_image_1(self):
+        """Create a background image.
 
         This functions creates a background image with a background level given
         by the ccd operation mode, the sky flux, the dc noise, and the bias
@@ -81,9 +83,64 @@ class Background_Image:
 
         Returns
         -------
-        noise_image: array like
+        background_image: array like
             A background image for the respective CCD operation mode, the sky
-            flux, and the dc level.
+            flux, and the dark current noise.
+
+        """
+        t_exp = self.t_exp
+        em_gain = self.em_gain
+        ccd_gain = self.ccd_gain
+        bias = self.bias_level
+        dc = self.dark_current * t_exp
+        rn = self.read_noise
+        sky = self.sky_flux
+        nf = self.NOISE_FACTOR
+        binn = self.binn
+        image_size = self.image_size
+
+        shape = (image_size, image_size)
+        background_level = bias + (dc) * t_exp * em_gain * binn ** 2 / ccd_gain
+
+        gaussian_noise = (
+            np.sqrt(rn ** 2 + (sky + dc) * t_exp * nf ** 2 * em_gain ** 2 * binn ** 2)
+            / ccd_gain
+        )
+        poisson_noise = (
+            np.sqrt((sky) * t_exp * nf ** 2 * em_gain ** 2 * binn ** 2) / ccd_gain
+        )
+        # print(noise), sys.exit()
+
+        gaussian_image = make_noise_image(
+            shape, distribution="gaussian", mean=0, stddev=gaussian_noise
+        )
+        poisson_image = make_noise_image(
+            shape, distribution="gaussian", mean=0, stddev=poisson_noise
+        )
+        self.background_image = gaussian_image + poisson_image + background_level
+
+        return self.background_image
+
+    def create_background_image(self, sky_flux):
+        """Create a background image.
+
+        This functions creates a background image with a background level given
+        by the ccd operation mode, the sky flux, the dc noise, and the bias
+        level. Over this image there is a noise given by a gaussian
+        distribution over the read noise, dc noise, and sky noise. Also, the
+        extra noise of the EM amplification is considered.
+
+        Parameters
+        ----------
+
+        sky_flux : float
+            Flux in photons/s of the sky
+
+        Returns
+        -------
+        background_image: array like
+            A background image for the respective CCD operation mode, the sky
+            flux, and the dark current noise.
 
         """
         t_exp = self.t_exp

@@ -25,16 +25,18 @@ def atm_sr():
 
 
 def test_read_spreadsheet(atm_sr):
+    wavelength_interv = range(350, 1150, 50)  # por hora vale
+    transmitance = np.ones((1, n))  # por hora vale
     atm_sr._read_spreadsheet()
     assert np.allclose(atm_sr.atm_wavelength_interval, wavelength_interv)
-    assert np.allclose(atm_sr.transmitance, specific_flux[0, :])
+    assert np.allclose(atm_sr.transmitance, transmitance)
 
 
 def test_calculate_spline(atm_sr):
-    transmitance = np.ones((1, n))[0]
+    transmitance = np.ones((1, n))
     atm_sr._read_spreadsheet()
-    atm_sr._calculate_spline(wavelength_interv)
-    assert np.allclose(atm_sr.transmitance, transmitance)
+    new_transmitance = atm_sr._calculate_spline(wavelength_interv)
+    assert np.allclose(new_transmitance, transmitance)
 
 
 def test_apply_atmosphere_spectral_response(atm_sr):

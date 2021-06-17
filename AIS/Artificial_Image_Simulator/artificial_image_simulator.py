@@ -226,9 +226,7 @@ class Artificial_Image_Simulator:
         self.CHC = CHC
         self._calculate_dark_current()
         self._calculate_read_noise(ccd_operation_mode)
-        self.PSF = Point_Spread_Function(
-            CHC, ccd_operation_mode, self.ccd_gain, self.sparc4_operation_mode
-        )
+        self.PSF = Point_Spread_Function(CHC, ccd_operation_mode, self.ccd_gain)
         self.BGI = Background_Image(
             ccd_operation_mode,
             self.ccd_gain,
@@ -391,8 +389,12 @@ class Artificial_Image_Simulator:
 
     def _integrate_specific_fluxes(self):
         """Integrate the star and the sky specific fluxes."""
-        self.ordinary_ray = np.sum(self.specific_ordinary_ray)
-        self.extra_ordinary_ray = np.sum(self.specific_extra_ordinary_ray)
+        try:
+            self.ordinary_ray = np.sum(self.specific_ordinary_ray)
+            self.extra_ordinary_ray = np.sum(self.specific_extra_ordinary_ray)
+        except Exception:
+            self.ordinary_ray = np.sum(self.star_specific_flux)
+            self.extra_ordinary_ray = 0
         self.sky_flux = np.sum(self.sky_specific_flux)
 
     def _configure_image_name(self):
@@ -465,10 +467,10 @@ class Artificial_Image_Simulator:
         self._integrate_specific_fluxes()
         background = self.BGI.create_background_image(self.sky_flux)
         star_PSF = self.PSF.create_star_PSF(
-            self.ordinary_ray,
-            self.extra_ordinary_ray,
             self.star_coordinates,
             self.gaussian_std,
+            self.ordinary_ray,
+            self.extra_ordinary_ray,
         )
         header = self.HDR.create_header()
 
@@ -570,12 +572,14 @@ class Artificial_Image_Simulator:
         random_image = self.BGI.create_background_image(self.sky_flux)
         for i in range(n):
             x_coord = randint(50, self.image_size - 50)
-            y_coord = randint(1, self.image_size)
-            ordinary_ray = randint(10, 4000)
-            extra_ordinary_ray = ordinary_ray
-            gaussian_std = randint(1, 8)
+            y_coord = randint(50, self.image_size - 50)
+            ordinary_ray = randint(self.ordinary_ray // 2, self.ordinary_ray // 1)
+            extra_ordinary_ray = 0
+            if self.sparc4_operation_mode == "pol":
+                extra_ordinary_ray = ordinary_ray
+            gaussian_std = randint(1, self.gaussian_std)
             random_image += self.PSF.create_star_PSF(
-                ordinary_ray, extra_ordinary_ray, (x_coord, y_coord), gaussian_std
+                (x_coord, y_coord), gaussian_std, ordinary_ray, extra_ordinary_ray
             )
         header = self.HDR.create_header()
 

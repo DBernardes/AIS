@@ -119,8 +119,31 @@ class Abstract_SPARC4_Spectral_Response:
             self.specific_extra_ordinary_ray = 0
 
     def apply_dichroic(self):
-        """Apply the dichroic spectral response."""
-        pass
+        """Apply the dichroic spectral response.
+
+
+        This functions applies the spectral response of the two
+        dichroics that compose each channel."""
+
+        file = self._DIR_PATH + f"Channel {self._CHANNEL_ID}/" + "dichroic 1.xlsx"
+        wavelength_interv, transmitance = self._read_spreadsheet(file)
+        transmitance = self._calculate_spline(transmitance, wavelength_interv)
+        self.specific_ordinary_ray = np.multiply(
+            self.specific_ordinary_ray, transmitance
+        )
+        self.specific_extra_ordinary_ray = np.multiply(
+            self.specific_extra_ordinary_ray, transmitance
+        )
+
+        file = self._DIR_PATH + f"Channel {self._CHANNEL_ID}/" + "dichroic 2.xlsx"
+        wavelength_interv, transmitance = self._read_spreadsheet(file)
+        transmitance = self._calculate_spline(transmitance, wavelength_interv)
+        self.specific_ordinary_ray = np.multiply(
+            self.specific_ordinary_ray, transmitance
+        )
+        self.specific_extra_ordinary_ray = np.multiply(
+            self.specific_extra_ordinary_ray, transmitance
+        )
 
     def apply_camera(self):
         """Apply the camera spectral response."""

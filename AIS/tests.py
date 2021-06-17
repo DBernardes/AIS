@@ -5,15 +5,40 @@ Created on Tue Apr 27 10:23:27 2021
 @author: denis
 """
 
+from random import gauss
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from Channel_Creator import Abstract_Channel_Creator
+from Artificial_Image_Simulator import Artificial_Image_Simulator
 
-wavelength_interv = range(350, 1100, 50)
-n = len(wavelength_interv)
-specific_flux = np.ones((4, n))
-chc = Abstract_Channel_Creator(sparc4_operation_mode="pol")
-ord, extra_ord = chc.apply_sparc4_spectral_response(specific_flux, 350, 1100, 50)
-print(ord, extra_ord)
+dic = {
+    "em_mode": 0,
+    "em_gain": 1,
+    "preamp": 1,
+    "hss": 1,
+    "binn": 1,
+    "t_exp": 1,
+    "ccd_temp": -70,
+    "image_size": 1024,
+}
+
+gaussian_std = 8
+ais = Artificial_Image_Simulator(
+    dic,
+    image_dir=r"C:\Users\denis\Desktop\FITS",
+    sparc4_operation_mode="phot",
+    gaussian_std=gaussian_std,
+)
+ais.apply_sparc4_spectral_response()
+ais.create_random_image()
+
+ais = Artificial_Image_Simulator(
+    dic,
+    image_dir=r"C:\Users\denis\Desktop\FITS",
+    sparc4_operation_mode="pol",
+    gaussian_std=gaussian_std,
+)
+ais.apply_sparc4_spectral_response()
+ais.create_random_image()

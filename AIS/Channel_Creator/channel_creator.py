@@ -36,10 +36,8 @@ class Abstract_Channel_Creator:
 
     Parameters
     ----------
-    ccd_temp : float
-        The CCD temperature in ºC
-    sparc4_acquisition_mode : [phot, pol]
-        Acquisition mode of the SPARC4: photometric or polarimetric
+    sparc4_operation_mode : [phot, pol]
+        Operation mode of the SPARC4: photometric or polarimetric
     """
 
     _CHANNEL_ID = 0
@@ -59,7 +57,7 @@ class Abstract_Channel_Creator:
 
         Returns
         -------
-        _serial_number: 9914, 9915, 9916, 9917
+        _SERIAL_NUMBER: 9914, 9915, 9916, 9917
             Serial number of the CCD
 
         """
