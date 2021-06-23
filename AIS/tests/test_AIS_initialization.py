@@ -82,7 +82,7 @@ def test_sparc4_operation_mode(ais):
 
 
 def test_image_dir(ais):
-    assert ais.image_dir == "a\\"
+    assert ais.image_dir == "a"
 
 
 def test_star_wavelength_interval(ais):

@@ -79,7 +79,7 @@ class Spectrum_Calculation:
                 * 1
                 / (np.e ** (h * c / (Lambda * k * T)) - 1)
             )
-            specific_flux.append(B)
+            specific_flux.append(B / 1e10)  # arrumar!
 
         temporary = np.asarray(specific_flux)
         self.specific_flux_length = len(specific_flux)

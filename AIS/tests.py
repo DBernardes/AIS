@@ -5,6 +5,7 @@ Created on Tue Apr 27 10:23:27 2021
 @author: denis
 """
 
+import os
 from random import gauss
 
 import matplotlib.pyplot as plt
@@ -27,7 +28,7 @@ dic = {
 gaussian_std = 8
 ais = Artificial_Image_Simulator(
     dic,
-    image_dir=r"C:\Users\denis\Desktop\FITS",
+    image_dir=os.path.join("..", "FITS"),
     sparc4_operation_mode="phot",
     gaussian_std=gaussian_std,
 )
@@ -36,7 +37,7 @@ ais.create_random_image()
 
 ais = Artificial_Image_Simulator(
     dic,
-    image_dir=r"C:\Users\denis\Desktop\FITS",
+    image_dir=os.path.join("..", "FITS"),
     sparc4_operation_mode="pol",
     gaussian_std=gaussian_std,
 )

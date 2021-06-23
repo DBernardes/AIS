@@ -15,6 +15,9 @@ function of the EM gain.
 # Denis Varise Bernardes.
 # 08/10/2019.
 
+import os
+from ntpath import join
+
 import openpyxl
 from scipy.interpolate import interp1d
 
@@ -89,12 +92,11 @@ class Read_Noise_Calculation:
                 indice_tab = 25
         if self.binn == 2:
             indice_tab += 1
-        path = (
-            r"./Read_Noise_Calculation/spreadsheet"
-            + "/"
-            + self.directory
-            + "/"
-            + "Read_noise_and_gain_values.xlsx"
+        path = os.path.join(
+            "Read_Noise_Calculation",
+            "spreadsheet",
+            self.directory,
+            "Read_noise_and_gain_values.xlsx",
         )
 
         spreadsheet = openpyxl.load_workbook(path).active
@@ -102,18 +104,17 @@ class Read_Noise_Calculation:
 
     def _calculate_read_noise_em_mode(self):
         """Calculate the read noise for the EM mode."""
-        tab_name = (
-            "./Read_Noise_Calculation/spreadsheet"
-            + "/"
-            + self.directory
-            + "/"
-            + "RN_PA"
+        tab_name = os.path.join(
+            "Read_Noise_Calculation",
+            "spreadsheet",
+            self.directory,
+            "RN_PA"
             + str(int(self.preamp))
             + "B"
             + str(int(self.binn))
             + "HSS"
             + str(int(self.hss))
-            + ".xlsx"
+            + ".xlsx",
         )
         spreadsheet = list(openpyxl.load_workbook(tab_name).active.values)
         column_em_gain = [value[0] for value in spreadsheet[1:12]]

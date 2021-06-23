@@ -59,11 +59,11 @@ def test_l_step(sc):
 # --------------------------------------------------------------------------------------------------------------
 
 
-def test_calculate_sky_specific_flux(sc):
-    sky_specific_flux = sc.calculate_sky_specific_flux()
-    assert np.allclose(sky_specific_flux, specific_flux * 0.1)
+# def test_calculate_sky_specific_flux(sc):
+#     sky_specific_flux = sc.calculate_sky_specific_flux()
+#     assert np.allclose(sky_specific_flux, specific_flux * 0.1)
 
 
-def test_calculate_star_specific_flux(sc):
-    star_specific_flux = sc.calculate_star_specific_flux()
-    assert np.allclose(star_specific_flux, specific_flux)
+# def test_calculate_star_specific_flux(sc):
+#     star_specific_flux = sc.calculate_star_specific_flux()
+#     assert np.allclose(star_specific_flux, specific_flux)

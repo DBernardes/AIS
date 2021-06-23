@@ -9,6 +9,7 @@ the AIS models as star flux as a 2D gaussian distribution. Then, the star
 flux is added to an image with a background level given by counts distribution
 of an image of the SPARC4 cameras, as a function of its operation mode.
 """
+import os
 import sys
 import time
 from random import randint
@@ -122,7 +123,7 @@ class Artificial_Image_Simulator:
         bias_level=500,
         sparc4_operation_mode="phot",
         image_dir="",
-        star_wavelength_interval=(350, 1100, 50),
+        star_wavelength_interval=(350, 1150, 50),
         star_temperature=5700,
     ):
         """Initialize the class."""
@@ -180,9 +181,6 @@ class Artificial_Image_Simulator:
         if type(image_dir) is not str:
             raise ValueError(f"The directory path must be a string: {image_dir}")
         else:
-            if image_dir != "":
-                if "/" not in image_dir[-1]:
-                    image_dir += "\\"
             self.image_dir = image_dir
 
         for wavelength in star_wavelength_interval:
@@ -444,11 +442,13 @@ class Artificial_Image_Simulator:
             raise ValueError("Unexpected value for the readout rate: {hss}")
         if preamp == 2:
             tab_index += 2
-
-        spreadsheet = openpyxl.load_workbook(
-            f"./Read_Noise_Calculation/spreadsheet/Channel {self.channel}"
-            + "/Read_noise_and_gain_values.xlsx"
-        ).active
+        file_name = os.path.join(
+            "Read_Noise_Calculation",
+            "spreadsheet",
+            f"Channel {self.channel}",
+            "Read_noise_and_gain_values.xlsx",
+        )
+        spreadsheet = openpyxl.load_workbook(file_name).active
         self.ccd_gain = spreadsheet.cell(tab_index, 5).value
 
     def create_artificial_image(self):

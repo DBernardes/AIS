@@ -5,6 +5,8 @@ Atmosphere Spectral Response
 This class calculates the output flux of an astronomical object as a funtction
 of the atmosphere spectral response.
 """
+import os
+
 import numpy as np
 import pandas as pd
 from scipy.interpolate import splev, splrep
@@ -13,8 +15,8 @@ from scipy.interpolate import splev, splrep
 class Atmosphere_Spectral_Response:
     """Atmosphere Spectral Response Class."""
 
-    _SPECTRAL_RESPONSE_FILE = (
-        r"Atmosphere_Spectral_Response/atmosphere_spectral_response.xlsx"
+    _SPECTRAL_RESPONSE_FILE = os.path.join(
+        "Atmosphere_Spectral_Response", "atmosphere_spectral_response.xlsx"
     )
 
     def __init__(self):

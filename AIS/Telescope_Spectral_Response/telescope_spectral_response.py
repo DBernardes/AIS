@@ -6,13 +6,35 @@ This class calculates the output flux of an astronomical object as a funtion
 of the 1.6 m Perkin-Elmer spectral response.
 """
 
+import os
+
+import numpy as np
+import pandas as pd
+from scipy.interpolate import splev, splrep
+
 
 class Telescope_Spectral_Response:
     """Telescope Spectral Response Class."""
 
+    _SPECTRAL_RESPONSE_FILE = os.path.join(
+        "Telescope_Spectral_Response", "telescope_spectral_response.xlsx"
+    )
+
     def __init__(self):
         """Initilize the class."""
         pass
+
+    def _read_spreadsheet(self):
+        ss = np.asarray(pd.read_excel(self._SPECTRAL_RESPONSE_FILE))
+        tel_wavelength_interval = [float(value) for value in ss[1:, 0]]
+        reflectance = [float(value) for value in ss[1:, 1]]
+        self.tel_wavelength_interval = np.asarray(tel_wavelength_interval)
+        self.reflectance = np.asarray(reflectance)
+
+    def _calculate_spline(self, wavelength_interval):
+        spl = splrep(self.tel_wavelength_interval, self.reflectance)
+        reflectance = splev(wavelength_interval, spl)
+        return reflectance
 
     def apply_telescope_spectral_response(
         self, star_specific_flux, l_init, l_final, l_step
@@ -44,5 +66,9 @@ class Telescope_Spectral_Response:
         """
         self.star_specific_flux = star_specific_flux
         wavelength_interval = range(l_init, l_final, l_step)
+        self._read_spreadsheet()
+        reflectance = self._calculate_spline(wavelength_interval)
+        new_specific_flux = np.multiply(star_specific_flux[0, :], reflectance)
+        self.star_specific_flux[0, :] = new_specific_flux
 
         return star_specific_flux
