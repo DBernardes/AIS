@@ -12,8 +12,8 @@ from Artificial_Image_Simulator import Artificial_Image_Simulator
 dic = {
     "em_mode": 0,
     "em_gain": 1,
-    "preamp": 1,
-    "hss": 1,
+    "preamp": 2,
+    "hss": 0.1,
     "binn": 1,
     "t_exp": 1,
     "ccd_temp": -70,
@@ -33,7 +33,7 @@ ais = Artificial_Image_Simulator(
     star_temperature=5700,
 )
 
-ais.apply_atmosphere_spectral_response()
-ais.apply_telescope_spectral_response()
-ais.apply_sparc4_spectral_response()
-ais.create_random_image(1)
+# ais.apply_atmosphere_spectral_response()
+# ais.apply_telescope_spectral_response()
+# ais.apply_sparc4_spectral_response()
+ais.create_artificial_image()

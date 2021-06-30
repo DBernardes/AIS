@@ -22,7 +22,7 @@ dic = {
     "binn": 1,
     "t_exp": 1,
     "ccd_temp": -70,
-    "image_size": 1024,
+    "image_size": 200,
 }
 
 gaussian_std = 8

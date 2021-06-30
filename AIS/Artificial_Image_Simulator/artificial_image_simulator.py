@@ -11,14 +11,14 @@ of an image of the SPARC4 cameras, as a function of its operation mode.
 """
 import os
 import sys
-import time
 from random import randint
+from sys import exit
 
 import numpy as np
+import pandas as pd
 
 sys.path.append("..")
 import astropy.io.fits as fits
-import openpyxl
 from Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
 from Background_Image import Background_Image
 from Channel_Creator import (
@@ -132,7 +132,7 @@ class Artificial_Image_Simulator:
             self.channel = channel
         else:
             raise ValueError(
-                "There is no camera with the provided" + f"serial number: {channel}"
+                "There is no camera with the provided" + f" channel: {channel}"
             )
 
         if type(gaussian_std) is not int:
@@ -150,10 +150,10 @@ class Artificial_Image_Simulator:
 
         for coord in star_coordinates:
             if type(coord) is not int:
-                raise ValueError("The star coordinates must be an integer: {coord}")
+                raise ValueError(f"The star coordinates must be an integer: {coord}")
             elif coord <= 0:
                 raise ValueError(
-                    "The star coordinates must be greater than zero: {coord}"
+                    f"The star coordinates must be greater than zero: {coord}"
                 )
             else:
                 self.star_coordinates = star_coordinates
@@ -427,29 +427,30 @@ class Artificial_Image_Simulator:
         preamp = ccd_operation_mode["preamp"]
         tab_index = 0
         if hss == 0.1:
-            tab_index = 23
+            tab_index = 21
         elif hss == 1:
-            tab_index = 19
+            tab_index = 17
             if em_mode == 1:
-                tab_index = 15
+                tab_index = 13
         elif hss == 10:
-            tab_index = 11
+            tab_index = 9
         elif hss == 20:
-            tab_index = 7
+            tab_index = 5
         elif hss == 30:
-            tab_index = 3
+            tab_index = 1
         else:
-            raise ValueError("Unexpected value for the readout rate: {hss}")
+            raise ValueError(f"Unexpected value for the readout rate: {hss}")
         if preamp == 2:
             tab_index += 2
         file_name = os.path.join(
             "Read_Noise_Calculation",
             "spreadsheet",
             f"Channel {self.channel}",
-            "Read_noise_and_gain_values.xlsx",
+            "Read_noise_and_gain_values.csv",
         )
-        spreadsheet = openpyxl.load_workbook(file_name).active
-        self.ccd_gain = spreadsheet.cell(tab_index, 5).value
+        spreadsheet = pd.read_csv(file_name)
+        # print(spreadsheet["Gain"], tab_index), exit()
+        self.ccd_gain = float(spreadsheet["Gain"][tab_index])
 
     def create_artificial_image(self):
         """Create the artificial star image.
@@ -474,8 +475,10 @@ class Artificial_Image_Simulator:
         )
         header = self.HDR.create_header()
 
+        image_name = os.path.join(self.image_dir, self.image_name + ".fits")
+
         fits.writeto(
-            self.image_dir + self.image_name + ".fits",
+            image_name,
             background + star_PSF,
             overwrite=True,
             header=header,
@@ -497,8 +500,10 @@ class Artificial_Image_Simulator:
         background = self.BGI.create_background_image(self.sky_flux)
         header = self.HDR.create_header()
 
+        image_name = os.path.join(self.image_dir, self.image_name + "_BG.fits")
+
         fits.writeto(
-            self.image_dir + self.image_name + "_BG.fits",
+            image_name,
             background,
             overwrite=True,
             header=header,
@@ -518,9 +523,10 @@ class Artificial_Image_Simulator:
         """
         dark_image = self.BGI.create_dark_image()
         header = self.HDR.create_header()
+        image_name = os.path.join(self.image_dir, self.image_name + "_DARK.fits")
 
         fits.writeto(
-            self.image_dir + self.image_name + "_DARK.fits",
+            image_name,
             dark_image,
             overwrite=True,
             header=header,
@@ -542,8 +548,10 @@ class Artificial_Image_Simulator:
         header = self.HDR.create_header()
         header["EXPOSURE"] = 1e-5
 
+        image_name = os.path.join(self.image_dir, self.image_name + "_BIAS.fits")
+
         fits.writeto(
-            self.image_dir + self.image_name + "_BIAS.fits",
+            image_name,
             bias,
             overwrite=True,
             header=header,
@@ -582,9 +590,10 @@ class Artificial_Image_Simulator:
                 (x_coord, y_coord), gaussian_std, ordinary_ray, extra_ordinary_ray
             )
         header = self.HDR.create_header()
+        image_name = os.path.join(self.image_dir, self.image_name + "_RAND.fits")
 
         fits.writeto(
-            self.image_dir + self.image_name + ".fits",
+            image_name,
             random_image,
             overwrite=True,
             header=header,
@@ -605,8 +614,10 @@ class Artificial_Image_Simulator:
         flat_image = self.BGI.create_flat_image()
         header = self.HDR.create_header()
 
+        image_name = os.path.join(self.image_dir, self.image_name + "_FLAT.fits")
+
         fits.writeto(
-            self.image_dir + self.image_name + "_FLAT.fits",
+            image_name,
             flat_image,
             overwrite=True,
             header=header,
