@@ -32,7 +32,7 @@ dic = {
     "binn": 1,
     "t_exp": 1,
     "ccd_temp": -70,
-    "image_size": 200,
+    "image_size": 100,
 }
 
 sc = Spectrum_Calculation(5700, 350, 1150, 50)
@@ -223,7 +223,7 @@ def test_create_artificial_image_phot():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
-        "image_size": 1024,
+        "image_size": 100,
     }
     ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("..", "FITS"))
     ais.apply_sparc4_spectral_response()
@@ -239,7 +239,7 @@ def test_create_artificial_image_pol():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
-        "image_size": 1024,
+        "image_size": 100,
     }
     ais = Artificial_Image_Simulator(
         dic, image_dir=os.path.join("..", "FITS"), sparc4_operation_mode="pol"
@@ -257,7 +257,7 @@ def test_create_background_image():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
-        "image_size": 1024,
+        "image_size": 100,
     }
     ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("..", "FITS"))
     ais.apply_sparc4_spectral_response()
@@ -273,7 +273,7 @@ def test_creat_bias_image():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
-        "image_size": 1024,
+        "image_size": 100,
     }
     ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("..", "FITS"))
     ais.apply_sparc4_spectral_response()
@@ -289,7 +289,7 @@ def test_creat_dark_image():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
-        "image_size": 1024,
+        "image_size": 100,
     }
     ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("..", "FITS"))
     ais.apply_sparc4_spectral_response()
@@ -305,7 +305,7 @@ def test_creat_random_image():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
-        "image_size": 1024,
+        "image_size": 100,
     }
     ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("..", "FITS"))
     ais.apply_sparc4_spectral_response()
@@ -321,7 +321,7 @@ def test_creat_flat_image():
         "binn": 1,
         "t_exp": 1,
         "ccd_temp": -70,
-        "image_size": 1024,
+        "image_size": 100,
     }
     ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("..", "FITS"))
     ais.apply_sparc4_spectral_response()
