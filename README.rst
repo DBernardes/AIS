@@ -194,3 +194,8 @@ References
 .. |Codacy| image:: https://app.codacy.com/project/badge/Grade/b2724af0f0b043bc84f768659f73fb77    
     :target: https://www.codacy.com/gh/DBernardes/AIS/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DBernardes/AIS&amp;utm_campaign=Badge_Grade
       
+
+
+.. image:: https://api.codacy.com/project/badge/Grade/f8749513e31f4a858e7840805d194959
+   :alt: Codacy Badge
+   :target: https://app.codacy.com/gh/DBernardes/AIS?utm_source=github.com&utm_medium=referral&utm_content=DBernardes/AIS&utm_campaign=Badge_Grade_Settings
