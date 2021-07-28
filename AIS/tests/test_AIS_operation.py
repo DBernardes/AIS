@@ -43,7 +43,7 @@ wavelength_interval = range(350, 1150, 50)
 ccd_transmitance_c1 = np.asarray(
     pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 1", "ccd.xlsx"))
 )[1:, 1]
-ccd_transmitance_c1 = np.asarray([float(value) for value in ccd_transmitance_c1])
+ccd_transmitance_c1 = np.asarray([float(value) / 100 for value in ccd_transmitance_c1])
 
 
 @pytest.fixture
@@ -97,9 +97,9 @@ def test_apply_atmosphere_spectral_response_star(ais):
     assert np.allclose(ais.star_specific_flux, star_specific_flux)
 
 
-# def test_apply_atmosphere_spectral_response_sky(ais):
-#     ais.apply_atmosphere_spectral_response()
-#     assert np.allclose(ais.sky_specific_flux, sky_specific_flux)
+def test_apply_atmosphere_spectral_response_sky(ais):
+    ais.apply_atmosphere_spectral_response()
+    assert np.allclose(ais.sky_specific_flux, sky_specific_flux)
 
 
 def test_apply_telescope_spectral_response_star(ais):
@@ -107,18 +107,19 @@ def test_apply_telescope_spectral_response_star(ais):
     assert np.allclose(ais.star_specific_flux, star_specific_flux)
 
 
-# def test_apply_telescope_spectral_response_sky(ais):
-#     ais.apply_atmosphere_spectral_response()
-#     assert np.allclose(ais.sky_specific_flux, sky_specific_flux)
+def test_apply_telescope_spectral_response_sky(ais):
+    ais.apply_atmosphere_spectral_response()
+    assert np.allclose(ais.sky_specific_flux, sky_specific_flux)
 
 
-# def test_apply_sparc4_spectral_response_star(ais):
-#     specific_flux = (
-#         np.multiply(star_specific_flux[0, :], ccd_transmitance_c1) * 0.5 / 100
-#     )
-#     ais.apply_sparc4_spectral_response()
-#     assert np.allclose(ais.specific_ordinary_ray, specific_flux)
-#     assert np.allclose(ais.specific_extra_ordinary_ray, specific_flux)
+def test_apply_sparc4_spectral_response_star(ais):
+    specific_flux = np.multiply(star_specific_flux[0, :], ccd_transmitance_c1) * 0.5
+    ais.apply_sparc4_spectral_response()
+    # print(specific_flux)
+    # print(ais.specific_ordinary_ray)
+    # assert 1 == 0
+    assert np.allclose(ais.specific_ordinary_ray, specific_flux)
+    # assert np.allclose(ais.specific_extra_ordinary_ray, specific_flux)
 
 
 # def test_apply_sparc4_spectral_response_sky(ais):

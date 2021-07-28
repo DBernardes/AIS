@@ -449,7 +449,6 @@ class Artificial_Image_Simulator:
             "Read_noise_and_gain_values.csv",
         )
         spreadsheet = pd.read_csv(file_name)
-        # print(spreadsheet["Gain"], tab_index), exit()
         self.ccd_gain = float(spreadsheet["Gain"][tab_index])
 
     def create_artificial_image(self):

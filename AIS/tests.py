@@ -29,17 +29,16 @@ gaussian_std = 8
 ais = Artificial_Image_Simulator(
     dic,
     image_dir=os.path.join("..", "FITS"),
-    sparc4_operation_mode="phot",
-    gaussian_std=gaussian_std,
-)
-ais.apply_sparc4_spectral_response()
-ais.create_random_image()
-
-ais = Artificial_Image_Simulator(
-    dic,
-    image_dir=os.path.join("..", "FITS"),
     sparc4_operation_mode="pol",
     gaussian_std=gaussian_std,
 )
 ais.apply_sparc4_spectral_response()
-ais.create_random_image()
+# ais.create_random_image()
+
+# ais = Artificial_Image_Simulator(
+#     dic,
+#     image_dir=os.path.join("..", "FITS"),
+#     sparc4_operation_mode="pol",
+#     gaussian_std=gaussian_std,
+# )
+# ais.apply_sparc4_spectral_response()

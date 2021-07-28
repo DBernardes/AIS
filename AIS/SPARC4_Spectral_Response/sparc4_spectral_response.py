@@ -10,6 +10,7 @@ response.
 
 import os
 import sys
+from sys import exit
 
 import numpy as np
 import pandas as pd
@@ -93,11 +94,14 @@ class Abstract_SPARC4_Spectral_Response:
 
         file = os.path.join(self._DIR_PATH, "analyser_ordinary.xlsx")
         stokes = np.asarray(pd.read_excel(file))
-        self.specific_ordinary_ray = self._multiply_matrices(stokes, self.specific_flux)
+        self.specific_ordinary_ray = self._multiply_matrices(
+            stokes, self.specific_flux.copy()
+        )
+
         file = os.path.join(self._DIR_PATH, "analyser_extra_ordinary.xlsx")
         stokes = np.asarray(pd.read_excel(file))
         self.specific_extra_ordinary_ray = self._multiply_matrices(
-            stokes, self.specific_flux
+            stokes, self.specific_flux.copy()
         )
 
     def apply_collimator(self):
@@ -106,6 +110,7 @@ class Abstract_SPARC4_Spectral_Response:
         file = os.path.join(self._DIR_PATH, "collimator.xlsx")
         coll_wavelength_interv, coll_transmitance = self._read_spreadsheet(file)
         transmitance = self._calculate_spline(coll_transmitance, coll_wavelength_interv)
+
         try:
             self.specific_ordinary_ray = np.multiply(
                 self.specific_ordinary_ray[0, :], transmitance
@@ -185,7 +190,7 @@ class Abstract_SPARC4_Spectral_Response:
         return wavelength, transmitance
 
     def _multiply_matrices(self, stokes, specific_flux):
-        for i in range(len(specific_flux)):
+        for i in range(len(specific_flux[0])):
             specific_flux[:, i] = np.dot(stokes, specific_flux[:, i])
         return specific_flux
 
