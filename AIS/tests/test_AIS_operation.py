@@ -22,6 +22,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
+from scipy.interpolate import splev, splrep
 from Spectrum_Calculation import Spectrum_Calculation
 
 dic = {
@@ -40,10 +41,24 @@ star_specific_flux = sc.calculate_star_specific_flux()
 sky_specific_flux = sc.calculate_sky_specific_flux()
 specific_flux_length = len(star_specific_flux)
 wavelength_interval = range(350, 1150, 50)
+
+# ----------------------- importing the ccd 1 spectral response -----------------------------
 ccd_transmitance_c1 = np.asarray(
     pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 1", "ccd.xlsx"))
 )[1:, 1]
 ccd_transmitance_c1 = np.asarray([float(value) / 100 for value in ccd_transmitance_c1])
+
+# ----------------------- importing the telescope spectral response -----------------------------
+ss = np.asarray(
+    pd.read_excel(
+        os.path.join("Telescope_Spectral_response", "telescope_spectral_response.xlsx")
+    )
+)
+tel_wavelength_interval = [float(value) for value in ss[1:, 0]]
+tel_reflectance = [float(value) for value in ss[1:, 1]]
+spl = splrep(tel_wavelength_interval, tel_reflectance)
+tel_reflectance = splev(wavelength_interval, spl)
+# -------------------------------------------------------------------------------------------------
 
 
 @pytest.fixture
@@ -103,29 +118,31 @@ def test_apply_atmosphere_spectral_response_sky(ais):
 
 
 def test_apply_telescope_spectral_response_star(ais):
-    ais.apply_atmosphere_spectral_response()
-    assert np.allclose(ais.star_specific_flux, star_specific_flux)
+    ais.apply_telescope_spectral_response()
+    assert np.allclose(
+        ais.star_specific_flux, np.multiply(star_specific_flux, tel_reflectance)
+    )
 
 
 def test_apply_telescope_spectral_response_sky(ais):
-    ais.apply_atmosphere_spectral_response()
-    assert np.allclose(ais.sky_specific_flux, sky_specific_flux)
+    ais.apply_telescope_spectral_response()
+    assert np.allclose(
+        ais.sky_specific_flux, np.multiply(sky_specific_flux, tel_reflectance)
+    )
 
 
 def test_apply_sparc4_spectral_response_star(ais):
     specific_flux = np.multiply(star_specific_flux[0, :], ccd_transmitance_c1) * 0.5
     ais.apply_sparc4_spectral_response()
-    # print(specific_flux)
-    # print(ais.specific_ordinary_ray)
-    # assert 1 == 0
-    assert np.allclose(ais.specific_ordinary_ray, specific_flux)
-    # assert np.allclose(ais.specific_extra_ordinary_ray, specific_flux)
+    assert np.allclose(ais.specific_star_ordinary_ray, specific_flux)
+    assert np.allclose(ais.specific_star_extra_ordinary_ray, specific_flux)
 
 
-# def test_apply_sparc4_spectral_response_sky(ais):
-#     specific_flux = np.multiply(sky_specific_flux[0, :], ccd_transmitance_c1) / 100
-#     ais.apply_sparc4_spectral_response()
-#     assert np.allclose(ais.ordinary_ray, specific_flux)
+def test_apply_sparc4_spectral_response_sky(ais):
+    specific_flux = np.multiply(sky_specific_flux[0, :], ccd_transmitance_c1) * 0.5
+    ais.apply_sparc4_spectral_response()
+    assert np.allclose(ais.specific_sky_ordinary_ray, specific_flux)
+    assert np.allclose(ais.specific_sky_extra_ordinary_ray, specific_flux)
 
 
 # -----------------------------test _create_image_name------------------------

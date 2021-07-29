@@ -342,12 +342,19 @@ class Artificial_Image_Simulator:
         """Apply the atmosphere spectral response.
 
         This functions applies the atmosphere spectral response on the
-        calculated star specific flux.
+        calculated star and sky specific flux.
 
         """
-        star_specific_flux = self.star_specific_flux
+
         self.star_specific_flux = self.ASR.apply_atmosphere_spectral_response(
-            star_specific_flux,
+            self.star_specific_flux,
+            l_init=self.l_init,
+            l_final=self.l_final,
+            l_step=self.l_step,
+        )
+
+        self.sky_specific_flux = self.ASR.apply_atmosphere_spectral_response(
+            self.sky_specific_flux,
             l_init=self.l_init,
             l_final=self.l_final,
             l_step=self.l_step,
@@ -357,12 +364,19 @@ class Artificial_Image_Simulator:
         """Apply the telescope spectral response.
 
         This functions applies the telescope spectral response on the
-        calculated star specific flux.
+        calculated star and sky specific flux.
 
         """
-        star_specific_flux = self.star_specific_flux
+
         self.star_specific_flux = self.TSR.apply_telescope_spectral_response(
-            star_specific_flux,
+            self.star_specific_flux,
+            l_init=self.l_init,
+            l_final=self.l_final,
+            l_step=self.l_step,
+        )
+
+        self.sky_specific_flux = self.TSR.apply_telescope_spectral_response(
+            self.sky_specific_flux,
             l_init=self.l_init,
             l_final=self.l_final,
             l_step=self.l_step,
@@ -372,14 +386,24 @@ class Artificial_Image_Simulator:
         """Apply the SPARC4 spectral response.
 
         This functions applies the SPARC4 spectral response on the
-        calculated star specific flux.
+        calculated star and sky specific flux.
         """
 
         (
-            self.specific_ordinary_ray,
-            self.specific_extra_ordinary_ray,
+            self.specific_star_ordinary_ray,
+            self.specific_star_extra_ordinary_ray,
         ) = self.CHC.apply_sparc4_spectral_response(
             self.star_specific_flux,
+            l_init=self.l_init,
+            l_final=self.l_final,
+            l_step=self.l_step,
+        )
+
+        (
+            self.specific_sky_ordinary_ray,
+            self.specific_sky_extra_ordinary_ray,
+        ) = self.CHC.apply_sparc4_spectral_response(
+            self.sky_specific_flux,
             l_init=self.l_init,
             l_final=self.l_final,
             l_step=self.l_step,
