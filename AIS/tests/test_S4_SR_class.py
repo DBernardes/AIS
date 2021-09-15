@@ -21,24 +21,32 @@ wavelength_interval = range(350, 1150, 50)
 n = len(wavelength_interval)
 specific_flux = np.ones((4, n))
 
-ccd_transmitance_c1 = np.asarray(
-    pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 1", "ccd.xlsx"))
-)[1:, 1]
+ccd_transmitance_c1 = pd.read_csv(
+    os.path.join("SPARC4_Spectral_Response", "Channel 1", "ccd.csv"),
+    dtype=np.float64,
+    skiprows=1,
+)["(%)"]
 ccd_transmitance_c1 = np.asarray([float(value) for value in ccd_transmitance_c1])
 
-ccd_transmitance_c2 = np.asarray(
-    pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 2", "ccd.xlsx"))
-)[1:, 1]
+ccd_transmitance_c2 = pd.read_csv(
+    os.path.join("SPARC4_Spectral_Response", "Channel 2", "ccd.csv"),
+    dtype=np.float64,
+    skiprows=1,
+)["(%)"]
 ccd_transmitance_c2 = np.asarray([float(value) for value in ccd_transmitance_c2])
 
-ccd_transmitance_c3 = np.asarray(
-    pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 3", "ccd.xlsx"))
-)[1:, 1]
+ccd_transmitance_c3 = pd.read_csv(
+    os.path.join("SPARC4_Spectral_Response", "Channel 3", "ccd.csv"),
+    dtype=np.float64,
+    skiprows=1,
+)["(%)"]
 ccd_transmitance_c3 = np.asarray([float(value) for value in ccd_transmitance_c3])
 
-ccd_transmitance_c4 = np.asarray(
-    pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 4", "ccd.xlsx"))
-)[1:, 1]
+ccd_transmitance_c4 = pd.read_csv(
+    os.path.join("SPARC4_Spectral_Response", "Channel 4", "ccd.csv"),
+    dtype=np.float64,
+    skiprows=1,
+)["(%)"]
 ccd_transmitance_c4 = np.asarray([float(value) for value in ccd_transmitance_c4])
 # -------------------------------------------------------------------------------------------------------------
 
@@ -279,128 +287,134 @@ def test_get_specific_flux(abs_s4_sr):
 # ----------------------- read_spreadsheet---------------------------
 
 
-def test_read_spreadsheet_calibration_wheel(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "calibration_wheel.xlsx")
-    abs_s4_sr._read_spreadsheet(file)
+# ---------------------------------------------------------------------
+
+# I do not read these spreadsheets this way anymore
+
+# def test_read_spreadsheet_calibration_wheel(abs_s4_sr):
+#     file = os.path.join("SPARC4_Spectral_Response", "calibration_wheel.csv")
+#     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_retarder(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "retarder.xlsx")
-    abs_s4_sr._read_spreadsheet(file)
+# def test_read_spreadsheet_retarder(abs_s4_sr):
+#     file = os.path.join("SPARC4_Spectral_Response", "retarder.csv")
+#     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_analyser_ordinary(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "analyser_ordinary.xlsx")
-    abs_s4_sr._read_spreadsheet(file)
+# def test_read_spreadsheet_analyser_ordinary(abs_s4_sr):
+#     file = os.path.join("SPARC4_Spectral_Response", "analyser_ordinary.csv")
+#     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_analyser_extra_ordinary(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "analyser_extra_ordinary.xlsx")
-    abs_s4_sr._read_spreadsheet(file)
+# def test_read_spreadsheet_analyser_extra_ordinary(abs_s4_sr):
+#     file = os.path.join("SPARC4_Spectral_Response", "analyser_extra_ordinary.csv")
+#     abs_s4_sr._read_spreadsheet(file)
+
+# ----------------------------------------------------------------
 
 
 def test_read_spreadsheet_collimator(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "collimator.xlsx")
+    file = os.path.join("SPARC4_Spectral_Response", "collimator.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_1(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 0", "dichroic 1.xlsx")
+    file = os.path.join("SPARC4_Spectral_Response", "Channel 0", "dichroic_1.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_2(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 0", "dichroic 2.xlsx")
+    file = os.path.join("SPARC4_Spectral_Response", "Channel 0", "dichroic_2.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_camera(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 0", "camera.xlsx")
+    file = os.path.join("SPARC4_Spectral_Response", "Channel 0", "camera.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_ccd(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 0", "ccd.xlsx")
+    file = os.path.join("SPARC4_Spectral_Response", "Channel 0", "ccd.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_1_1(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 1", "dichroic 1.xlsx")
+    file = os.path.join("SPARC4_Spectral_Response", "Channel 1", "dichroic_1.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_1_2(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 1", "dichroic 2.xlsx")
+    file = os.path.join("SPARC4_Spectral_Response", "Channel 1", "dichroic_2.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_camera_1(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 1", "camera.xlsx")
+    file = os.path.join("SPARC4_Spectral_Response", "Channel 1", "camera.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_ccd_1(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 1", "ccd.xlsx")
+    file = os.path.join("SPARC4_Spectral_Response", "Channel 1", "ccd.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_2_1(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 2", "dichroic 1.xlsx")
+    file = os.path.join("SPARC4_Spectral_Response", "Channel 2", "dichroic_1.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_2_2(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 2", "dichroic 2.xlsx")
+    file = os.path.join("SPARC4_Spectral_Response", "Channel 2", "dichroic_2.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_camera_2(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 2", "camera.xlsx")
+    file = os.path.join("SPARC4_Spectral_Response", "Channel 2", "camera.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_ccd_2(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 2/ccd.xlsx"
+    file = "./SPARC4_Spectral_Response/Channel 2/ccd.csv"
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_3_1(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 3/dichroic 2.xlsx"
+    file = "./SPARC4_Spectral_Response/Channel 3/dichroic_1.csv"
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_3_2(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 3/dichroic 2.xlsx"
+    file = "./SPARC4_Spectral_Response/Channel 3/dichroic_2.csv"
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_camera_3(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 3/camera.xlsx"
+    file = "./SPARC4_Spectral_Response/Channel 3/camera.csv"
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_ccd_3(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 3/ccd.xlsx"
+    file = "./SPARC4_Spectral_Response/Channel 3/ccd.csv"
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_4_1(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 4/dichroic 1.xlsx"
+    file = "./SPARC4_Spectral_Response/Channel 4/dichroic_1.csv"
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_4_2(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 4/dichroic 2.xlsx"
+    file = "./SPARC4_Spectral_Response/Channel 4/dichroic_2.csv"
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_camera_4(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 4/camera.xlsx"
+    file = "./SPARC4_Spectral_Response/Channel 4/camera.csv"
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_ccd_4(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 4/ccd.xlsx"
+    file = "./SPARC4_Spectral_Response/Channel 4/ccd.csv"
     abs_s4_sr._read_spreadsheet(file)
 
 

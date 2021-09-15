@@ -77,37 +77,36 @@ class Abstract_SPARC4_Spectral_Response:
 
     def apply_calibration_wheel(self):
         """Apply calibration wheel spectral response."""
-
-        file = os.path.join(self._DIR_PATH, "calibration_wheel.xlsx")
-        stokes = np.asarray(pd.read_excel(file))
-        self.specific_flux = self._multiply_matrices(stokes, self.specific_flux)
+        file = os.path.join(self._DIR_PATH, "calibration_wheel.csv")
+        matrix = np.loadtxt(open(file, "rb"), delimiter=",")
+        self.specific_flux = self._multiply_matrices(matrix, self.specific_flux)
 
     def apply_retarder(self):
         """Apply retarder spectral response."""
 
-        file = os.path.join(self._DIR_PATH, "retarder.xlsx")
-        stokes = np.asarray(pd.read_excel(file))
-        self.specific_flux = self._multiply_matrices(stokes, self.specific_flux)
+        file = os.path.join(self._DIR_PATH, "retarder.csv")
+        matrix = np.loadtxt(open(file, "rb"), delimiter=",")
+        self.specific_flux = self._multiply_matrices(matrix, self.specific_flux)
 
     def apply_analyser(self):
         """Apply analyser spectral response."""
 
-        file = os.path.join(self._DIR_PATH, "analyser_ordinary.xlsx")
-        stokes = np.asarray(pd.read_excel(file))
+        file = os.path.join(self._DIR_PATH, "analyser_ordinary.csv")
+        matrix = np.loadtxt(open(file, "rb"), delimiter=",")
         self.specific_ordinary_ray = self._multiply_matrices(
-            stokes, self.specific_flux.copy()
+            matrix, self.specific_flux.copy()
         )
 
-        file = os.path.join(self._DIR_PATH, "analyser_extra_ordinary.xlsx")
-        stokes = np.asarray(pd.read_excel(file))
+        file = os.path.join(self._DIR_PATH, "analyser_extra_ordinary.csv")
+        matrix = np.loadtxt(open(file, "rb"), delimiter=",")
         self.specific_extra_ordinary_ray = self._multiply_matrices(
-            stokes, self.specific_flux.copy()
+            matrix, self.specific_flux.copy()
         )
 
     def apply_collimator(self):
         """Collimator spectral response."""
 
-        file = os.path.join(self._DIR_PATH, "collimator.xlsx")
+        file = os.path.join(self._DIR_PATH, "collimator.csv")
         coll_wavelength_interv, coll_transmitance = self._read_spreadsheet(file)
         transmitance = self._calculate_spline(coll_transmitance, coll_wavelength_interv)
 
@@ -132,7 +131,7 @@ class Abstract_SPARC4_Spectral_Response:
         dichroics that compose each channel."""
 
         file = os.path.join(
-            self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "dichroic 1.xlsx"
+            self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "dichroic_1.csv"
         )
         wavelength_interv, transmitance = self._read_spreadsheet(file)
         transmitance = self._calculate_spline(transmitance, wavelength_interv)
@@ -144,7 +143,7 @@ class Abstract_SPARC4_Spectral_Response:
         )
 
         file = os.path.join(
-            self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "dichroic 2.xlsx"
+            self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "dichroic_2.csv"
         )
         wavelength_interv, transmitance = self._read_spreadsheet(file)
         transmitance = self._calculate_spline(transmitance, wavelength_interv)
@@ -158,9 +157,7 @@ class Abstract_SPARC4_Spectral_Response:
     def apply_camera(self):
         """Apply the camera spectral response."""
 
-        file = os.path.join(
-            self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "camera.xlsx"
-        )
+        file = os.path.join(self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "camera.csv")
         wavelength_interv, transmitance = self._read_spreadsheet(file)
         transmitance = self._calculate_spline(transmitance, wavelength_interv)
         self.specific_ordinary_ray = np.multiply(
@@ -173,7 +170,7 @@ class Abstract_SPARC4_Spectral_Response:
     def apply_ccd(self):
         """Apply the ccd spectral response."""
 
-        file = os.path.join(self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "ccd.xlsx")
+        file = os.path.join(self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "ccd.csv")
         wavelength_interv, transmitance = self._read_spreadsheet(file)
         transmitance = self._calculate_spline(transmitance, wavelength_interv)
         self.specific_ordinary_ray = np.multiply(
@@ -184,14 +181,14 @@ class Abstract_SPARC4_Spectral_Response:
         )
 
     def _read_spreadsheet(self, file):
-        ss = np.asarray(pd.read_excel(file))
-        wavelength = [float(value) for value in ss[1:, 0]]
-        transmitance = [float(value) / 100 for value in ss[1:, 1]]
+        ss = pd.read_csv(file, dtype=np.float64, skiprows=1)
+        wavelength = [float(value) for value in ss["(nm)"]]
+        transmitance = [float(value) / 100 for value in ss["(%)"]]
         return wavelength, transmitance
 
-    def _multiply_matrices(self, stokes, specific_flux):
+    def _multiply_matrices(self, matrix, specific_flux):
         for i in range(len(specific_flux[0])):
-            specific_flux[:, i] = np.dot(stokes, specific_flux[:, i])
+            specific_flux[:, i] = np.dot(matrix, specific_flux[:, i])
         return specific_flux
 
     def _calculate_spline(self, transmitance, component_wavelength_interv):

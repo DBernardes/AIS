@@ -49,15 +49,13 @@ def test_read_spreadsheet(tel_sr):
 
 
 def test_calculate_spline(tel_sr):
-    ss = np.asarray(
-        pd.read_excel(
-            os.path.join(
-                "Telescope_Spectral_Response", "telescope_spectral_response.xlsx"
-            )
-        )
+    ss = pd.read_csv(
+        os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
+        dtype=np.float64,
+        skiprows=1,
     )
-    tel_wavelength_interval = [float(value) for value in ss[1:, 0]]
-    reflectance = [float(value) for value in ss[1:, 1]]
+    tel_wavelength_interval = [float(value) for value in ss["(nm)"]]
+    reflectance = [float(value) for value in ss["(%)"]]
     tel_wavelength_interval = np.asarray(tel_wavelength_interval)
     reflectance = np.asarray(reflectance)
 
@@ -69,15 +67,13 @@ def test_calculate_spline(tel_sr):
 
 
 def test_apply_telescope_spectral_response(tel_sr):
-    ss = np.asarray(
-        pd.read_excel(
-            os.path.join(
-                "Telescope_Spectral_Response", "telescope_spectral_response.xlsx"
-            )
-        )
+    ss = pd.read_csv(
+        os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
+        dtype=np.float64,
+        skiprows=1,
     )
-    tel_wavelength_interval = [float(value) for value in ss[1:, 0]]
-    reflectance = [float(value) for value in ss[1:, 1]]
+    tel_wavelength_interval = [float(value) for value in ss["(nm)"]]
+    reflectance = [float(value) for value in ss["(%)"]]
     tel_wavelength_interval = np.asarray(tel_wavelength_interval)
     reflectance = np.asarray(reflectance)
     specific_flux = np.ones((4, n))
