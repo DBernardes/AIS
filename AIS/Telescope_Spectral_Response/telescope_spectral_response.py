@@ -17,7 +17,7 @@ class Telescope_Spectral_Response:
     """Telescope Spectral Response Class."""
 
     _SPECTRAL_RESPONSE_FILE = os.path.join(
-        "Telescope_Spectral_Response", "telescope_spectral_response.xlsx"
+        "Telescope_Spectral_Response", "telescope_spectral_response.csv"
     )
 
     def __init__(self):
@@ -25,9 +25,14 @@ class Telescope_Spectral_Response:
         pass
 
     def _read_spreadsheet(self):
-        ss = np.asarray(pd.read_excel(self._SPECTRAL_RESPONSE_FILE))
-        tel_wavelength_interval = [float(value) for value in ss[1:, 0]]
-        reflectance = [float(value) for value in ss[1:, 1]]
+        ss = pd.read_csv(
+            self._SPECTRAL_RESPONSE_FILE,
+            dtype=np.float64,
+            skiprows=1,
+        )
+
+        tel_wavelength_interval = [float(value) for value in ss["(nm)"]]
+        reflectance = [float(value) for value in ss["(%)"]]
         self.tel_wavelength_interval = np.asarray(tel_wavelength_interval)
         self.reflectance = np.asarray(reflectance)
 

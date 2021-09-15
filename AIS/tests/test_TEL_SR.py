@@ -7,6 +7,7 @@ Jun 14, 2021
 """
 
 import os
+from sys import exit
 
 import numpy as np
 import pandas as pd
@@ -25,15 +26,17 @@ wavelength_interv = range(l_init, l_final, l_step)
 n = len(wavelength_interv)
 specific_flux = np.ones((4, n))
 
-ss = np.asarray(
-    pd.read_excel(
-        os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.xlsx")
-    )
+ss = pd.read_csv(
+    os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
+    dtype=np.float64,
+    skiprows=1,
 )
-tel_wavelength_interval = [float(value) for value in ss[1:, 0]]
-reflectance = [float(value) for value in ss[1:, 1]]
-tel_wavelength_interval = np.asarray(tel_wavelength_interval)
-reflectance = np.asarray(reflectance)
+
+
+tel_wavelength_interval = ss["(nm)"]
+reflectance = ss["(%)"]
+# tel_wavelength_interval = np.asarray(tel_wavelength_interval)
+# reflectance = np.asarray(reflectance)
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -45,17 +48,45 @@ def test_read_spreadsheet(tel_sr):
     assert np.allclose(tel_sr.reflectance, reflectance)
 
 
-# def test_calculate_spline(tel_sr):
-#     tel_sr._read_spreadsheet()
-#     new_reflectance = tel_sr._calculate_spline(wavelength_interv)
-#     spl = splrep(tel_wavelength_interval, reflectance)
-#     reflectance = splev(wavelength_interval, spl)
-#     assert np.allclose(new_reflectance, reflectance)
+def test_calculate_spline(tel_sr):
+    ss = np.asarray(
+        pd.read_excel(
+            os.path.join(
+                "Telescope_Spectral_Response", "telescope_spectral_response.xlsx"
+            )
+        )
+    )
+    tel_wavelength_interval = [float(value) for value in ss[1:, 0]]
+    reflectance = [float(value) for value in ss[1:, 1]]
+    tel_wavelength_interval = np.asarray(tel_wavelength_interval)
+    reflectance = np.asarray(reflectance)
+
+    tel_sr._read_spreadsheet()
+    new_reflectance = tel_sr._calculate_spline(wavelength_interv)
+    spl = splrep(tel_wavelength_interval, reflectance)
+    reflectance = splev(wavelength_interv, spl)
+    assert np.allclose(new_reflectance, reflectance)
 
 
-# def test_apply_telescope_spectral_response(tel_sr):
-#     new_specific_flux = tel_sr.apply_telescope_spectral_response(
-#         specific_flux, l_init, l_final, l_step
-#     )
-#     specific_flux = np.multiply(specific_flux, reflectance)
-#     assert np.allclose(specific_flux, new_specific_flux)
+def test_apply_telescope_spectral_response(tel_sr):
+    ss = np.asarray(
+        pd.read_excel(
+            os.path.join(
+                "Telescope_Spectral_Response", "telescope_spectral_response.xlsx"
+            )
+        )
+    )
+    tel_wavelength_interval = [float(value) for value in ss[1:, 0]]
+    reflectance = [float(value) for value in ss[1:, 1]]
+    tel_wavelength_interval = np.asarray(tel_wavelength_interval)
+    reflectance = np.asarray(reflectance)
+    specific_flux = np.ones((4, n))
+
+    spl = splrep(tel_wavelength_interval, reflectance)
+    reflectance = splev(wavelength_interv, spl)
+    specific_flux = np.multiply(specific_flux, reflectance)
+
+    new_specific_flux = tel_sr.apply_telescope_spectral_response(
+        specific_flux, l_init, l_final, l_step
+    )
+    assert np.allclose(specific_flux, new_specific_flux)

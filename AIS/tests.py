@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from Artificial_Image_Simulator import Artificial_Image_Simulator
-from Channel_Creator import Concrete_Channel_1
+from Telescope_Spectral_Response import Telescope_Spectral_Response
 
 # dic = {
 #     "em_mode": 0,
@@ -42,5 +42,5 @@ wavelength_interval = range(l_init, l_final, l_step)
 n = len(wavelength_interval)
 specific_flux = np.ones((4, n))
 
-chc1 = Concrete_Channel_1("phot")
-chc1.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
+tel_sr = Telescope_Spectral_Response()
+flux = tel_sr.apply_telescope_spectral_response(specific_flux, l_init, l_final, l_step)

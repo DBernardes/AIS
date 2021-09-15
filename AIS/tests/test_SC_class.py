@@ -28,14 +28,17 @@ def calculate_specific_flux(temperature, l_init, l_final, l_step):
     for Lambda in range(l_init, l_final, l_step):
         Lambda *= 1e-9
         B = 2 * h * c ** 2 / Lambda ** 5 * 1 / (np.e ** (h * c / (Lambda * k * T)) - 1)
-        specific_flux.append(B)
+        specific_flux.append(B / 1e10)  # arrumar!
+
+    temporary = np.asarray(specific_flux)
+    specific_flux_length = len(specific_flux)
+    specific_flux = np.zeros((4, specific_flux_length))
+    specific_flux[0, :] = temporary
+
     return np.asarray(specific_flux)
 
 
-temp = calculate_specific_flux(temperature, l_init, l_final, l_step)
-n = len(temp)
-specific_flux = np.zeros((4, n))
-specific_flux[0, :] = temp  # usar este
+specific_flux = calculate_specific_flux(temperature, l_init, l_final, l_step)
 
 # ---------------------------------------Initialize the class ------------------------------------------------
 
@@ -59,11 +62,11 @@ def test_l_step(sc):
 # --------------------------------------------------------------------------------------------------------------
 
 
-# def test_calculate_sky_specific_flux(sc):
-#     sky_specific_flux = sc.calculate_sky_specific_flux()
-#     assert np.allclose(sky_specific_flux, specific_flux * 0.1)
+def test_calculate_sky_specific_flux(sc):
+    sky_specific_flux = sc.calculate_sky_specific_flux()
+    assert np.allclose(sky_specific_flux, specific_flux * 0.1)
 
 
-# def test_calculate_star_specific_flux(sc):
-#     star_specific_flux = sc.calculate_star_specific_flux()
-#     assert np.allclose(star_specific_flux, specific_flux)
+def test_calculate_star_specific_flux(sc):
+    star_specific_flux = sc.calculate_star_specific_flux()
+    assert np.allclose(star_specific_flux, specific_flux)
