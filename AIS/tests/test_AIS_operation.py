@@ -50,7 +50,7 @@ ccd_transmitance_c1 = np.asarray([float(value) / 100 for value in ccd_transmitan
 
 # ----------------------- importing the telescope spectral response ----------------
 ss = pd.read_csv(
-    os.path.join("Telescope_Spectral_response", "telescope_spectral_responseeeee.csv"),
+    os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
     dtype=np.float64,
     skiprows=1,
 )
