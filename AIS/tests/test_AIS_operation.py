@@ -42,15 +42,15 @@ sky_specific_flux = sc.calculate_sky_specific_flux()
 specific_flux_length = len(star_specific_flux)
 wavelength_interval = range(350, 1150, 50)
 
-# ----------------------- importing the ccd 1 spectral response -----------------------------
+# ----------------------- importing the ccd 1 spectral response -----------------------
 ccd_transmitance_c1 = np.asarray(
     pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 1", "ccd.xlsx"))
 )[1:, 1]
 ccd_transmitance_c1 = np.asarray([float(value) / 100 for value in ccd_transmitance_c1])
 
-# ----------------------- importing the telescope spectral response -----------------------------
+# ----------------------- importing the telescope spectral response ----------------
 ss = pd.read_csv(
-    os.path.join("Telescope_Spectral_response", "telescope_spectral_response.csv"),
+    os.path.join("Telescope_Spectral_response", "telescope_spectral_responseeeee.csv"),
     dtype=np.float64,
     skiprows=1,
 )
@@ -59,7 +59,7 @@ tel_wavelength_interval = [float(value) for value in ss["(nm)"]]
 tel_reflectance = [float(value) for value in ss["(%)"]]
 spl = splrep(tel_wavelength_interval, tel_reflectance)
 tel_reflectance = splev(wavelength_interval, spl)
-# -------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------
 
 
 @pytest.fixture
