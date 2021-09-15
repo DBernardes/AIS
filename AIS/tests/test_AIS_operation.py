@@ -49,13 +49,14 @@ ccd_transmitance_c1 = np.asarray(
 ccd_transmitance_c1 = np.asarray([float(value) / 100 for value in ccd_transmitance_c1])
 
 # ----------------------- importing the telescope spectral response -----------------------------
-ss = np.asarray(
-    pd.read_excel(
-        os.path.join("Telescope_Spectral_response", "telescope_spectral_response.xlsx")
-    )
+ss = pd.read_csv(
+    os.path.join("Telescope_Spectral_response", "telescope_spectral_response.csv"),
+    dtype=np.float64,
+    skiprows=1,
 )
-tel_wavelength_interval = [float(value) for value in ss[1:, 0]]
-tel_reflectance = [float(value) for value in ss[1:, 1]]
+
+tel_wavelength_interval = [float(value) for value in ss["(nm)"]]
+tel_reflectance = [float(value) for value in ss["(%)"]]
 spl = splrep(tel_wavelength_interval, tel_reflectance)
 tel_reflectance = splev(wavelength_interval, spl)
 # -------------------------------------------------------------------------------------------------
