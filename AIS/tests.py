@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from Artificial_Image_Simulator import Artificial_Image_Simulator
-from SPARC4_Spectral_Response import Abstract_SPARC4_Spectral_Response
+from SPARC4_Spectral_Response import Concrete_SPARC4_Spectral_Response_1
 from Telescope_Spectral_Response import Telescope_Spectral_Response
 
 # dic = {
@@ -43,6 +43,7 @@ wavelength_interval = range(l_init, l_final, l_step)
 n = len(wavelength_interval)
 specific_flux = np.ones((4, n))
 
-abs_s4sr = Abstract_SPARC4_Spectral_Response()
+abs_s4sr = Concrete_SPARC4_Spectral_Response_1()
 abs_s4sr.write_specific_flux(specific_flux, wavelength_interval)
-abs_s4sr.apply_calibration_wheel()
+abs_s4sr.apply_analyser()
+abs_s4sr.apply_dichroic()

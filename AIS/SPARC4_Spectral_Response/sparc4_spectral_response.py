@@ -181,9 +181,9 @@ class Abstract_SPARC4_Spectral_Response:
         )
 
     def _read_spreadsheet(self, file):
-        ss = pd.read_csv(file, dtype=np.float64, skiprows=1)
-        wavelength = [float(value) for value in ss["(nm)"]]
-        transmitance = [float(value) / 100 for value in ss["(%)"]]
+        ss = pd.read_csv(file, dtype=np.float64, skiprows=1, decimal=",")
+        wavelength = ss["(nm)"] / 100
+        transmitance = ss["(%)"] / 100
         return wavelength, transmitance
 
     def _multiply_matrices(self, matrix, specific_flux):
