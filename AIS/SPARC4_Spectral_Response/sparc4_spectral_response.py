@@ -95,13 +95,13 @@ class Abstract_SPARC4_Spectral_Response:
         matrix = np.loadtxt(open(file, "rb"), delimiter=",")
         self.specific_ordinary_ray = self._multiply_matrices(
             matrix, self.specific_flux.copy()
-        )
+        )[0, :]
 
         file = os.path.join(self._DIR_PATH, "analyser_extra_ordinary.csv")
         matrix = np.loadtxt(open(file, "rb"), delimiter=",")
         self.specific_extra_ordinary_ray = self._multiply_matrices(
             matrix, self.specific_flux.copy()
-        )
+        )[0, :]
 
     def apply_collimator(self):
         """Collimator spectral response."""
@@ -112,12 +112,13 @@ class Abstract_SPARC4_Spectral_Response:
 
         try:
             self.specific_ordinary_ray = np.multiply(
-                self.specific_ordinary_ray[0, :], transmitance
+                self.specific_ordinary_ray, transmitance
             )
             self.specific_extra_ordinary_ray = np.multiply(
-                self.specific_extra_ordinary_ray[0, :], transmitance
+                self.specific_extra_ordinary_ray, transmitance
             )
         except Exception:
+
             self.specific_ordinary_ray = np.multiply(
                 self.specific_flux[0, :], transmitance
             )

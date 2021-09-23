@@ -20,7 +20,7 @@ class Spectrum_Calculation:
     _C = 3e8  # m/s
     _K = 1.38064852e-23  # m2 kg s-2 K-1
 
-    def __init__(self, temperature=5700, l_init=350, l_final=1100, l_step=50):
+    def __init__(self, temperature=5700, l_init=350, l_final=1150, l_step=50):
         """Initialize the class.
 
         Parameters

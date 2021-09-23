@@ -165,17 +165,17 @@ def test_apply_sparc4_spectral_response_sky(ais):
     new_sky_specific_flux = multiply_matrices(retarder, new_sky_specific_flux)
     new_ordinary_ray = multiply_matrices(
         analyser_ordinary_ray, new_sky_specific_flux.copy()
-    )
+    )[0, :]
 
     new_extra_ordinary_ray = multiply_matrices(
         analyser_extra_ordinary_ray, new_sky_specific_flux
-    )
-    new_ordinary_ray = np.multiply(colimator_transmitance, new_ordinary_ray[0, :])
-    new_extra_ordinary_ray = np.multiply(
-        colimator_transmitance, new_extra_ordinary_ray[0, :]
-    )
+    )[0, :]
+    new_ordinary_ray = np.multiply(colimator_transmitance, new_ordinary_ray)
+    new_extra_ordinary_ray = np.multiply(colimator_transmitance, new_extra_ordinary_ray)
     new_ordinary_ray = np.multiply(new_ordinary_ray, dichroic_c1)
     new_extra_ordinary_ray = np.multiply(new_extra_ordinary_ray, dichroic_c1)
+    new_ordinary_ray = np.multiply(new_ordinary_ray, camera_c1)
+    new_extra_ordinary_ray = np.multiply(new_extra_ordinary_ray, camera_c1)
     new_ordinary_ray = np.multiply(new_ordinary_ray, ccd_transmitance_c1)
     new_extra_ordinary_ray = np.multiply(new_extra_ordinary_ray, ccd_transmitance_c1)
 

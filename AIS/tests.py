@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from Artificial_Image_Simulator import Artificial_Image_Simulator
+from Channel_Creator import Concrete_Channel_1
 from SPARC4_Spectral_Response import Concrete_SPARC4_Spectral_Response_1
 from Spectrum_Calculation import Spectrum_Calculation
 from Telescope_Spectral_Response import Telescope_Spectral_Response
@@ -46,29 +47,62 @@ l_init, l_final, l_step = 350, 1150, 50
 wavelength_interval = range(l_init, l_final, l_step)
 n = len(wavelength_interval)
 sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
-specific_flux = sc.calculate_sky_specific_flux()
+specific_flux = sc.calculate_star_specific_flux()
+
+# c1_s4sr = Concrete_SPARC4_Spectral_Response_1()
+# c1_s4sr.write_specific_flux(specific_flux.copy(), wavelength_interval)
+
+# c1_s4sr.apply_calibration_wheel()
+# specific_flux = multiply_matrices(calibration_wheel, specific_flux)
+
+# c1_s4sr.apply_retarder()
+# specific_flux = multiply_matrices(retarder, specific_flux)
+
+# c1_s4sr.apply_analyser()
+# specific_flux = multiply_matrices(analyser_ordinary_ray, specific_flux)
+
+# c1_s4sr.apply_collimator()
+# specific_flux = np.multiply(colimator_transmitance, specific_flux[0, :])
+
+# c1_s4sr.apply_dichroic()
+# specific_flux = np.multiply(dichroic_c1, specific_flux)
+
+# c1_s4sr.apply_camera()
+# specific_flux - np.multiply(camera_c1, specific_flux)
+
+# c1_s4sr.apply_ccd()
+# specific_flux = np.multiply(ccd_transmitance_c1, specific_flux)
+# print(np.allclose(specific_flux, c1_s4sr.specific_ordinary_ray))
+
+# -------------------------------------------------------------------------------
+
+
+c1_extra_ordinary_ray_phot = 0
+
 
 c1_s4sr = Concrete_SPARC4_Spectral_Response_1()
 c1_s4sr.write_specific_flux(specific_flux.copy(), wavelength_interval)
 
-c1_s4sr.apply_calibration_wheel()
-specific_flux = multiply_matrices(calibration_wheel, specific_flux)
-
-c1_s4sr.apply_retarder()
-specific_flux = multiply_matrices(retarder, specific_flux)
-
-c1_s4sr.apply_analyser()
-specific_flux = multiply_matrices(analyser_ordinary_ray, specific_flux)
-
 c1_s4sr.apply_collimator()
-specific_flux = np.multiply(colimator_transmitance, specific_flux[0, :])
+c1_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy()[0, :])
+
 
 c1_s4sr.apply_dichroic()
-specific_flux = np.multiply(dichroic_c1, specific_flux)
+c1_ordinary_ray_phot = np.multiply(dichroic_c1, c1_ordinary_ray_phot)
+
 
 c1_s4sr.apply_camera()
-specific_flux - np.multiply(camera_c1, specific_flux)
+c1_ordinary_ray_phot = np.multiply(camera_c1, c1_ordinary_ray_phot)
+
 
 c1_s4sr.apply_ccd()
-specific_flux = np.multiply(ccd_transmitance_c1, specific_flux)
-print(np.allclose(specific_flux, c1_s4sr.specific_ordinary_ray))
+c1_ordinary_ray_phot = np.multiply(ccd_transmitance_c1, c1_ordinary_ray_phot)
+# print(np.allclose(c1_s4sr.specific_ordinary_ray, c1_ordinary_ray_phot))
+
+
+chc1 = Concrete_Channel_1("phot")
+(
+    specific_star_ordinary_ray,
+    specific_star_extra_ordinary_ray,
+) = chc1.apply_sparc4_spectral_response(np.ones((4, 16)), 350, 1150, 50)
+print(specific_star_ordinary_ray)
