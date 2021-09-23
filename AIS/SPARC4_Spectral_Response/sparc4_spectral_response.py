@@ -135,6 +135,7 @@ class Abstract_SPARC4_Spectral_Response:
         )
         wavelength_interv, transmitance = self._read_spreadsheet(file)
         transmitance = self._calculate_spline(transmitance, wavelength_interv)
+
         self.specific_ordinary_ray = np.multiply(
             self.specific_ordinary_ray, transmitance
         )
@@ -182,7 +183,7 @@ class Abstract_SPARC4_Spectral_Response:
 
     def _read_spreadsheet(self, file):
         ss = pd.read_csv(file, dtype=np.float64, skiprows=1, decimal=",")
-        wavelength = ss["(nm)"] / 100
+        wavelength = ss["(nm)"]
         transmitance = ss["(%)"] / 100
         return wavelength, transmitance
 

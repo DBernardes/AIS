@@ -20,6 +20,11 @@ from AIS.Channel_Creator import (
     Concrete_Channel_3,
     Concrete_Channel_4,
 )
+from Spectrum_Calculation import Spectrum_Calculation
+
+from tests.test_AIS_operation import multiply_matrices
+
+from .SPARC4_SR_curves import *
 
 dic = {
     "em_mode": 0,
@@ -32,37 +37,40 @@ dic = {
     "image_size": 1024,
 }
 
+star_temperature = 5700
 l_init, l_final, l_step = 350, 1150, 50
 wavelength_interval = range(l_init, l_final, l_step)
 n = len(wavelength_interval)
 ccd_temp = -70
+sc = Spectrum_Calculation(star_temperature, l_init, l_final, l_step)
+specific_flux = sc.calculate_star_specific_flux()
 
 
 # -----------------------------------------------------------------------------------------------------------
-ccd_transmitance_c1 = np.asarray(
-    pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 1", "ccd.xlsx"))
-)[1:, 1]
-ccd_transmitance_c1 = np.asarray([float(value) for value in ccd_transmitance_c1])
+# ccd_transmitance_c1 = np.asarray(
+#     pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 1", "ccd.xlsx"))
+# )[1:, 1]
+# ccd_transmitance_c1 = np.asarray([float(value) for value in ccd_transmitance_c1])
 
-ccd_transmitance_c2 = np.asarray(
-    pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 2", "ccd.xlsx"))
-)[1:, 1]
-ccd_transmitance_c2 = np.asarray([float(value) for value in ccd_transmitance_c2])
+# ccd_transmitance_c2 = np.asarray(
+#     pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 2", "ccd.xlsx"))
+# )[1:, 1]
+# ccd_transmitance_c2 = np.asarray([float(value) for value in ccd_transmitance_c2])
 
-ccd_transmitance_c3 = np.asarray(
-    pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 3", "ccd.xlsx"))
-)[1:, 1]
-ccd_transmitance_c3 = np.asarray([float(value) for value in ccd_transmitance_c3])
+# ccd_transmitance_c3 = np.asarray(
+#     pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 3", "ccd.xlsx"))
+# )[1:, 1]
+# ccd_transmitance_c3 = np.asarray([float(value) for value in ccd_transmitance_c3])
 
-ccd_transmitance_c4 = np.asarray(
-    pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 4", "ccd.xlsx"))
-)[1:, 1]
-ccd_transmitance_c4 = np.asarray([float(value) for value in ccd_transmitance_c4])
+# ccd_transmitance_c4 = np.asarray(
+#     pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 4", "ccd.xlsx"))
+# )[1:, 1]
+# ccd_transmitance_c4 = np.asarray([float(value) for value in ccd_transmitance_c4])
 
-ccd_transmitance_abs = np.asarray(
-    pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 0", "ccd.xlsx"))
-)[1:, 1]
-ccd_transmitance_abs = np.asarray([float(value) for value in ccd_transmitance_abs])
+# ccd_transmitance_abs = np.asarray(
+#     pd.read_excel(os.path.join("SPARC4_Spectral_Response", "Channel 0", "ccd.xlsx"))
+# )[1:, 1]
+# ccd_transmitance_abs = np.asarray([float(value) for value in ccd_transmitance_abs])
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -188,44 +196,70 @@ def test_calculate_read_noise_4(chc4):
 
 # ------------------- Teste apply_sparc4_spectral_response ----------------------------------------------------------
 
+specific_flux_c1 = multiply_matrices(calibration_wheel, specific_flux.copy())
+specific_flux_c1 = multiply_matrices(retarder, specific_flux_c1)
+c1_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux_c1.copy())
+c1_extra_ordinary_ray = multiply_matrices(analyser_extra_ordinary_ray, specific_flux_c1)
+c1_ordinary_ray = np.multiply(colimator_transmitance, c1_ordinary_ray[0, :])
+c1_extra_ordinary_ray = np.multiply(colimator_transmitance, c1_extra_ordinary_ray[0, :])
+c1_ordinary_ray = np.multiply(dichroic_c1, c1_ordinary_ray)
+c1_extra_ordinary_ray = np.multiply(dichroic_c1, c1_extra_ordinary_ray)
+c1_ordinary_ray = np.multiply(camera_c1, c1_ordinary_ray)
+c1_extra_ordinary_ray = np.multiply(camera_c1, c1_extra_ordinary_ray)
+c1_ordinary_ray = np.multiply(ccd_transmitance_c1, c1_ordinary_ray)
+c1_extra_ordinary_ray = np.multiply(ccd_transmitance_c1, c1_extra_ordinary_ray)
 
-specific_flux = np.ones((4, n))
-specific_flux_c1 = specific_flux[0, :] * ccd_transmitance_c1 / 100
-specific_flux_c2 = specific_flux[0, :] * ccd_transmitance_c2 / 100
-specific_flux_c3 = specific_flux[0, :] * ccd_transmitance_c3 / 100
-specific_flux_c4 = specific_flux[0, :] * ccd_transmitance_c4 / 100
+
+specific_flux_c2 = multiply_matrices(calibration_wheel, specific_flux.copy())
+specific_flux_c2 = multiply_matrices(retarder, specific_flux_c2)
+c2_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux_c2.copy())
+c2_extra_ordinary_ray = multiply_matrices(analyser_extra_ordinary_ray, specific_flux_c2)
+c2_ordinary_ray = np.multiply(colimator_transmitance, c2_ordinary_ray[0, :])
+c2_extra_ordinary_ray = np.multiply(colimator_transmitance, c2_extra_ordinary_ray[0, :])
+c2_ordinary_ray = np.multiply(dichroic_c2, c2_ordinary_ray)
+c2_extra_ordinary_ray = np.multiply(dichroic_c2, c2_extra_ordinary_ray)
+c2_ordinary_ray = np.multiply(camera_c2, c2_ordinary_ray)
+c2_extra_ordinary_ray = np.multiply(camera_c2, c2_extra_ordinary_ray)
+c2_ordinary_ray = np.multiply(ccd_transmitance_c2, c2_ordinary_ray)
+c2_extra_ordinary_ray = np.multiply(ccd_transmitance_c2, c2_extra_ordinary_ray)
+
+specific_flux_c3 = multiply_matrices(calibration_wheel, specific_flux.copy())
+specific_flux_c3 = multiply_matrices(retarder, specific_flux_c3)
+c3_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux_c3.copy())
+c3_extra_ordinary_ray = multiply_matrices(analyser_extra_ordinary_ray, specific_flux_c3)
+c3_ordinary_ray = np.multiply(colimator_transmitance, c3_ordinary_ray[0, :])
+c3_extra_ordinary_ray = np.multiply(colimator_transmitance, c3_extra_ordinary_ray[0, :])
+c3_ordinary_ray = np.multiply(dichroic_c3, c3_ordinary_ray)
+c3_extra_ordinary_ray = np.multiply(dichroic_c3, c3_extra_ordinary_ray)
+c3_ordinary_ray = np.multiply(camera_c3, c3_ordinary_ray)
+c3_extra_ordinary_ray = np.multiply(camera_c3, c3_extra_ordinary_ray)
+c3_ordinary_ray = np.multiply(ccd_transmitance_c3, c3_ordinary_ray)
+c3_extra_ordinary_ray = np.multiply(ccd_transmitance_c3, c3_extra_ordinary_ray)
+
+specific_flux_c4 = multiply_matrices(calibration_wheel, specific_flux.copy())
+specific_flux_c4 = multiply_matrices(retarder, specific_flux_c4)
+c4_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux_c4.copy())
+c4_extra_ordinary_ray = multiply_matrices(analyser_extra_ordinary_ray, specific_flux_c4)
+c4_ordinary_ray = np.multiply(colimator_transmitance, c4_ordinary_ray[0, :])
+c4_extra_ordinary_ray = np.multiply(colimator_transmitance, c4_extra_ordinary_ray[0, :])
+c4_ordinary_ray = np.multiply(dichroic_c4, c4_ordinary_ray)
+c4_extra_ordinary_ray = np.multiply(dichroic_c4, c4_extra_ordinary_ray)
+c4_ordinary_ray = np.multiply(camera_c4, c4_ordinary_ray)
+c4_extra_ordinary_ray = np.multiply(camera_c4, c4_extra_ordinary_ray)
+c4_ordinary_ray = np.multiply(ccd_transmitance_c4, c4_ordinary_ray)
+c4_extra_ordinary_ray = np.multiply(ccd_transmitance_c4, c4_extra_ordinary_ray)
 
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-def test_apply_sparc4_spectral_response_photometric_1(chc1):
-    (
-        specific_star_ordinary_ray,
-        specific_star_extra_ordinary_ray,
-    ) = chc1.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
-    assert np.allclose(specific_star_ordinary_ray, specific_flux_c1)
-    assert np.allclose(specific_star_extra_ordinary_ray, 0)
-
-
 def test_apply_sparc4_spectral_response_polarimetric_1():
     chc1 = Concrete_Channel_1(sparc4_operation_mode="pol")
-    specific_flux = np.ones((4, n))
     (
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
     ) = chc1.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
-    specific_flux_c1 = specific_flux[0, :] * ccd_transmitance_c1 * 0.5 / 100
-    assert np.allclose(specific_star_ordinary_ray, specific_flux_c1)
-    assert np.allclose(specific_star_extra_ordinary_ray, specific_flux_c1)
-
-
-def test_apply_sparc4_spectral_response_photometric_2(chc2):
-    (
-        specific_star_ordinary_ray,
-        specific_star_extra_ordinary_ray,
-    ) = chc2.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
-    assert np.allclose(specific_star_ordinary_ray, specific_flux_c2)
-    assert np.allclose(specific_star_extra_ordinary_ray, 0)
+    assert np.allclose(specific_star_ordinary_ray, c1_ordinary_ray)
+    assert np.allclose(specific_star_extra_ordinary_ray, c1_extra_ordinary_ray)
 
 
 def test_apply_sparc4_spectral_response_polarimetric_2():
@@ -234,18 +268,8 @@ def test_apply_sparc4_spectral_response_polarimetric_2():
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
     ) = chc2.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
-    specific_flux_c2 = specific_flux[0, :] * ccd_transmitance_c2 * 0.5 / 100
-    assert np.allclose(specific_star_ordinary_ray, specific_flux_c2)
-    assert np.allclose(specific_star_extra_ordinary_ray, specific_flux_c2)
-
-
-def test_apply_sparc4_spectral_response_photometric_3(chc3):
-    (
-        specific_star_ordinary_ray,
-        specific_star_extra_ordinary_ray,
-    ) = chc3.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
-    assert np.allclose(specific_star_ordinary_ray, specific_flux_c3)
-    assert np.allclose(specific_star_extra_ordinary_ray, 0)
+    assert np.allclose(specific_star_ordinary_ray, c2_ordinary_ray)
+    assert np.allclose(specific_star_extra_ordinary_ray, c2_extra_ordinary_ray)
 
 
 def test_apply_sparc4_spectral_response_polarimetric_3():
@@ -254,18 +278,8 @@ def test_apply_sparc4_spectral_response_polarimetric_3():
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
     ) = chc3.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
-    specific_flux_c3 = specific_flux[0, :] * ccd_transmitance_c3 * 0.5 / 100
-    assert np.allclose(specific_star_ordinary_ray, specific_flux_c3)
-    assert np.allclose(specific_star_extra_ordinary_ray, specific_flux_c3)
-
-
-def test_apply_sparc4_spectral_response_photometric_4(chc4):
-    (
-        specific_star_ordinary_ray,
-        specific_star_extra_ordinary_ray,
-    ) = chc4.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
-    assert np.allclose(specific_star_ordinary_ray, specific_flux_c4)
-    assert np.allclose(specific_star_extra_ordinary_ray, 0)
+    assert np.allclose(specific_star_ordinary_ray, c3_ordinary_ray)
+    assert np.allclose(specific_star_extra_ordinary_ray, c3_extra_ordinary_ray)
 
 
 def test_apply_sparc4_spectral_response_polarimetric_4():
@@ -274,6 +288,68 @@ def test_apply_sparc4_spectral_response_polarimetric_4():
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
     ) = chc4.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
-    specific_flux_c4 = specific_flux[0, :] * ccd_transmitance_c4 * 0.5 / 100
-    assert np.allclose(specific_star_ordinary_ray, specific_flux_c4)
-    assert np.allclose(specific_star_extra_ordinary_ray, specific_flux_c4)
+    assert np.allclose(specific_star_ordinary_ray, c4_ordinary_ray)
+    assert np.allclose(specific_star_extra_ordinary_ray, c4_extra_ordinary_ray)
+
+
+# -------------------------------------------------------------------------------------------------------------------------
+
+c1_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy()[0, :])
+c1_ordinary_ray_phot = np.multiply(dichroic_c1, c1_ordinary_ray_phot)
+c1_ordinary_ray_phot = np.multiply(camera_c1, c1_ordinary_ray_phot)
+c1_ordinary_ray_phot = np.multiply(ccd_transmitance_c1, c1_ordinary_ray_phot)
+c1_extra_ordinary_ray_phot = 0
+
+c2_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy()[0, :])
+c2_ordinary_ray_phot = np.multiply(dichroic_c2, c2_ordinary_ray_phot)
+c2_ordinary_ray_phot = np.multiply(camera_c2, c2_ordinary_ray_phot)
+c2_ordinary_ray_phot = np.multiply(ccd_transmitance_c2, c2_ordinary_ray_phot)
+c2_extra_ordinary_ray_phot = 0
+
+c3_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy()[0, :])
+c3_ordinary_ray_phot = np.multiply(dichroic_c3, c3_ordinary_ray_phot)
+c3_ordinary_ray_phot = np.multiply(camera_c3, c3_ordinary_ray_phot)
+c3_ordinary_ray_phot = np.multiply(ccd_transmitance_c3, c3_ordinary_ray_phot)
+c3_extra_ordinary_ray_phot = 0
+
+c4_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy()[0, :])
+c4_ordinary_ray_phot = np.multiply(dichroic_c4, c4_ordinary_ray_phot)
+c4_ordinary_ray_phot = np.multiply(camera_c4, c4_ordinary_ray_phot)
+c4_ordinary_ray_phot = np.multiply(ccd_transmitance_c4, c4_ordinary_ray_phot)
+c4_extra_ordinary_ray_phot = 0
+
+
+def test_apply_sparc4_spectral_response_photometric_1(chc1):
+    (
+        specific_star_ordinary_ray,
+        specific_star_extra_ordinary_ray,
+    ) = chc1.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
+    assert np.allclose(specific_star_ordinary_ray, c1_ordinary_ray_phot)
+    assert np.allclose(specific_star_extra_ordinary_ray, c1_extra_ordinary_ray_phot)
+
+
+def test_apply_sparc4_spectral_response_photometric_2(chc2):
+    (
+        specific_star_ordinary_ray,
+        specific_star_extra_ordinary_ray,
+    ) = chc2.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
+    assert np.allclose(specific_star_ordinary_ray, c2_ordinary_ray_phot)
+    assert np.allclose(specific_star_extra_ordinary_ray, c2_extra_ordinary_ray_phot)
+
+
+def test_apply_sparc4_spectral_response_photometric_3(chc3):
+    (
+        specific_star_ordinary_ray,
+        specific_star_extra_ordinary_ray,
+    ) = chc3.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
+    assert np.allclose(specific_star_ordinary_ray, c3_ordinary_ray_phot)
+    assert np.allclose(specific_star_extra_ordinary_ray, c3_extra_ordinary_ray_phot)
+
+
+def test_apply_sparc4_spectral_response_photometric_4(chc4):
+    (
+        specific_star_ordinary_ray,
+        specific_star_extra_ordinary_ray,
+    ) = chc4.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
+    assert np.allclose(specific_star_ordinary_ray, c4_ordinary_ray_phot)
+    assert np.allclose(specific_star_extra_ordinary_ray, c4_extra_ordinary_ray_phot)

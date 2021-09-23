@@ -142,12 +142,12 @@ def test_dichroic_abs(abs_s4_sr):
     abs_s4_sr.apply_dichroic()
 
     new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
-    new_ordinary_ray = np.multiply(new_ordinary_ray, dichroic_c1)
+    new_ordinary_ray = np.multiply(new_ordinary_ray, dichroic_c0)
 
     new_extra_ordinary_ray = multiply_matrices(
         analyser_extra_ordinary_ray, specific_flux.copy()
     )
-    new_extra_ordinary_ray = np.multiply(new_extra_ordinary_ray, dichroic_c1)
+    new_extra_ordinary_ray = np.multiply(new_extra_ordinary_ray, dichroic_c0)
 
     assert np.allclose(abs_s4_sr.specific_ordinary_ray, new_ordinary_ray)
     assert np.allclose(abs_s4_sr.specific_extra_ordinary_ray, new_extra_ordinary_ray)
@@ -220,135 +220,161 @@ def test_dichroic_c4(c4_s4_sr):
 def test_camera_abs(abs_s4_sr):
     abs_s4_sr.apply_analyser()
     abs_s4_sr.apply_camera()
-    assert np.allclose(
-        abs_s4_sr.specific_ordinary_ray, specific_flux[0, :] * analyser_ordinary_ray
+
+    new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
+    new_ordinary_ray = np.multiply(new_ordinary_ray, camera_c0)
+
+    new_extraordinary_ray = multiply_matrices(
+        analyser_extra_ordinary_ray, specific_flux.copy()
     )
-    assert np.allclose(
-        abs_s4_sr.specific_extra_ordinary_ray,
-        specific_flux[0, :] * analyser_extra_ordinary_ray,
-    )
+    new_extra_ordinary_ray = np.multiply(new_extraordinary_ray, camera_c0)
+
+    assert np.allclose(abs_s4_sr.specific_ordinary_ray, new_ordinary_ray)
+    assert np.allclose(abs_s4_sr.specific_extra_ordinary_ray, new_extra_ordinary_ray)
 
 
 def test_camera_c1(c1_s4_sr):
     c1_s4_sr.apply_analyser()
     c1_s4_sr.apply_camera()
-    assert np.allclose(
-        c1_s4_sr.specific_ordinary_ray, specific_flux[0, :] * analyser_ordinary_ray
+
+    new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
+    new_ordinary_ray = np.multiply(new_ordinary_ray, camera_c1)
+
+    new_extraordinary_ray = multiply_matrices(
+        analyser_extra_ordinary_ray, specific_flux.copy()
     )
-    assert np.allclose(
-        c1_s4_sr.specific_extra_ordinary_ray,
-        specific_flux[0, :] * analyser_extra_ordinary_ray,
-    )
+    new_extra_ordinary_ray = np.multiply(new_extraordinary_ray, camera_c1)
+
+    assert np.allclose(c1_s4_sr.specific_ordinary_ray, new_ordinary_ray)
+    assert np.allclose(c1_s4_sr.specific_extra_ordinary_ray, new_extra_ordinary_ray)
 
 
 def test_camera_c2(c2_s4_sr):
     c2_s4_sr.apply_analyser()
     c2_s4_sr.apply_camera()
-    assert np.allclose(
-        c2_s4_sr.specific_ordinary_ray, specific_flux[0, :] * analyser_ordinary_ray
+
+    new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
+    new_ordinary_ray = np.multiply(new_ordinary_ray, camera_c2)
+
+    new_extraordinary_ray = multiply_matrices(
+        analyser_extra_ordinary_ray, specific_flux.copy()
     )
-    assert np.allclose(
-        c2_s4_sr.specific_extra_ordinary_ray,
-        specific_flux[0, :] * analyser_extra_ordinary_ray,
-    )
+    new_extra_ordinary_ray = np.multiply(new_extraordinary_ray, camera_c2)
+
+    assert np.allclose(c2_s4_sr.specific_ordinary_ray, new_ordinary_ray)
+    assert np.allclose(c2_s4_sr.specific_extra_ordinary_ray, new_extra_ordinary_ray)
 
 
 def test_camera_c3(c3_s4_sr):
     c3_s4_sr.apply_analyser()
     c3_s4_sr.apply_camera()
-    assert np.allclose(
-        c3_s4_sr.specific_ordinary_ray, specific_flux[0, :] * analyser_ordinary_ray
+
+    new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
+    new_ordinary_ray = np.multiply(new_ordinary_ray, camera_c3)
+
+    new_extraordinary_ray = multiply_matrices(
+        analyser_extra_ordinary_ray, specific_flux.copy()
     )
-    assert np.allclose(
-        c3_s4_sr.specific_extra_ordinary_ray,
-        specific_flux[0, :] * analyser_extra_ordinary_ray,
-    )
+    new_extra_ordinary_ray = np.multiply(new_extraordinary_ray, camera_c3)
+
+    assert np.allclose(c3_s4_sr.specific_ordinary_ray, new_ordinary_ray)
+    assert np.allclose(c3_s4_sr.specific_extra_ordinary_ray, new_extra_ordinary_ray)
 
 
 def test_camera_c4(c4_s4_sr):
     c4_s4_sr.apply_analyser()
     c4_s4_sr.apply_camera()
-    assert np.allclose(
-        c4_s4_sr.specific_ordinary_ray, specific_flux[0, :] * analyser_ordinary_ray
+
+    new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
+    new_ordinary_ray = np.multiply(new_ordinary_ray, camera_c4)
+
+    new_extraordinary_ray = multiply_matrices(
+        analyser_extra_ordinary_ray, specific_flux.copy()
     )
-    assert np.allclose(
-        c4_s4_sr.specific_extra_ordinary_ray,
-        specific_flux[0, :] * analyser_extra_ordinary_ray,
-    )
+    new_extra_ordinary_ray = np.multiply(new_extraordinary_ray, camera_c4)
+
+    assert np.allclose(c4_s4_sr.specific_ordinary_ray, new_ordinary_ray)
+    assert np.allclose(c4_s4_sr.specific_extra_ordinary_ray, new_extra_ordinary_ray)
 
 
 def test_ccd_abs(abs_s4_sr):
     abs_s4_sr.apply_analyser()
     abs_s4_sr.apply_ccd()
-    assert np.allclose(
-        abs_s4_sr.specific_ordinary_ray, specific_flux[0, :] * analyser_ordinary_ray
+
+    new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
+    new_ordinary_ray = np.multiply(new_ordinary_ray, ccd_transmitance_c0)
+
+    new_extraordinary_ray = multiply_matrices(
+        analyser_extra_ordinary_ray, specific_flux.copy()
     )
-    assert np.allclose(
-        abs_s4_sr.specific_extra_ordinary_ray,
-        specific_flux[0, :] * analyser_extra_ordinary_ray,
-    )
+    new_extra_ordinary_ray = np.multiply(new_extraordinary_ray, ccd_transmitance_c0)
+
+    assert np.allclose(abs_s4_sr.specific_ordinary_ray, new_ordinary_ray)
+    assert np.allclose(abs_s4_sr.specific_extra_ordinary_ray, new_extra_ordinary_ray)
 
 
 def test_ccd_c1(c1_s4_sr):
-    new_specific_ordinary_flux = (
-        specific_flux[0, :] * ccd_transmitance_c1 * analyser_ordinary_ray / 100
-    )
-    new_specific_extraordinary_flux = (
-        specific_flux[0, :] * ccd_transmitance_c1 * analyser_extra_ordinary_ray / 100
-    )
     c1_s4_sr.apply_analyser()
     c1_s4_sr.apply_ccd()
-    assert np.allclose(c1_s4_sr.specific_ordinary_ray, new_specific_ordinary_flux)
-    assert np.allclose(
-        c1_s4_sr.specific_extra_ordinary_ray, new_specific_extraordinary_flux
+
+    new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
+    new_ordinary_ray = np.multiply(new_ordinary_ray, ccd_transmitance_c1)
+
+    new_extraordinary_ray = multiply_matrices(
+        analyser_extra_ordinary_ray, specific_flux.copy()
     )
+    new_extra_ordinary_ray = np.multiply(new_extraordinary_ray, ccd_transmitance_c1)
+
+    assert np.allclose(c1_s4_sr.specific_ordinary_ray, new_ordinary_ray)
+    assert np.allclose(c1_s4_sr.specific_extra_ordinary_ray, new_extra_ordinary_ray)
 
 
 def test_ccd_c2(c2_s4_sr):
-    new_specific_ordinary_flux = (
-        specific_flux[0, :] * ccd_transmitance_c2 * analyser_ordinary_ray / 100
-    )
-    new_specific_extraordinary_flux = (
-        specific_flux[0, :] * ccd_transmitance_c2 * analyser_extra_ordinary_ray / 100
-    )
     c2_s4_sr.apply_analyser()
     c2_s4_sr.apply_ccd()
-    assert np.allclose(c2_s4_sr.specific_ordinary_ray, new_specific_ordinary_flux)
-    assert np.allclose(
-        c2_s4_sr.specific_extra_ordinary_ray, new_specific_extraordinary_flux
+
+    new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
+    new_ordinary_ray = np.multiply(new_ordinary_ray, ccd_transmitance_c2)
+
+    new_extraordinary_ray = multiply_matrices(
+        analyser_extra_ordinary_ray, specific_flux.copy()
     )
+    new_extra_ordinary_ray = np.multiply(new_extraordinary_ray, ccd_transmitance_c2)
+
+    assert np.allclose(c2_s4_sr.specific_ordinary_ray, new_ordinary_ray)
+    assert np.allclose(c2_s4_sr.specific_extra_ordinary_ray, new_extra_ordinary_ray)
 
 
 def test_ccd_c3(c3_s4_sr):
-
-    new_specific_ordinary_flux = (
-        specific_flux[0, :] * ccd_transmitance_c3 * analyser_ordinary_ray / 100
-    )
-    new_specific_extraordinary_flux = (
-        specific_flux[0, :] * ccd_transmitance_c3 * analyser_extra_ordinary_ray / 100
-    )
     c3_s4_sr.apply_analyser()
     c3_s4_sr.apply_ccd()
-    assert np.allclose(c3_s4_sr.specific_ordinary_ray, new_specific_ordinary_flux)
-    assert np.allclose(
-        c3_s4_sr.specific_extra_ordinary_ray, new_specific_extraordinary_flux
+
+    new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
+    new_ordinary_ray = np.multiply(new_ordinary_ray, ccd_transmitance_c3)
+
+    new_extraordinary_ray = multiply_matrices(
+        analyser_extra_ordinary_ray, specific_flux.copy()
     )
+    new_extra_ordinary_ray = np.multiply(new_extraordinary_ray, ccd_transmitance_c3)
+
+    assert np.allclose(c3_s4_sr.specific_ordinary_ray, new_ordinary_ray)
+    assert np.allclose(c3_s4_sr.specific_extra_ordinary_ray, new_extra_ordinary_ray)
 
 
 def test_ccd_c4(c4_s4_sr):
-
-    new_specific_ordinary_flux = (
-        specific_flux[0, :] * ccd_transmitance_c4 * analyser_ordinary_ray / 100
-    )
-    new_specific_extraordinary_flux = (
-        specific_flux[0, :] * ccd_transmitance_c2 * analyser_extra_ordinary_ray / 100
-    )
     c4_s4_sr.apply_analyser()
     c4_s4_sr.apply_ccd()
-    assert np.allclose(c4_s4_sr.specific_ordinary_ray, new_specific_ordinary_flux)
-    assert np.allclose(
-        c4_s4_sr.specific_extra_ordinary_ray, new_specific_extraordinary_flux
+
+    new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
+    new_ordinary_ray = np.multiply(new_ordinary_ray, ccd_transmitance_c4)
+
+    new_extraordinary_ray = multiply_matrices(
+        analyser_extra_ordinary_ray, specific_flux.copy()
     )
+    new_extra_ordinary_ray = np.multiply(new_extraordinary_ray, ccd_transmitance_c4)
+
+    assert np.allclose(c4_s4_sr.specific_ordinary_ray, new_ordinary_ray)
+    assert np.allclose(c4_s4_sr.specific_extra_ordinary_ray, new_extra_ordinary_ray)
 
 
 # --------------------write specific_flux--------------------
@@ -528,11 +554,11 @@ def test_calculate_spline():
 
 def test_get_specific_ordinary_ray(abs_s4_sr):
     abs_s4_sr.apply_analyser()
-    ord_ray = abs_s4_sr.get_specific_ordinary_ray()
-    assert np.allclose(ord_ray, specific_flux[0, :] * 0.5)
+    ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux)
+    assert np.allclose(abs_s4_sr.get_specific_ordinary_ray(), ordinary_ray)
 
 
 def test_get_specific_extra_ordinary_ray(abs_s4_sr):
     abs_s4_sr.apply_analyser()
-    eord_ray = abs_s4_sr.get_specific_extra_ordinary_ray()
-    assert np.allclose(eord_ray, specific_flux[0, :] * 0.5)
+    extra_ordinary_ray = multiply_matrices(analyser_extra_ordinary_ray, specific_flux)
+    assert np.allclose(abs_s4_sr.get_specific_extra_ordinary_ray(), extra_ordinary_ray)
