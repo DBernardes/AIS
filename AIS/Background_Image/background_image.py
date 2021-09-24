@@ -47,6 +47,8 @@ class Background_Image:
         The bias level of the image in ADU
     """
 
+    _PIXEL_SENSIBILITY = 0.03
+
     def __init__(
         self,
         ccd_operation_mode,
@@ -61,6 +63,7 @@ class Background_Image:
         self.read_noise = read_noise
         self.bias_level = bias_level
 
+        self.em_mode = ccd_operation_mode["em_mode"]
         self.em_gain = ccd_operation_mode["em_gain"]
         self.binn = ccd_operation_mode["binn"]
         self.t_exp = ccd_operation_mode["t_exp"]
@@ -68,9 +71,9 @@ class Background_Image:
         self.hss = ccd_operation_mode["hss"]
         self.image_size = ccd_operation_mode["image_size"]
 
-        self.NOISE_FACTOR = 1.0
-        if ccd_operation_mode["em_mode"] == 1:
-            self.NOISE_FACTOR = 1.4
+        self._NOISE_FACTOR = 1.0
+        if self.em_mode == 1:
+            self._NOISE_FACTOR = 1.4
 
     def create_background_image_1(self):
         """Create a background image.
@@ -150,7 +153,7 @@ class Background_Image:
         dc = self.dark_current * t_exp
         rn = self.read_noise
         sky = sky_flux
-        nf = self.NOISE_FACTOR
+        nf = self._NOISE_FACTOR
         binn = self.binn
         image_size = self.image_size
 
@@ -161,7 +164,6 @@ class Background_Image:
             np.sqrt(rn ** 2 + (sky + dc) * t_exp * nf ** 2 * em_gain ** 2 * binn ** 2)
             / ccd_gain
         )
-
         self.background_image = make_noise_image(
             shape, distribution="gaussian", mean=background_level, stddev=noise
         )
@@ -189,7 +191,7 @@ class Background_Image:
         bias = self.bias_level
         dc = self.dark_current * t_exp
         rn = self.read_noise
-        nf = self.NOISE_FACTOR
+        nf = self._NOISE_FACTOR
         binn = self.binn
         image_size = self.image_size
 
@@ -253,9 +255,9 @@ class Background_Image:
         ccd_gain = self.ccd_gain
         BIAS = 32000  # ADU
         rn = self.read_noise
-        nf = self.NOISE_FACTOR
+        nf = self._NOISE_FACTOR
         poisson_noise = BIAS / ccd_gain
-        pixel_sensibility_noise = BIAS / ccd_gain * 0.03  # 3% of pixel sensibility
+        pixel_sensibility_noise = BIAS / ccd_gain * self._PIXEL_SENSIBILITY
         binn = self.binn
         image_size = self.image_size
 
