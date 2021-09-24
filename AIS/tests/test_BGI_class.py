@@ -126,7 +126,7 @@ def test_create_dark_image(bgi_conv):
     bg_level = np.mean(image)
     new_noise = np.std(image)
     noise = rn / ccd_gain
-    assert np.allclose(bg_level, bias_level + dc)
+    assert np.allclose(bg_level, bias_level + dc / ccd_gain)
     assert np.allclose(noise, new_noise, rtol=0.005)
 
 
