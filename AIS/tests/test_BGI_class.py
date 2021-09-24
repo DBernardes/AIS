@@ -108,7 +108,7 @@ def test_create_background_image(bgi_conv):
     image = bgi_conv.create_background_image(sky_flux)
     bg_level = np.mean(image)
     new_noise = np.std(image)
-    assert np.allclose(bg_level, background_level)
+    assert np.allclose(bg_level, background_level, rtol=0.005)
     assert np.allclose(noise, new_noise, rtol=0.005)
 
 
@@ -117,7 +117,7 @@ def test_create_bias_image(bgi_conv):
     bg_level = np.mean(image)
     new_noise = np.std(image)
     noise = rn / ccd_gain
-    assert np.allclose(bg_level, bias_level)
+    assert np.allclose(bg_level, bias_level, rtol=0.005)
     assert np.allclose(noise, new_noise, rtol=0.005)
 
 
@@ -126,7 +126,7 @@ def test_create_dark_image(bgi_conv):
     bg_level = np.mean(image)
     new_noise = np.std(image)
     noise = rn / ccd_gain
-    assert np.allclose(bg_level, bias_level + dc / ccd_gain)
+    assert np.allclose(bg_level, bias_level + dc / ccd_gain, rtol=0.005)
     assert np.allclose(noise, new_noise, rtol=0.005)
 
 
@@ -147,5 +147,5 @@ def test_create_flat_image(bgi_conv):
         )
         / ccd_gain
     )
-    assert np.allclose(bg_level, BIAS)
+    assert np.allclose(bg_level, BIAS, rtol=0.005)
     assert np.allclose(noise, new_noise, rtol=0.005)
