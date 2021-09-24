@@ -26,15 +26,10 @@ class Telescope_Spectral_Response:
 
     def _read_spreadsheet(self):
         ss = pd.read_csv(
-            self._SPECTRAL_RESPONSE_FILE,
-            dtype=np.float64,
-            skiprows=1,
+            self._SPECTRAL_RESPONSE_FILE, dtype=np.float64, skiprows=1, decimal=","
         )
-
-        tel_wavelength_interval = [float(value) for value in ss["(nm)"]]
-        reflectance = [float(value) for value in ss["(%)"]]
-        self.tel_wavelength_interval = np.asarray(tel_wavelength_interval)
-        self.reflectance = np.asarray(reflectance)
+        self.tel_wavelength_interval = ss["(nm)"]
+        self.reflectance = ss["(%)"] / 100
 
     def _calculate_spline(self, wavelength_interval):
         spl = splrep(self.tel_wavelength_interval, self.reflectance)

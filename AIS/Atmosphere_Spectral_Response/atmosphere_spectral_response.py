@@ -16,7 +16,7 @@ class Atmosphere_Spectral_Response:
     """Atmosphere Spectral Response Class."""
 
     _SPECTRAL_RESPONSE_FILE = os.path.join(
-        "Atmosphere_Spectral_Response", "atmosphere_spectral_response.xlsx"
+        "Atmosphere_Spectral_Response", "atmosphere_spectral_response.csv"
     )
 
     def __init__(self):
@@ -24,11 +24,11 @@ class Atmosphere_Spectral_Response:
         pass
 
     def _read_spreadsheet(self):
-        ss = np.asarray(pd.read_excel(self._SPECTRAL_RESPONSE_FILE))
-        atm_wavelength_interval = [float(value) for value in ss[1:, 0]]
-        transmitance = [float(value) for value in ss[1:, 1]]
-        self.atm_wavelength_interval = np.asarray(atm_wavelength_interval)
-        self.transmitance = np.asarray(transmitance)
+        ss = pd.read_csv(
+            self._SPECTRAL_RESPONSE_FILE, dtype=np.float64, skiprows=1, decimal=","
+        )
+        self.atm_wavelength_interval = ss["(nm)"]
+        self.transmitance = ss["(%)"] / 100
 
     def _calculate_spline(self, wavelength_interval):
         spl = splrep(self.atm_wavelength_interval, self.transmitance)

@@ -30,13 +30,10 @@ ss = pd.read_csv(
     os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
     dtype=np.float64,
     skiprows=1,
+    decimal=",",
 )
-
-
 tel_wavelength_interval = ss["(nm)"]
-reflectance = ss["(%)"]
-# tel_wavelength_interval = np.asarray(tel_wavelength_interval)
-# reflectance = np.asarray(reflectance)
+reflectance = ss["(%)"] / 100
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -53,11 +50,10 @@ def test_calculate_spline(tel_sr):
         os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
         dtype=np.float64,
         skiprows=1,
+        decimal=",",
     )
-    tel_wavelength_interval = [float(value) for value in ss["(nm)"]]
-    reflectance = [float(value) for value in ss["(%)"]]
-    tel_wavelength_interval = np.asarray(tel_wavelength_interval)
-    reflectance = np.asarray(reflectance)
+    tel_wavelength_interval = ss["(nm)"]
+    reflectance = ss["(%)"] / 100
 
     tel_sr._read_spreadsheet()
     new_reflectance = tel_sr._calculate_spline(wavelength_interv)
@@ -71,11 +67,10 @@ def test_apply_telescope_spectral_response(tel_sr):
         os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
         dtype=np.float64,
         skiprows=1,
+        decimal=",",
     )
-    tel_wavelength_interval = [float(value) for value in ss["(nm)"]]
-    reflectance = [float(value) for value in ss["(%)"]]
-    tel_wavelength_interval = np.asarray(tel_wavelength_interval)
-    reflectance = np.asarray(reflectance)
+    tel_wavelength_interval = ss["(nm)"]
+    reflectance = ss["(%)"] / 100
     specific_flux = np.ones((4, n))
 
     spl = splrep(tel_wavelength_interval, reflectance)

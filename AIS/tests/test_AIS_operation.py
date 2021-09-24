@@ -58,10 +58,11 @@ ss = pd.read_csv(
     os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
     dtype=np.float64,
     skiprows=1,
+    decimal=",",
 )
 
-tel_wavelength_interval = [float(value) for value in ss["(nm)"]]
-tel_reflectance = [float(value) for value in ss["(%)"]]
+tel_wavelength_interval = ss["(nm)"]
+tel_reflectance = ss["(%)"] / 100
 spl = splrep(tel_wavelength_interval, tel_reflectance)
 tel_reflectance = splev(wavelength_interval, spl)
 # ------------------------------------------------------------------------------------
