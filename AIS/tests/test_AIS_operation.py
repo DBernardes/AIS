@@ -39,7 +39,7 @@ dic = {
 }
 
 star_temperature = 5700
-init, final, step = 350, 1150, 50
+init, final, step = 400, 1150, 50
 sc = Spectrum_Calculation(star_temperature, init, final, step)
 star_specific_flux = sc.calculate_star_specific_flux()
 sky_specific_flux = sc.calculate_sky_specific_flux()

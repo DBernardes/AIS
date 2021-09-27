@@ -114,6 +114,8 @@ class Artificial_Image_Simulator:
 
     """
 
+    _sparc4_seeing = 4  # pixels
+
     def __init__(
         self,
         ccd_operation_mode,
@@ -608,9 +610,11 @@ class Artificial_Image_Simulator:
             extra_ordinary_ray = 0
             if self.sparc4_operation_mode == "pol":
                 extra_ordinary_ray = ordinary_ray
-            gaussian_std = randint(1, self.gaussian_std)
             random_image += self.PSF.create_star_PSF(
-                (x_coord, y_coord), gaussian_std, ordinary_ray, extra_ordinary_ray
+                (x_coord, y_coord),
+                self._sparc4_seeing,
+                ordinary_ray,
+                extra_ordinary_ray,
             )
         header = self.HDR.create_header()
         image_name = os.path.join(self.image_dir, self.image_name + "_RAND.fits")

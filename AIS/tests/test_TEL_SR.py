@@ -21,7 +21,7 @@ def tel_sr():
     return Telescope_Spectral_Response()
 
 
-l_init, l_final, l_step = 350, 1150, 50
+l_init, l_final, l_step = 400, 1150, 50
 wavelength_interv = range(l_init, l_final, l_step)
 n = len(wavelength_interv)
 specific_flux = np.ones((4, n))

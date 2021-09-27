@@ -44,7 +44,7 @@ from tests.test_S4_SR_class import c1_s4_sr
 
 # -------------------------------------------------------------------------------
 
-l_init, l_final, l_step = 350, 1150, 50
+l_init, l_final, l_step = 400, 1150, 50
 wavelength_interval = range(l_init, l_final, l_step)
 n = len(wavelength_interval)
 sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
@@ -110,42 +110,48 @@ specific_flux = sc.calculate_star_specific_flux()
 
 # -------------------------------------------------------------------------------
 
-ccd_operation_mode = {
-    "em_mode": 0,
-    "em_gain": 1,
-    "preamp": 1,
-    "hss": 1,
-    "binn": 1,
-    "t_exp": 1,
-    "image_size": 1024,
-}
+# ccd_operation_mode = {
+#     "em_mode": 0,
+#     "em_gain": 1,
+#     "preamp": 1,
+#     "hss": 1,
+#     "binn": 1,
+#     "t_exp": 1,
+#     "image_size": 1024,
+# }
 
-sky_flux = 10
-ccd_gain = 3
-dark_current = 1e-5
-read_noise = 6.67
-bias_level = 500
-dc = dark_current * 1
-rn = read_noise
-nf = 1
+# sky_flux = 10
+# ccd_gain = 3
+# dark_current = 1e-5
+# read_noise = 6.67
+# bias_level = 500
+# dc = dark_current * 1
+# rn = read_noise
+# nf = 1
 
-noise = (
-    np.sqrt(
-        rn ** 2
-        + (sky_flux + dc)
-        * ccd_operation_mode["t_exp"]
-        * nf ** 2
-        * ccd_operation_mode["em_gain"] ** 2
-        * ccd_operation_mode["binn"] ** 2
-    )
-    / ccd_gain
-)
+# noise = (
+#     np.sqrt(
+#         rn ** 2
+#         + (sky_flux + dc)
+#         * ccd_operation_mode["t_exp"]
+#         * nf ** 2
+#         * ccd_operation_mode["em_gain"] ** 2
+#         * ccd_operation_mode["binn"] ** 2
+#     )
+#     / ccd_gain
+# )
 
-bgi = Background_Image(
-    ccd_operation_mode, ccd_gain, dark_current, read_noise, bias_level
-)
-image = bgi.create_background_image(sky_flux)
-mean = np.mean(image)
-std = np.std(image)
-print(std, noise)
-print(np.allclose(std, noise, atol=0.005))
+# bgi = Background_Image(
+#     ccd_operation_mode, ccd_gain, dark_current, read_noise, bias_level
+# )
+# image = bgi.create_background_image(sky_flux)
+# mean = np.mean(image)
+# std = np.std(image)
+# print(std, noise)
+# print(np.allclose(std, noise, atol=0.005))
+
+# -------------------------------------------------------------------------------------------------------
+
+sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
+pps = sc.calculate_star_specific_flux()
+print(pps[0, :])

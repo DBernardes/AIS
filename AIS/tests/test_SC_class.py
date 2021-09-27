@@ -9,7 +9,7 @@ import pytest
 from AIS.Spectrum_Calculation import Spectrum_Calculation
 
 temperature = 5700
-l_init = 350
+l_init = 400
 l_final = 1150
 l_step = 50
 
@@ -19,26 +19,34 @@ def sc():
     return Spectrum_Calculation(temperature, l_init, l_final, l_step)
 
 
-def calculate_specific_flux(temperature, l_init, l_final, l_step):
-    h = 6.62607004e-34  # m2 kg / s
-    c = 3e8  # m/s
-    k = 1.38064852e-23  # m2 kg s-2 K-1
-    T = temperature
-    specific_flux = []
-    for Lambda in range(l_init, l_final, l_step):
-        Lambda *= 1e-9
-        B = 2 * h * c ** 2 / Lambda ** 5 * 1 / (np.e ** (h * c / (Lambda * k * T)) - 1)
-        specific_flux.append(B / 1e10)  # arrumar!
+_H = 6.62607004e-34  # m2 kg / s
+_C = 3e8  # m/s
+_K = 1.38064852e-23  # m2 kg s-2 K-1
+_telescope_effective_area = 0.804  # m2
+_angular_aperture = 1
 
-    temporary = np.asarray(specific_flux)
-    specific_flux_length = len(specific_flux)
-    specific_flux = np.zeros((4, specific_flux_length))
-    specific_flux[0, :] = temporary
+T = temperature
+h = _H
+c = _C
+k = _K
+specific_flux = []
+for Lambda in range(l_init, l_final, l_step):
+    Lambda *= 1e-9
 
-    return np.asarray(specific_flux)
+    var1 = 2 * h * c ** 2 / Lambda ** 5
+    var2 = np.e ** (h * c / (Lambda * k * T)) - 1
+    black_body = var1 / var2
+    photon_energy = h * c / Lambda
+    photons_per_second = (
+        black_body * _telescope_effective_area * _angular_aperture / photon_energy
+    )
 
+    specific_flux.append(photons_per_second)
 
-specific_flux = calculate_specific_flux(temperature, l_init, l_final, l_step)
+specific_flux_length = len(specific_flux)
+star_specific_flux = np.zeros((4, specific_flux_length))
+star_specific_flux[0, :] = specific_flux
+
 
 # ---------------------------------------Initialize the class ------------------------------------------------
 
@@ -48,7 +56,7 @@ def test_temperature(sc):
 
 
 def test_l_init(sc):
-    assert sc.l_init == 350
+    assert sc.l_init == 400
 
 
 def test_l_final(sc):
@@ -64,9 +72,9 @@ def test_l_step(sc):
 
 def test_calculate_sky_specific_flux(sc):
     sky_specific_flux = sc.calculate_sky_specific_flux()
-    assert np.allclose(sky_specific_flux, specific_flux * 0.1)
+    assert np.allclose(sky_specific_flux, star_specific_flux * 0.1)
 
 
 def test_calculate_star_specific_flux(sc):
     star_specific_flux = sc.calculate_star_specific_flux()
-    assert np.allclose(star_specific_flux, specific_flux)
+    assert np.allclose(star_specific_flux, star_specific_flux)

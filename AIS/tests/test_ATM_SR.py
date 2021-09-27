@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 from AIS.Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
 
-l_init, l_final, l_step = 350, 1150, 50
+l_init, l_final, l_step = 400, 1150, 50
 wavelength_interv = np.asarray(range(l_init, l_final, l_step))
 n = len(wavelength_interv)
 specific_flux = np.ones((4, n))
@@ -26,6 +26,7 @@ def atm_sr():
 
 def test_read_spreadsheet(atm_sr):
     wavelength_interv = range(350, 1150, 50)  # por hora vale
+    n = len(wavelength_interv)
     transmitance = np.ones((1, n))  # por hora vale
     atm_sr._read_spreadsheet()
     assert np.allclose(atm_sr.atm_wavelength_interval, wavelength_interv)

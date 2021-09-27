@@ -8,7 +8,7 @@ import pandas as pd
 from scipy.interpolate import splev, splrep
 from Spectrum_Calculation import Spectrum_Calculation
 
-init, final, step = 350, 1150, 50
+init, final, step = 400, 1150, 50
 sc = Spectrum_Calculation(5700, init, final, step)
 specific_flux = sc.calculate_star_specific_flux()
 wavelength_interval = range(init, final, step)

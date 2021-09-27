@@ -19,8 +19,10 @@ class Spectrum_Calculation:
     _H = 6.62607004e-34  # m2 kg / s
     _C = 3e8  # m/s
     _K = 1.38064852e-23  # m2 kg s-2 K-1
+    _telescope_effective_area = 0.804  # m2
+    _angular_aperture = 1
 
-    def __init__(self, temperature=5700, l_init=350, l_final=1150, l_step=50):
+    def __init__(self, temperature=5700, l_init=400, l_final=1150, l_step=50):
         """Initialize the class.
 
         Parameters
@@ -71,22 +73,23 @@ class Spectrum_Calculation:
         specific_flux = []
         for Lambda in range(self.l_init, self.l_final, self.l_step):
             Lambda *= 1e-9
-            B = (
-                2
-                * h
-                * c ** 2
-                / Lambda ** 5
-                * 1
-                / (np.e ** (h * c / (Lambda * k * T)) - 1)
+
+            var1 = 2 * h * c ** 2 / Lambda ** 5
+            var2 = np.e ** (h * c / (Lambda * k * T)) - 1
+            black_body = var1 / var2
+            photon_energy = h * c / Lambda
+            photons_per_second = (
+                black_body
+                * self._telescope_effective_area
+                * self._angular_aperture
+                / photon_energy
             )
-            specific_flux.append(B / 1e10)  # arrumar!
 
-        temporary = np.asarray(specific_flux)
+            specific_flux.append(photons_per_second)
+
         self.specific_flux_length = len(specific_flux)
-        specific_flux = np.zeros((4, self.specific_flux_length))
-        specific_flux[0, :] = temporary
-
-        self.star_specific_flux = specific_flux
+        self.star_specific_flux = np.zeros((4, self.specific_flux_length))
+        self.star_specific_flux[0, :] = specific_flux
 
         return self.star_specific_flux
 
