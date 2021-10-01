@@ -9,6 +9,10 @@ Created on Fri Apr 16 11:53:12 2021
 """
 
 
+import os
+
+import numpy as np
+import pandas as pd
 import pytest
 from AIS.Header import Header
 
@@ -29,6 +33,12 @@ def hdr():
     hdr = Header(dic, 3.0, 9914)
     hdr.create_header()
     return hdr
+
+
+file = os.path.join("Header", "header.csv")
+ss = pd.read_csv(file)
+keywords = ss["Keyword"]
+comments = ss["Comment"]
 
 
 # -----------------------teste cria classe -----------------------------
@@ -98,6 +108,15 @@ def test_ccd_gain(hdr):
 
 def test_serial_number(hdr):
     assert hdr.serial_number == 9914
+
+
+# ---------------------------- teste read spreadsheet ----------------------
+
+
+def test_read_spreadsheet(hdr):
+    hdr._read_spreadsheet()
+    assert hdr.keywords.all() == keywords.all()
+    assert hdr.comments.all() == comments.all()
 
 
 # -----------------------------test _create_image_header---------------------

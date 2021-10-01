@@ -75,55 +75,6 @@ class Background_Image:
         if self.em_mode == 1:
             self._NOISE_FACTOR = 1.4
 
-    def create_background_image_1(self):
-        """Create a background image.
-
-        This functions creates a background image with a background level given
-        by the ccd operation mode, the sky flux, the dc noise, and the bias
-        level. Over this image there is a noise given by a gaussian
-        distribution over the read noise, dc noise, and sky noise. Also, the
-        extra noise of the EM amplification is considered.
-
-        Returns
-        -------
-        background_image: array like
-            A background image for the respective CCD operation mode, the sky
-            flux, and the dark current noise.
-
-        """
-        t_exp = self.t_exp
-        em_gain = self.em_gain
-        ccd_gain = self.ccd_gain
-        bias = self.bias_level
-        dc = self.dark_current * t_exp
-        rn = self.read_noise
-        sky = self.sky_flux
-        nf = self.NOISE_FACTOR
-        binn = self.binn
-        image_size = self.image_size
-
-        shape = (image_size, image_size)
-        background_level = bias + (dc) * t_exp * em_gain * binn ** 2 / ccd_gain
-
-        gaussian_noise = (
-            np.sqrt(rn ** 2 + (sky + dc) * t_exp * nf ** 2 * em_gain ** 2 * binn ** 2)
-            / ccd_gain
-        )
-        poisson_noise = (
-            np.sqrt((sky) * t_exp * nf ** 2 * em_gain ** 2 * binn ** 2) / ccd_gain
-        )
-        # print(noise), sys.exit()
-
-        gaussian_image = make_noise_image(
-            shape, distribution="gaussian", mean=0, stddev=gaussian_noise
-        )
-        poisson_image = make_noise_image(
-            shape, distribution="gaussian", mean=0, stddev=poisson_noise
-        )
-        self.background_image = gaussian_image + poisson_image + background_level
-
-        return self.background_image
-
     def create_background_image(self, sky_flux):
         """Create a background image.
 

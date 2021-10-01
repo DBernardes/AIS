@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+import Header
 from Artificial_Image_Simulator import Artificial_Image_Simulator
 from Background_Image import Background_Image
 from Channel_Creator import Concrete_Channel_1
@@ -152,6 +153,28 @@ specific_flux = sc.calculate_star_specific_flux()
 
 # -------------------------------------------------------------------------------------------------------
 
-sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
-pps = sc.calculate_star_specific_flux()
-print(pps[0, :])
+# sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
+# pps = sc.calculate_star_specific_flux()
+# print(pps[0, :])
+
+# ------------------------------------------------------------------------------------------------------
+
+import astropy.io.fits as fits
+
+from Header import Header
+
+dic = {
+    "em_mode": 0,
+    "em_gain": 1,
+    "preamp": 1,
+    "hss": 1,
+    "binn": 1,
+    "t_exp": 1,
+    "ccd_temp": -70,
+    "image_size": 100,
+}
+
+hdr = Header(dic, 3, 9914)
+hdr._read_spreadsheet()
+header = hdr.create_header()
+fits.writeto("image.fits", np.zeros((10, 10)), header=header, overwrite=True)

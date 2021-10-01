@@ -44,6 +44,8 @@ class Point_Spread_Function:
         Gain of the CCD in e-/ADU.
     """
 
+    _EXTRA_ORDINARY_RAY_PIX = 20
+
     def __init__(
         self,
         Abstract_Channel_Creator,
@@ -52,7 +54,6 @@ class Point_Spread_Function:
     ):
         """Initialize the class."""
         self.CHC = Abstract_Channel_Creator
-
         self.em_gain = ccd_operation_mode["em_gain"]
         self.binn = ccd_operation_mode["binn"]
         self.t_exp = ccd_operation_mode["t_exp"]
@@ -114,8 +115,8 @@ class Point_Spread_Function:
                 extra_ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
             )
             table["amplitude"] = [gaussian_amplitude]
-            table["x_mean"] = [x_coord - 20]
-            table["y_mean"] = [y_coord - 20]
+            table["x_mean"] = [x_coord - self._EXTRA_ORDINARY_RAY_PIX]
+            table["y_mean"] = [y_coord - self._EXTRA_ORDINARY_RAY_PIX]
             self.star_image += make_gaussian_sources_image(shape, table)
 
         return self.star_image

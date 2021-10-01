@@ -36,5 +36,5 @@ ais = Artificial_Image_Simulator(
 # ais.apply_atmosphere_spectral_response()
 # ais.apply_telescope_spectral_response()
 # ais.apply_sparc4_spectral_response()
-# ais.create_artificial_image()
-ais.create_random_image(30)
+ais.create_artificial_image()
+# ais.create_random_image(30)

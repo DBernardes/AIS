@@ -7,7 +7,11 @@ This class creates the header that will be written in the images created by
 the AIS.
 """
 
+import os
+from sys import exit
+
 import astropy.io.fits as fits
+import pandas as pd
 
 
 class Header:
@@ -40,6 +44,8 @@ class Header:
         CCD serial number
     """
 
+    _CSV_HEADER_FILE = os.path.join("Header", "header.csv")
+
     def __init__(self, ccd_operation_mode, ccd_gain, serial_number):
         """Initialize the Header Class."""
         self.em_mode = ccd_operation_mode["em_mode"]
@@ -56,6 +62,12 @@ class Header:
         self.image_size = ccd_operation_mode["image_size"]
         self.ccd_gain = ccd_gain
         self.serial_number = serial_number
+        self._read_spreadsheet()
+
+    def _read_spreadsheet(self):
+        ss = pd.read_csv(self._CSV_HEADER_FILE)
+        self.keywords = ss["Keyword"]
+        self.comments = ss["Comment"]
 
     def create_header(self):
         """Create the image header.
@@ -63,37 +75,45 @@ class Header:
         This functions writes a simple header with the used parameters for
         the CCD operation mode for the image FITS file
         """
-        hdr = fits.Header()
-        hdr["NAXIS1"] = (self.image_size, "length of data axis 1")
-        hdr["NAXIS2"] = (self.image_size, "length of data axis 2")
-        hdr["EXTEND"] = ("T", "FITS dataset may contain extensions")
-        hdr["COMMENT"] = (
+        n = len(self.keywords)
+        self.hdr = fits.Header()
+        self.hdr["SIMPLE"] = "T"
+        self.hdr["BITPIX"] = "16"
+        self.hdr["NAXIS1"] = self.image_size
+        self.hdr["NAXIS2"] = self.image_size
+        for i in range(n):
+            self.hdr[self.keywords[i]] = ("", self.comments[i])
+        self._write_header_values()
+        return self.hdr
+
+    def _write_header_values(self):
+        """Write header values.
+
+        This functions writes the values used to create the
+        image in its respecive keyword.
+        """
+        self.hdr["EXTEND"] = "T"
+        self.hdr["COMMENT"] = (
             "and Astrophysics, volume 376, page 359; bibcode:" + "2001A&A...376..3"
         )
-        hdr["ACQMODE"] = ("Single  ", "Acquisition Mode")
-        hdr["READMODE"] = ("Image   ", "Readout Mode")
-        hdr["IMGRECT"] = (f"1, {self.image_size}, {self.image_size}, 1", "Image Format")
-        hdr["HBIN"] = (self.binn, "Horizontal Binning")
-        hdr["VBIN"] = (self.binn, "Vertical Binning")
-        hdr["TRIGGER"] = ("External", "Trigger Mode")
-        hdr["EXPOSURE"] = (self.t_exp, "Total Exposure Time")
-        hdr["TEMP"] = (self.ccd_temp, "Temperature")
-        hdr["READTIME"] = (str(1 / self.hss) + "E-006", "Pixel readout time ")
-        hdr["VSHIFT"] = ("4.33E-06", "Vertical Shift Speed")
-        hdr["GAIN"] = (self.ccd_gain, "Preamp Gain (e-/ADU)")
+        self.hdr["ACQMODE"] = "Single"
+        self.hdr["READMODE"] = "Image"
+        self.hdr["IMGRECT"] = f"1, {self.image_size}, {self.image_size}, 1"
+        self.hdr["HBIN"] = self.binn
+        self.hdr["VBIN"] = self.binn
+        self.hdr["TRIGGER"] = "External"
+        self.hdr["EXPOSURE"] = self.t_exp
+        self.hdr["TEMP"] = self.ccd_temp
+        self.hdr["READTIME"] = str(1 / self.hss) + "E-006"
+        self.hdr["VSHIFT"] = "4.33E-06"
+        self.hdr["GAIN"] = self.ccd_gain
         em_mode = "Conventional"
         if self.em_mode == 1:
             em_mode = "Electron Multiplying"
-        hdr["OUTPTAMP"] = (em_mode, "Output Amplifier")
-        hdr["EMGAIN"] = (self.em_gain, "Electron Multiplying Gain")
-        hdr["PREAMP"] = (str(self.preamp) + "x", "Pre Amplifier Gain")
-        hdr["SERNO"] = (self.serial_number, "Serial Number")
-        hdr["DATE"] = (
-            "2017-07-14T00:00:58",
-            "File Creation Date (YYYY-MM-HHThh:mm:ss)",
-        )
-        hdr["FRAME"] = ("2017-07-14T00:00:58.642", "Start of Frame Exposure")
-        hdr["IMAGE"] = ("hats-24_I_transito_001", "Nome do arquivo")
-        self.hdr = hdr
-
-        return self.hdr
+        self.hdr["OUTPTAMP"] = em_mode
+        self.hdr["EMGAIN"] = self.em_gain
+        self.hdr["PREAMP"] = str(self.preamp) + "x"
+        self.hdr["SERNO"] = self.serial_number
+        self.hdr["DATE"] = "2017-07-14T00:00:58"
+        self.hdr["FRAME"] = "2017-07-14T00:00:58.642"
+        self.hdr["IMAGE"] = "hats-24_I_transito_001"
