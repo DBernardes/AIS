@@ -95,6 +95,9 @@ class Artificial_Image_Simulator:
     star_temperature: 5700, optional
         Temperature of the star in Kelvin.
 
+    star_magnitude: 22, optional
+        Magnitude of the star.
+
     Yields
     ------
         image cube: array like
@@ -127,6 +130,7 @@ class Artificial_Image_Simulator:
         image_dir="",
         star_wavelength_interval=(350, 1150, 50),
         star_temperature=5700,
+        star_magnitude=22,
     ):
         """Initialize the class."""
 
@@ -208,6 +212,13 @@ class Artificial_Image_Simulator:
             )
         else:
             self.star_temperature = star_temperature
+
+        if type(star_magnitude) not in [int, float]:
+            raise ValueError(
+                "The star magnitude must be" + f"a number: {star_magnitude}"
+            )
+        else:
+            self.star_magnitude = star_magnitude
 
         self.ccd_operation_mode = ccd_operation_mode
         self._verify_ccd_operation_mode()
@@ -335,7 +346,9 @@ class Artificial_Image_Simulator:
         self.read_noise = self.CHC.calculate_read_noise(ccd_operation_mode)
 
     def _calculate_star_specific_flux(self):
-        self.star_specific_flux = self.SC.calculate_star_specific_flux()
+        self.star_specific_flux = self.SC.calculate_star_specific_flux(
+            self.star_magnitude
+        )
 
     def _calculate_sky_specific_flux(self):
         self.sky_specific_flux = self.SC.calculate_sky_specific_flux()
@@ -413,13 +426,16 @@ class Artificial_Image_Simulator:
 
     def _integrate_specific_fluxes(self):
         """Integrate the star and the sky specific fluxes."""
-        try:
-            self.ordinary_ray = np.sum(self.specific_ordinary_ray)
-            self.extra_ordinary_ray = np.sum(self.specific_extra_ordinary_ray)
-        except Exception:
-            self.ordinary_ray = np.sum(self.star_specific_flux)
-            self.extra_ordinary_ray = 0
-        self.sky_flux = np.sum(self.sky_specific_flux)
+        self.star_ordinary_ray = np.trapz(self.specific_star_ordinary_ray)
+        self.star_extra_ordinary_ray = np.trapz(self.specific_star_extra_ordinary_ray)
+        self.sky_ordinary_ray = np.trapz(self.specific_sky_ordinary_ray)
+        self.sky_extra_ordinary_ray = np.trapz(self.specific_sky_extra_ordinary_ray)
+        print(
+            self.star_ordinary_ray,
+            self.star_extra_ordinary_ray,
+            self.sky_ordinary_ray,
+            self.sky_extra_ordinary_ray,
+        )
 
     def _configure_image_name(self):
         """Create the image name.
@@ -491,12 +507,15 @@ class Artificial_Image_Simulator:
             A FITS file with the calculated artificial image
         """
         self._integrate_specific_fluxes()
-        background = self.BGI.create_background_image(self.sky_flux)
+        sky_flux = (
+            self.sky_ordinary_ray + self.sky_extra_ordinary_ray
+        )  # posso fazer isso ?
+        background = self.BGI.create_background_image(sky_flux)
         star_PSF = self.PSF.create_star_PSF(
             self.star_coordinates,
             self.gaussian_std,
-            self.ordinary_ray,
-            self.extra_ordinary_ray,
+            self.star_ordinary_ray,
+            self.star_extra_ordinary_ray,
         )
         header = self.HDR.create_header()
 
@@ -522,7 +541,10 @@ class Artificial_Image_Simulator:
             A FITS file with the calculated background image
         """
         self._integrate_specific_fluxes()
-        background = self.BGI.create_background_image(self.sky_flux)
+        sky_flux = (
+            self.sky_ordinary_ray + self.sky_extra_ordinary_ray
+        )  # posso fazer isso ?
+        background = self.BGI.create_background_image(sky_flux)
         header = self.HDR.create_header()
 
         image_name = os.path.join(self.image_dir, self.image_name + "_BG.fits")
@@ -602,11 +624,16 @@ class Artificial_Image_Simulator:
         """
 
         self._integrate_specific_fluxes()
-        random_image = self.BGI.create_background_image(self.sky_flux)
+        sky_flux = (
+            self.sky_ordinary_ray + self.sky_extra_ordinary_ray
+        )  # posso fazer isso ?
+        random_image = self.BGI.create_background_image(sky_flux)
         for i in range(n):
             x_coord = randint(50, self.image_size - 50)
             y_coord = randint(50, self.image_size - 50)
-            ordinary_ray = randint(self.ordinary_ray // 2, self.ordinary_ray // 1)
+            ordinary_ray = randint(
+                self.star_ordinary_ray // 2, self.star_ordinary_ray // 1
+            )
             extra_ordinary_ray = 0
             if self.sparc4_operation_mode == "pol":
                 extra_ordinary_ray = ordinary_ray

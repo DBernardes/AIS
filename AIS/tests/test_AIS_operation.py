@@ -38,11 +38,12 @@ dic = {
     "image_size": 100,
 }
 
+magnitude = 22
 star_temperature = 5700
 init, final, step = 400, 1150, 50
 sc = Spectrum_Calculation(star_temperature, init, final, step)
-star_specific_flux = sc.calculate_star_specific_flux()
-sky_specific_flux = sc.calculate_sky_specific_flux()
+star_specific_flux = sc.calculate_star_specific_flux(magnitude)
+sky_specific_flux = star_specific_flux * 0.1
 specific_flux_length = len(star_specific_flux)
 wavelength_interval = range(init, final, step)
 
@@ -182,6 +183,22 @@ def test_apply_sparc4_spectral_response_sky(ais):
 
     assert np.allclose(ais.specific_sky_ordinary_ray, new_ordinary_ray)
     assert np.allclose(ais.specific_sky_extra_ordinary_ray, new_extra_ordinary_ray)
+
+
+# -----------------------------test _integrate_fluxes ------------------------
+
+
+def test_integrate_fluxes(ais):
+    photons_per_second = np.trapz(star_specific_flux[0, :])
+    ais.specific_star_ordinary_ray = star_specific_flux[0, :]
+    ais.specific_star_extra_ordinary_ray = [0]
+    ais.specific_sky_ordinary_ray = star_specific_flux[0, :]
+    ais.specific_sky_extra_ordinary_ray = [0]
+    ais._integrate_specific_fluxes()
+    assert ais.star_ordinary_ray == photons_per_second
+    assert ais.star_extra_ordinary_ray == 0
+    assert ais.sky_ordinary_ray == photons_per_second
+    assert ais.sky_extra_ordinary_ray == 0
 
 
 # -----------------------------test _create_image_name------------------------

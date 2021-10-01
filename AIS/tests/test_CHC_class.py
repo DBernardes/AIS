@@ -40,13 +40,14 @@ dic = {
     "image_size": 1024,
 }
 
+magnitude = 22
 star_temperature = 5700
 l_init, l_final, l_step = 400, 1150, 50
 wavelength_interval = range(l_init, l_final, l_step)
 n = len(wavelength_interval)
 ccd_temp = -70
 sc = Spectrum_Calculation(star_temperature, l_init, l_final, l_step)
-specific_flux = sc.calculate_star_specific_flux()
+specific_flux = sc.calculate_star_specific_flux(magnitude)
 
 
 # --------------------------------------------------------------------------------------------------------------------

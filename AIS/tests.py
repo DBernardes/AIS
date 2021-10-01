@@ -8,6 +8,7 @@ Created on Tue Apr 27 10:23:27 2021
 import os
 from random import gauss
 
+# -------------------------------------------------------------------------------------------------------
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -19,9 +20,10 @@ from Channel_Creator import Concrete_Channel_1
 from SPARC4_Spectral_Response import Concrete_SPARC4_Spectral_Response_1
 from Spectrum_Calculation import Spectrum_Calculation
 from Telescope_Spectral_Response import Telescope_Spectral_Response
-from tests.SPARC4_SR_curves import *
-from tests.test_AIS_operation import multiply_matrices
-from tests.test_S4_SR_class import c1_s4_sr
+
+# from tests.SPARC4_SR_curves import *
+# from tests.test_AIS_operation import multiply_matrices
+# from tests.test_S4_SR_class import c1_s4_sr
 
 # dic = {
 #     "em_mode": 0,
@@ -45,11 +47,11 @@ from tests.test_S4_SR_class import c1_s4_sr
 
 # -------------------------------------------------------------------------------
 
-l_init, l_final, l_step = 400, 1150, 50
-wavelength_interval = range(l_init, l_final, l_step)
-n = len(wavelength_interval)
-sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
-specific_flux = sc.calculate_star_specific_flux()
+# l_init, l_final, l_step = 400, 1150, 50
+# wavelength_interval = range(l_init, l_final, l_step)
+# n = len(wavelength_interval)
+# sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
+# specific_flux = sc.calculate_star_specific_flux()
 
 # c1_s4sr = Concrete_SPARC4_Spectral_Response_1()
 # c1_s4sr.write_specific_flux(specific_flux.copy(), wavelength_interval)
@@ -151,30 +153,61 @@ specific_flux = sc.calculate_star_specific_flux()
 # print(std, noise)
 # print(np.allclose(std, noise, atol=0.005))
 
-# -------------------------------------------------------------------------------------------------------
 
+# l_init, l_final, l_step = 400, 1150, 50
+# num = int((l_final - l_init) / l_step)
+# wavelength_interval = np.linspace(l_init, l_final, num)
 # sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
-# pps = sc.calculate_star_specific_flux()
-# print(pps[0, :])
+# pps = sc.calculate_star_specific_flux(22)
+# plt.plot(wavelength_interval, pps[0, :])
+# plt.show()
 
 # ------------------------------------------------------------------------------------------------------
 
-import astropy.io.fits as fits
+# import astropy.io.fits as fits
 
-from Header import Header
+# from Header import Header
+
+# dic = {
+#     "em_mode": 0,
+#     "em_gain": 1,
+#     "preamp": 1,
+#     "hss": 1,
+#     "binn": 1,
+#     "t_exp": 1,
+#     "ccd_temp": -70,
+#     "image_size": 100,
+# }
+
+# hdr = Header(dic, 3, 9914)
+# hdr._read_spreadsheet()
+# header = hdr.create_header()
+# fits.writeto("image.fits", np.zeros((10, 10)), header=header, overwrite=True)
+
+# -------------------------------------------------------------------------------
 
 dic = {
     "em_mode": 0,
     "em_gain": 1,
-    "preamp": 1,
-    "hss": 1,
+    "preamp": 2,
+    "hss": 0.1,
     "binn": 1,
     "t_exp": 1,
     "ccd_temp": -70,
-    "image_size": 100,
+    "image_size": 1024,
 }
 
-hdr = Header(dic, 3, 9914)
-hdr._read_spreadsheet()
-header = hdr.create_header()
-fits.writeto("image.fits", np.zeros((10, 10)), header=header, overwrite=True)
+
+ais = Artificial_Image_Simulator(
+    ccd_operation_mode=dic,
+    channel=1,
+    gaussian_std=8,
+    star_coordinates=[512, 512],
+    bias_level=500,
+    sparc4_operation_mode="phot",
+    image_dir=os.path.join("..", "FITS"),
+    star_wavelength_interval=(400, 1150, 50),
+    star_temperature=5700,
+)
+ais.apply_sparc4_spectral_response()
+ais._integrate_specific_fluxes()

@@ -55,6 +55,7 @@ def ais():
         image_dir="a",
         star_wavelength_interval=(350, 1100, 50),
         star_temperature=5700,
+        star_magnitude=22,
     )
 
 
@@ -91,6 +92,10 @@ def test_star_wavelength_interval(ais):
 
 def test_star_temperature(ais):
     assert ais.star_temperature == 5700
+
+
+def test_star_magnitude(ais):
+    assert ais.star_magnitude == 22
 
 
 def test_CHC(ais):
@@ -159,6 +164,11 @@ def test_star_temperature_isnot_number():
         Artificial_Image_Simulator(dic, star_temperature="a")
 
 
+def test_star_magnitude_isnot_number():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, star_magnitude="a")
+
+
 # ------------------provide a negative value to the parameters-----------------
 
 
@@ -185,6 +195,11 @@ def test_star_wavelength_interval_negative_value():
 def test_star_temperature_negative_value():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(dic, star_temperature=-1)
+
+
+def test_star_magnitude_negative_value():
+    ais = Artificial_Image_Simulator(dic, star_magnitude=-1)
+    assert ais.star_magnitude == -1
 
 
 # ----------------provide zero to the parameters----------------------
@@ -215,6 +230,11 @@ def test_star_wavelength_interval_zero_value():
 def test_star_temperature_zero_value():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(dic, star_temperature=0)
+
+
+def test_star_magnitude_zero_value():
+    ais = Artificial_Image_Simulator(dic, star_magnitude=0)
+    assert ais.star_magnitude == 0
 
 
 # -------  provide a wrong parameter to the CCD operation mode---------------

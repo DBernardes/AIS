@@ -19,10 +19,21 @@ class Spectrum_Calculation:
     _H = 6.62607004e-34  # m2 kg / s
     _C = 3e8  # m/s
     _K = 1.38064852e-23  # m2 kg s-2 K-1
-    _telescope_effective_area = 0.804  # m2
-    _angular_aperture = 1
+    _TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
+    _SOLAR_DISTANCE = 1.4960e11  # m
+    _SOLAR_RADIUS = 6.9551e8  # m
+    _BAND_PASS = 0.2e-6  # m
+    _S_0 = 4e-2  # W/m2/m
 
-    def __init__(self, temperature=5700, l_init=400, l_final=1150, l_step=50):
+    def __init__(
+        self,
+        temperature=5700,
+        l_init=400,
+        l_final=1150,
+        l_step=50,
+        star_radius=1,
+        star_dist=1,
+    ):
         """Initialize the class.
 
         Parameters
@@ -40,6 +51,11 @@ class Spectrum_Calculation:
         l_step: int, optional
             Step for the wavelength interval in nanometers.
 
+        star_radius: float, optional
+            Radius of the star in solar unitis.
+        star_dist: float, optional
+            Distance of the star in solar units.
+
         Returns
         -------
 
@@ -51,8 +67,32 @@ class Spectrum_Calculation:
         self.l_init = l_init
         self.l_final = l_final
         self.l_step = l_step
+        self.star_radius = star_radius * self._SOLAR_RADIUS
+        self.star_dist = star_dist * self._SOLAR_DISTANCE
 
-    def calculate_star_specific_flux(self):
+    def calculate_star_specific_flux(self, magnitude):
+        """Calculate the star specific flux."""
+
+        h = self._H
+        c = self._C
+        S_0 = self._S_0
+        B = self._BAND_PASS
+        tel_area = self._TELESCOPE_EFFECTIVE_AREA
+        specific_flux = []
+        num = int((self.l_final - self.l_init) / self.l_step)
+        for Lambda in np.linspace(self.l_init, self.l_final, num):
+            Lambda *= 1e-9
+            photons_number = (
+                S_0 * 10 ** (-magnitude / 2.5) * Lambda * B * tel_area / (h * c)
+            )
+            specific_flux.append(photons_number)
+
+        self.star_specific_flux = np.zeros((4, num))
+        self.star_specific_flux[0, :] = specific_flux
+
+        return self.star_specific_flux
+
+    def calculate_star_specific_flux_1(self):
         """Calculate the star specific flux.
 
         This function calculates the star specific flux as a function of the
@@ -71,21 +111,18 @@ class Spectrum_Calculation:
         c = self._C
         k = self._K
         specific_flux = []
-        for Lambda in range(self.l_init, self.l_final, self.l_step):
+        areas_relation = (
+            self.star_radius ** 2 * self._TELESCOPE_EFFECTIVE_AREA / self.star_dist ** 2
+        )
+        num = (self.l_final - self.l_init) / self.l_step
+        for Lambda in np.linspace(self.l_init, self.l_final, int(num)):
             Lambda *= 1e-9
-
             var1 = 2 * h * c ** 2 / Lambda ** 5
             var2 = np.e ** (h * c / (Lambda * k * T)) - 1
             black_body = var1 / var2
             photon_energy = h * c / Lambda
-            photons_per_second = (
-                black_body
-                * self._telescope_effective_area
-                * self._angular_aperture
-                / photon_energy
-            )
-
-            specific_flux.append(photons_per_second)
+            photons_per_second = black_body * areas_relation / photon_energy
+            specific_flux.append(photons_per_second * 1e-25)
 
         self.specific_flux_length = len(specific_flux)
         self.star_specific_flux = np.zeros((4, self.specific_flux_length))
@@ -100,5 +137,5 @@ class Spectrum_Calculation:
         This flux correspond to 10 % of the star flux.
         """
 
-        self.sky_specific_flux = self.calculate_star_specific_flux() * 0.1
-        return self.sky_specific_flux
+        self.sky_specific_flux = self.calculate_star_specific_flux(22) * 0.1
+        return self.star_specific_flux * 0.1
