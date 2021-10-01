@@ -49,10 +49,10 @@ class Header:
     def __init__(self, ccd_operation_mode, ccd_gain, serial_number):
         """Initialize the Header Class."""
         self.em_mode = ccd_operation_mode["em_mode"]
-        self.noise_factor = 1
+        self.NOISE_FACTOR = 1
         self.em_gain = 1
         if self.em_mode == 1:
-            self.noise_factor = 1.41
+            self.NOISE_FACTOR = 1.41
             self.em_gain = ccd_operation_mode["em_gain"]
         self.preamp = ccd_operation_mode["preamp"]
         self.hss = ccd_operation_mode["hss"]
@@ -62,7 +62,6 @@ class Header:
         self.image_size = ccd_operation_mode["image_size"]
         self.ccd_gain = ccd_gain
         self.serial_number = serial_number
-        self._read_spreadsheet()
 
     def _read_spreadsheet(self):
         ss = pd.read_csv(self._CSV_HEADER_FILE)
@@ -75,6 +74,7 @@ class Header:
         This functions writes a simple header with the used parameters for
         the CCD operation mode for the image FITS file
         """
+        self._read_spreadsheet()
         n = len(self.keywords)
         self.hdr = fits.Header()
         self.hdr["SIMPLE"] = "T"
@@ -102,18 +102,17 @@ class Header:
         self.hdr["HBIN"] = self.binn
         self.hdr["VBIN"] = self.binn
         self.hdr["TRIGGER"] = "External"
-        self.hdr["EXPOSURE"] = self.t_exp
+        self.hdr["EXPTIME"] = self.t_exp
         self.hdr["TEMP"] = self.ccd_temp
-        self.hdr["READTIME"] = str(1 / self.hss) + "E-006"
+        self.hdr["READOUT"] = str(1 / self.hss) + "E-006"
         self.hdr["VSHIFT"] = "4.33E-06"
         self.hdr["GAIN"] = self.ccd_gain
         em_mode = "Conventional"
         if self.em_mode == 1:
             em_mode = "Electron Multiplying"
-        self.hdr["OUTPTAMP"] = em_mode
+        self.hdr["EMMODE"] = em_mode
         self.hdr["EMGAIN"] = self.em_gain
         self.hdr["PREAMP"] = str(self.preamp) + "x"
-        self.hdr["SERNO"] = self.serial_number
+        self.hdr["SERN"] = self.serial_number
         self.hdr["DATE"] = "2017-07-14T00:00:58"
-        self.hdr["FRAME"] = "2017-07-14T00:00:58.642"
-        self.hdr["IMAGE"] = "hats-24_I_transito_001"
+        self.hdr["FILENAME"] = "hats-24_I_transito_001"

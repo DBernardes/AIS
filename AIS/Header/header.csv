@@ -1,5 +1,4 @@
 Keyword,Comment
-BITPIX,number of bits per data pixel
 EXTEND,FITS dataset may contain extensions
 COMMENT,SPARC4 image header
 COMMENT,SPARC4 image header
