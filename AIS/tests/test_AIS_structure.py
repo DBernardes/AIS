@@ -37,7 +37,6 @@ dic = {
 @pytest.fixture
 def ais():
     return Artificial_Image_Simulator(
-        gaussian_std=3,
         ccd_operation_mode=dic,
         channel=1,
     )

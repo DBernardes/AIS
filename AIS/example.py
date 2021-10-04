@@ -24,7 +24,7 @@ dic = {
 ais = Artificial_Image_Simulator(
     ccd_operation_mode=dic,
     channel=1,
-    star_coordinates=[512, 512],
+    star_coordinates=[256, 256],
     bias_level=500,
     sparc4_operation_mode="phot",
     image_dir=os.path.join("..", "FITS"),
@@ -37,4 +37,4 @@ ais = Artificial_Image_Simulator(
 # ais.apply_telescope_spectral_response()
 # ais.apply_sparc4_spectral_response()
 # ais.create_artificial_image()
-ais.create_random_image(100)
+ais.create_random_image(75)
