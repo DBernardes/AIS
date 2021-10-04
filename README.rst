@@ -11,6 +11,7 @@ Figure below presents an example of an image created by the AIS. This page expla
 Also, it is presented a simple execution example. 
 
 .. image:: /docs/images/random_image.png
+   :width: 400
    :alt: Artificial star image
    :align: center
 

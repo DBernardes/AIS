@@ -13,6 +13,7 @@ by the AIS. This page explains the step-by-step procedure of the AIS to create
 the images. Also, it is presented a simple execution example. 
 
 .. image:: ../images/random_image.png   
+   :width: 400
    :alt: Artificial star image
    :align: center  
 
