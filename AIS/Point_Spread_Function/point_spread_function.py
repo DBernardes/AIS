@@ -44,7 +44,8 @@ class Point_Spread_Function:
         Gain of the CCD in e-/ADU.
     """
 
-    _EXTRA_ORDINARY_RAY_PIX = 20
+    _SPARC4_POL_SEPARATION = 40  # pix
+    _SPARC4_SEEING = 4  # pixels
 
     def __init__(
         self,
@@ -63,7 +64,6 @@ class Point_Spread_Function:
     def create_star_PSF(
         self,
         star_coordinates,
-        gaussian_std,
         ordinary_ray,
         extra_ordinary_ray=0,
     ):
@@ -74,9 +74,6 @@ class Point_Spread_Function:
 
         star_coordinates: tuple
             XY star coordinates in the image.
-
-        gaussian_std: int
-            Standard deviation of the gaussian 2D distribution in pixels.
 
         ordinary_ray: float
             Photons/s of the ordinary ray flux.
@@ -104,8 +101,8 @@ class Point_Spread_Function:
         table["amplitude"] = [gaussian_amplitude]
         table["x_mean"] = [x_coord]
         table["y_mean"] = [y_coord]
-        table["x_stddev"] = [gaussian_std / binn]
-        table["y_stddev"] = [gaussian_std / binn]
+        table["x_stddev"] = [self._SPARC4_SEEING / binn]
+        table["y_stddev"] = [self._SPARC4_SEEING / binn]
         table["theta"] = np.radians(np.array([0]))
 
         self.star_image = make_gaussian_sources_image(shape, table)
@@ -115,8 +112,8 @@ class Point_Spread_Function:
                 extra_ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
             )
             table["amplitude"] = [gaussian_amplitude]
-            table["x_mean"] = [x_coord - self._EXTRA_ORDINARY_RAY_PIX]
-            table["y_mean"] = [y_coord - self._EXTRA_ORDINARY_RAY_PIX]
+            table["x_mean"] = [x_coord - self._SPARC4_POL_SEPARATION]
+            table["y_mean"] = [y_coord - self._SPARC4_POL_SEPARATION]
             self.star_image += make_gaussian_sources_image(shape, table)
 
         return self.star_image

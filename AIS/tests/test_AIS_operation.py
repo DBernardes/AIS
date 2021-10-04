@@ -40,7 +40,6 @@ dic = {
 
 l_init, l_final, l_step = 400, 1100, 50
 channel = 1
-gaussian_std = 3
 star_coordinates = (100, 100)
 sparc4_operation_mode = "pol"
 image_dir = "a"
@@ -80,8 +79,7 @@ tel_reflectance = splev(wavelength_interval, spl)
 def ais():
     return Artificial_Image_Simulator(
         ccd_operation_mode=dic,
-        channel=channel,
-        gaussian_std=gaussian_std,
+        channel=channel,        
         star_coordinates=star_coordinates,
         bias_level=bias_level,
         sparc4_operation_mode=sparc4_operation_mode,
@@ -113,11 +111,13 @@ def test_calculate_read_noise(ais):
 def test_calculate_star_specific_flux(ais):
     ais._calculate_star_specific_flux()
     assert np.allclose(ais.specific_star_ordinary_ray, star_specific_flux)
+    assert np.allclose(ais.specific_star_extra_ordinary_ray, np.zeros((4, n)))
 
 
 def test_calculate_sky_specific_flux(ais):
     ais._calculate_sky_specific_flux()
     assert np.allclose(ais.specific_sky_ordinary_ray, sky_specific_flux.copy())
+    assert np.allclose(ais.specific_sky_extra_ordinary_ray, np.zeros((4, n)))
 
 
 def test_apply_atmosphere_spectral_response_star(ais):

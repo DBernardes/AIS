@@ -46,7 +46,6 @@ dic = {
 
 l_init, l_final, l_step = 400, 1100, 50
 channel = 1
-gaussian_std = 3
 star_coordinates = (100, 100)
 sparc4_operation_mode = "phot"
 image_dir = "a"
@@ -60,7 +59,6 @@ def ais():
     return Artificial_Image_Simulator(
         ccd_operation_mode=dic,
         channel=channel,
-        gaussian_std=gaussian_std,
         star_coordinates=star_coordinates,
         bias_level=bias_level,
         sparc4_operation_mode=sparc4_operation_mode,
@@ -76,10 +74,6 @@ def ais():
 
 def test_channel_value(ais):
     assert ais.channel == channel
-
-
-def test_gaussian_std_positive_value(ais):
-    assert ais.gaussian_std == gaussian_std
 
 
 def test_star_coordinates_value(ais):
@@ -141,11 +135,6 @@ def test_ASR(ais):
 # -----------------Provide a string value to the parameters--------------------
 
 
-def test_gaussian_stddev_isnot_number():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, gaussian_std="a")
-
-
 def test_star_coordinates_isnot_number():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(dic, star_coordinates=("a", 10))
@@ -184,11 +173,6 @@ def test_star_magnitude_isnot_number():
 # ------------------provide a negative value to the parameters-----------------
 
 
-def test_gaussian_stddev_negative_value():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, gaussian_std=-1)
-
-
 def test_star_coordinates_negative_value():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(dic, star_coordinates=(-1, -1))
@@ -215,11 +199,6 @@ def test_star_magnitude_negative_value():
 
 
 # ----------------provide zero to the parameters----------------------
-
-
-def test_gaussian_stddev_zero_value():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, gaussian_std=0)
 
 
 def test_star_coordinates_zero_value():
@@ -584,11 +563,6 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
 
 
 # ---------------------------miscelaneous-------------------------------------
-
-
-def test_gaussian_stddev_float_value():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, gaussian_std=3.0)
 
 
 def test_channel_wrong_value():

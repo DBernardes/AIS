@@ -77,8 +77,6 @@ class Artificial_Image_Simulator:
     channel: {1, 2, 3, 4}, optional
         The SPARC4 channel
 
-    gaussian_stddev: int, optional
-        Number of pixels of the gaussian standard deviation
 
     star_coordinates: tuple, optional
         XY star coordinates in the image
@@ -117,13 +115,10 @@ class Artificial_Image_Simulator:
 
     """
 
-    _SPARC4_SEEING = 4  # pixels
-
     def __init__(
         self,
         ccd_operation_mode,
         channel=1,
-        gaussian_std=3,
         star_coordinates=(100, 100),
         bias_level=500,
         sparc4_operation_mode="phot",
@@ -140,19 +135,6 @@ class Artificial_Image_Simulator:
             raise ValueError(
                 "There is no camera with the provided" + f" channel: {channel}"
             )
-
-        if type(gaussian_std) is not int:
-            raise ValueError(
-                "The gaussian standard deviation must be"
-                + f"an integer: {gaussian_std}"
-            )
-        elif gaussian_std <= 0:
-            raise ValueError(
-                r"The gaussian standard deviation must be greater"
-                + f"than zero: {gaussian_std}"
-            )
-        else:
-            self.gaussian_std = gaussian_std
 
         for coord in star_coordinates:
             if type(coord) is not int:
@@ -362,7 +344,7 @@ class Artificial_Image_Simulator:
         self.specific_sky_ordinary_ray = self.SC.calculate_specific_flux(
             self.star_magnitude + 3
         )
-        self.specific_star_extra_ordinary_ray = np.zeros((4, self.wavelength_len))
+        self.specific_sky_extra_ordinary_ray = np.zeros((4, self.wavelength_len))
 
     def apply_atmosphere_spectral_response(self):
         """Apply the atmosphere spectral response.
@@ -529,7 +511,6 @@ class Artificial_Image_Simulator:
         background = self.BGI.create_background_image(sky_flux)
         star_PSF = self.PSF.create_star_PSF(
             self.star_coordinates,
-            self.gaussian_std,
             self.star_ordinary_ray,
             self.star_extra_ordinary_ray,
         )
@@ -654,7 +635,6 @@ class Artificial_Image_Simulator:
                 extra_ordinary_ray = ordinary_ray
             random_image += self.PSF.create_star_PSF(
                 (x_coord, y_coord),
-                self._SPARC4_SEEING,
                 ordinary_ray,
                 extra_ordinary_ray,
             )
