@@ -11,7 +11,7 @@ from Spectrum_Calculation import Spectrum_Calculation
 init, final, step = 400, 1150, 50
 magnitude = 22
 sc = Spectrum_Calculation(5700, init, final, step)
-specific_flux = sc.calculate_star_specific_flux(magnitude)
+specific_flux = sc.calculate_specific_flux(magnitude)
 wavelength_interval = range(init, final, step)
 n = len(wavelength_interval)
 

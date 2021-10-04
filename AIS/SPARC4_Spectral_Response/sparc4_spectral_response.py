@@ -24,8 +24,18 @@ class Abstract_SPARC4_Spectral_Response:
     _CHANNEL_ID = 0
     _DIR_PATH = "SPARC4_Spectral_Response"
 
-    def __init__(self):
-        """Initialize the class."""
+    def __init__(self, wavelength_interval):
+        """Initialize the class.
+
+        Parameters
+        ----------
+
+        wavelength_interval: array-like.
+            Wavelength interval of the specific flux.
+        """
+
+        self.wavelength_interval_len = len(wavelength_interval)
+        self.wavelength_interval = wavelength_interval
 
     def get_channel_ID(self):
         """Return the chanel ID.
@@ -37,7 +47,7 @@ class Abstract_SPARC4_Spectral_Response:
         """
         return self._CHANNEL_ID
 
-    def write_specific_flux(self, specific_flux, wavelength_interval):
+    def write_specific_flux(self, specific_flux):
         """Write the specific flux.
 
         This function writes the specific flux of the object in the class.
@@ -47,25 +57,9 @@ class Abstract_SPARC4_Spectral_Response:
 
         specific_flux: array-like
             Specific flux of the object.
-
-        wavelength_interval: array-like.
-            Wavelength interval of the specific flux.
         """
-        self.specific_flux = specific_flux
-        self.wavelength_interval = wavelength_interval
-        self.specific_flux_length = len(specific_flux)
-
-    def get_specific_flux(self):
-        """Get the specific flux.
-
-        Returns
-        ------
-
-        speficif_flux: array-like
-            The specific flux of the object.
-        """
-
-        return self.specific_flux
+        self.specific_ordinary_ray = specific_flux
+        self.specific_extra_ordinary_ray = np.zeros((4, self.wavelength_interval_len))
 
     def get_specific_ordinary_ray(self):
         """Get the ordinary ray."""
@@ -79,29 +73,30 @@ class Abstract_SPARC4_Spectral_Response:
         """Apply calibration wheel spectral response."""
         file = os.path.join(self._DIR_PATH, "calibration_wheel.csv")
         matrix = np.loadtxt(open(file, "rb"), delimiter=",")
-        self.specific_flux = self._multiply_matrices(matrix, self.specific_flux)
+        self.specific_ordinary_ray = self._multiply_matrices(
+            matrix, self.specific_ordinary_ray
+        )
 
     def apply_retarder(self):
         """Apply retarder spectral response."""
 
         file = os.path.join(self._DIR_PATH, "retarder.csv")
         matrix = np.loadtxt(open(file, "rb"), delimiter=",")
-        self.specific_flux = self._multiply_matrices(matrix, self.specific_flux)
+        self.specific_ordinary_ray = self._multiply_matrices(
+            matrix, self.specific_ordinary_ray
+        )
 
     def apply_analyser(self):
         """Apply analyser spectral response."""
 
         file = os.path.join(self._DIR_PATH, "analyser_ordinary.csv")
         matrix = np.loadtxt(open(file, "rb"), delimiter=",")
-        self.specific_ordinary_ray = self._multiply_matrices(
-            matrix, self.specific_flux.copy()
-        )[0, :]
+        temp = self.specific_ordinary_ray
+        self.specific_ordinary_ray = self._multiply_matrices(matrix, temp.copy())
 
         file = os.path.join(self._DIR_PATH, "analyser_extra_ordinary.csv")
         matrix = np.loadtxt(open(file, "rb"), delimiter=",")
-        self.specific_extra_ordinary_ray = self._multiply_matrices(
-            matrix, self.specific_flux.copy()
-        )[0, :]
+        self.specific_extra_ordinary_ray = self._multiply_matrices(matrix, temp.copy())
 
     def apply_collimator(self):
         """Collimator spectral response."""
@@ -109,20 +104,12 @@ class Abstract_SPARC4_Spectral_Response:
         file = os.path.join(self._DIR_PATH, "collimator.csv")
         coll_wavelength_interv, coll_transmitance = self._read_spreadsheet(file)
         transmitance = self._calculate_spline(coll_transmitance, coll_wavelength_interv)
-
-        try:
-            self.specific_ordinary_ray = np.multiply(
-                self.specific_ordinary_ray, transmitance
-            )
-            self.specific_extra_ordinary_ray = np.multiply(
-                self.specific_extra_ordinary_ray, transmitance
-            )
-        except Exception:
-
-            self.specific_ordinary_ray = np.multiply(
-                self.specific_flux[0, :], transmitance
-            )
-            self.specific_extra_ordinary_ray = 0
+        self.specific_ordinary_ray = np.multiply(
+            self.specific_ordinary_ray, transmitance
+        )
+        self.specific_extra_ordinary_ray = np.multiply(
+            self.specific_extra_ordinary_ray, transmitance
+        )
 
     def apply_dichroic(self):
         """Apply the dichroic spectral response.

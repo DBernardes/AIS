@@ -70,7 +70,7 @@ class Spectrum_Calculation:
         self.star_radius = star_radius * self._SOLAR_RADIUS
         self.star_dist = star_dist * self._SOLAR_DISTANCE
 
-    def calculate_star_specific_flux(self, magnitude):
+    def calculate_specific_flux(self, magnitude):
         """Calculate the star specific flux."""
 
         h = self._H
@@ -78,64 +78,64 @@ class Spectrum_Calculation:
         S_0 = self._S_0
         B = self._BAND_PASS
         tel_area = self._TELESCOPE_EFFECTIVE_AREA
-        specific_flux = []
+        temp = []
         num = int((self.l_final - self.l_init) / self.l_step)
         for Lambda in np.linspace(self.l_init, self.l_final, num):
             Lambda *= 1e-9
             photons_number = (
                 S_0 * 10 ** (-magnitude / 2.5) * Lambda * B * tel_area / (h * c)
             )
-            specific_flux.append(photons_number)
+            temp.append(photons_number)
 
-        self.star_specific_flux = np.zeros((4, num))
-        self.star_specific_flux[0, :] = specific_flux
+        specific_flux = np.zeros((4, num))
+        specific_flux[0, :] = temp
 
-        return self.star_specific_flux
+        return specific_flux
 
-    def calculate_star_specific_flux_1(self):
-        """Calculate the star specific flux.
+    # def calculate_star_specific_flux_1(self):
+    #     """Calculate the star specific flux.
 
-        This function calculates the star specific flux as a function of the
-        provided temperatura. To meet that, it uses the Plank Law:
+    #     This function calculates the star specific flux as a function of the
+    #     provided temperatura. To meet that, it uses the Plank Law:
 
-        :math:`B_{\\lambda}(T) = \\frac{2hc^2}{\\lambda^5} \\frac{1}{e^{hc/\\lambda kT} - 1}`
+    #     :math:`B_{\\lambda}(T) = \\frac{2hc^2}{\\lambda^5} \\frac{1}{e^{hc/\\lambda kT} - 1}`
 
-        where :math:`B_{\\lambda}` is the intensity, :math:`h` is the Plank constante, :math:`c`
-        is the light speed, :math:`\\lambda` is the wavelength, :math:`k` is the Bolztman constant,
-        and :math:`T` is the temperature. The used wavelength interval is given by the initial, final,
-        and step parameters provided to the function.
+    #     where :math:`B_{\\lambda}` is the intensity, :math:`h` is the Plank constante, :math:`c`
+    #     is the light speed, :math:`\\lambda` is the wavelength, :math:`k` is the Bolztman constant,
+    #     and :math:`T` is the temperature. The used wavelength interval is given by the initial, final,
+    #     and step parameters provided to the function.
 
-        """
-        T = self.temperature
-        h = self._H
-        c = self._C
-        k = self._K
-        specific_flux = []
-        areas_relation = (
-            self.star_radius ** 2 * self._TELESCOPE_EFFECTIVE_AREA / self.star_dist ** 2
-        )
-        num = (self.l_final - self.l_init) / self.l_step
-        for Lambda in np.linspace(self.l_init, self.l_final, int(num)):
-            Lambda *= 1e-9
-            var1 = 2 * h * c ** 2 / Lambda ** 5
-            var2 = np.e ** (h * c / (Lambda * k * T)) - 1
-            black_body = var1 / var2
-            photon_energy = h * c / Lambda
-            photons_per_second = black_body * areas_relation / photon_energy
-            specific_flux.append(photons_per_second * 1e-25)
+    #     """
+    #     T = self.temperature
+    #     h = self._H
+    #     c = self._C
+    #     k = self._K
+    #     specific_flux = []
+    #     areas_relation = (
+    #         self.star_radius ** 2 * self._TELESCOPE_EFFECTIVE_AREA / self.star_dist ** 2
+    #     )
+    #     num = (self.l_final - self.l_init) / self.l_step
+    #     for Lambda in np.linspace(self.l_init, self.l_final, int(num)):
+    #         Lambda *= 1e-9
+    #         var1 = 2 * h * c ** 2 / Lambda ** 5
+    #         var2 = np.e ** (h * c / (Lambda * k * T)) - 1
+    #         black_body = var1 / var2
+    #         photon_energy = h * c / Lambda
+    #         photons_per_second = black_body * areas_relation / photon_energy
+    #         specific_flux.append(photons_per_second * 1e-25)
 
-        self.specific_flux_length = len(specific_flux)
-        self.star_specific_flux = np.zeros((4, self.specific_flux_length))
-        self.star_specific_flux[0, :] = specific_flux
+    #     self.specific_flux_length = len(specific_flux)
+    #     self.star_specific_flux = np.zeros((4, self.specific_flux_length))
+    #     self.star_specific_flux[0, :] = specific_flux
 
-        return self.star_specific_flux
+    #     return self.star_specific_flux
 
-    def calculate_sky_specific_flux(self):
-        """Calculate sky specific flux.
+    # def calculate_sky_specific_flux(self):
+    #     """Calculate sky specific flux.
 
-        This functions calculates the specific flux of the sky.
-        This flux correspond to 10 % of the star flux.
-        """
+    #     This functions calculates the specific flux of the sky.
+    #     This flux correspond to 10 % of the star flux.
+    #     """
 
-        self.sky_specific_flux = self.calculate_star_specific_flux(22) * 0.1
-        return self.star_specific_flux * 0.1
+    #     self.sky_specific_flux = self.calculate_star_specific_flux(22) * 0.1
+    #     return self.star_specific_flux * 0.1

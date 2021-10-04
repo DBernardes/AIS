@@ -24,36 +24,36 @@ from .SPARC4_SR_curves import *
 
 @pytest.fixture
 def abs_s4_sr():
-    chc = Abstract_SPARC4_Spectral_Response()
-    chc.write_specific_flux(specific_flux, wavelength_interval)
+    chc = Abstract_SPARC4_Spectral_Response(wavelength_interval)
+    chc.write_specific_flux(specific_flux)
     return chc
 
 
 @pytest.fixture
 def c1_s4_sr():
-    chc = Concrete_SPARC4_Spectral_Response_1()
-    chc.write_specific_flux(specific_flux, wavelength_interval)
+    chc = Concrete_SPARC4_Spectral_Response_1(wavelength_interval)
+    chc.write_specific_flux(specific_flux)
     return chc
 
 
 @pytest.fixture
 def c2_s4_sr():
-    chc = Concrete_SPARC4_Spectral_Response_2()
-    chc.write_specific_flux(specific_flux, wavelength_interval)
+    chc = Concrete_SPARC4_Spectral_Response_2(wavelength_interval)
+    chc.write_specific_flux(specific_flux)
     return chc
 
 
 @pytest.fixture
 def c3_s4_sr():
-    chc = Concrete_SPARC4_Spectral_Response_3()
-    chc.write_specific_flux(specific_flux, wavelength_interval)
+    chc = Concrete_SPARC4_Spectral_Response_3(wavelength_interval)
+    chc.write_specific_flux(specific_flux)
     return chc
 
 
 @pytest.fixture
 def c4_s4_sr():
-    chc = Concrete_SPARC4_Spectral_Response_4()
-    chc.write_specific_flux(specific_flux, wavelength_interval)
+    chc = Concrete_SPARC4_Spectral_Response_4(wavelength_interval)
+    chc.write_specific_flux(specific_flux)
     return chc
 
 
@@ -63,23 +63,17 @@ def multiply_matrices(matrix, specific_flux):
     return specific_flux
 
 
-ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())[0, :]
-extra_ordinary_ray = multiply_matrices(
-    analyser_extra_ordinary_ray, specific_flux.copy()
-)[0, :]
-
-
 # -------------------- Initialize the class -----------------------
 
 
-def test_specific_flux_abs(abs_s4_sr):
-    abs_specific_flux = abs_s4_sr.get_specific_flux()
-    assert np.allclose(abs_specific_flux, specific_flux)
+def test_specific_ordinary_ray_abs(abs_s4_sr):
+    abs_specific_ordinary_ray = abs_s4_sr.get_specific_ordinary_ray()
+    assert np.allclose(abs_specific_ordinary_ray, specific_flux)
 
 
-def test_specific_flux_c1(c1_s4_sr):
-    c1_specific_flux = c1_s4_sr.get_specific_flux()
-    assert np.allclose(c1_specific_flux, specific_flux)
+def test_specific_ordinary_ray_c1(c1_s4_sr):
+    c1_specific_ordinary_ray = c1_s4_sr.get_specific_ordinary_ray()
+    assert np.allclose(c1_specific_ordinary_ray, specific_flux)
 
 
 # -------------------- Channel ID -----------------------
@@ -108,16 +102,22 @@ def test_channel_ID_c4(c4_s4_sr):
 # -------------------- Apply spectral response  -----------------------
 
 
+ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
+extra_ordinary_ray = multiply_matrices(
+    analyser_extra_ordinary_ray, specific_flux.copy()
+)
+
+
 def test_calibration_wheel(abs_s4_sr):
     abs_s4_sr.apply_calibration_wheel()
     new_specific_flux = multiply_matrices(calibration_wheel, specific_flux)
-    assert np.allclose(abs_s4_sr.get_specific_flux(), new_specific_flux)
+    assert np.allclose(abs_s4_sr.get_specific_ordinary_ray(), new_specific_flux)
 
 
 def test_retarder(abs_s4_sr):
     abs_s4_sr.apply_retarder()
     new_specific_flux = multiply_matrices(retarder, specific_flux)
-    assert np.allclose(abs_s4_sr.get_specific_flux(), new_specific_flux)
+    assert np.allclose(abs_s4_sr.get_specific_ordinary_ray(), new_specific_flux)
 
 
 def test_analyzer(abs_s4_sr):
@@ -308,18 +308,17 @@ def test_write_specific_flux():
     specific_flux = np.asanyarray(
         [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]]
     )
-    wavelength_interval = range(350, 1150, 50)
-    s4_sr = Abstract_SPARC4_Spectral_Response()
-    s4_sr.write_specific_flux(specific_flux, wavelength_interval)
-    boolean_test = s4_sr.specific_flux == specific_flux
-    assert boolean_test.all()
+    wavelength_interval = range(400, 1150, 50)
+    s4_sr = Abstract_SPARC4_Spectral_Response(wavelength_interval)
+    s4_sr.write_specific_flux(specific_flux)
+    assert np.allclose(s4_sr.specific_ordinary_ray, specific_flux)
 
 
-# ---------------------- get_specific_flux -----------------------------
+# ---------------------- get_specific_ordinary_ray -----------------------------
 
 
-def test_get_specific_flux(abs_s4_sr):
-    vec = abs_s4_sr.get_specific_flux()
+def test_get_specific_ordinary_ray(abs_s4_sr):
+    vec = abs_s4_sr.get_specific_ordinary_ray()
     boolean_test = vec.all() == specific_flux.all()
     assert boolean_test.all()
 
@@ -444,8 +443,8 @@ def test_multiply_matrices(abs_s4_sr):
 
 def test_calculate_spline():
     transmitance = np.ones((1, n))[0]
-    chc = Abstract_SPARC4_Spectral_Response()
-    chc.write_specific_flux(specific_flux, wavelength_interval)
+    chc = Abstract_SPARC4_Spectral_Response(wavelength_interval)
+    chc.write_specific_flux(specific_flux)
     new_transmitance = chc._calculate_spline(transmitance, wavelength_interval)
     assert np.allclose(new_transmitance, transmitance)
 

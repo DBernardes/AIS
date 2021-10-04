@@ -47,7 +47,7 @@ wavelength_interval = range(l_init, l_final, l_step)
 n = len(wavelength_interval)
 ccd_temp = -70
 sc = Spectrum_Calculation(star_temperature, l_init, l_final, l_step)
-specific_flux = sc.calculate_star_specific_flux(magnitude)
+specific_flux = sc.calculate_specific_flux(magnitude)
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -55,27 +55,37 @@ specific_flux = sc.calculate_star_specific_flux(magnitude)
 
 @pytest.fixture
 def abs_chc():
-    return Abstract_Channel_Creator(sparc4_operation_mode="phot")
+    return Abstract_Channel_Creator(
+        sparc4_operation_mode="phot", wavelength_interval=wavelength_interval
+    )
 
 
 @pytest.fixture
 def chc1():
-    return Concrete_Channel_1(sparc4_operation_mode="phot")
+    return Concrete_Channel_1(
+        sparc4_operation_mode="phot", wavelength_interval=wavelength_interval
+    )
 
 
 @pytest.fixture
 def chc2():
-    return Concrete_Channel_2(sparc4_operation_mode="phot")
+    return Concrete_Channel_2(
+        sparc4_operation_mode="phot", wavelength_interval=wavelength_interval
+    )
 
 
 @pytest.fixture
 def chc3():
-    return Concrete_Channel_3(sparc4_operation_mode="phot")
+    return Concrete_Channel_3(
+        sparc4_operation_mode="phot", wavelength_interval=wavelength_interval
+    )
 
 
 @pytest.fixture
 def chc4():
-    return Concrete_Channel_4(sparc4_operation_mode="phot")
+    return Concrete_Channel_4(
+        sparc4_operation_mode="phot", wavelength_interval=wavelength_interval
+    )
 
 
 # ------------------------ Initialize the class --------------------------
@@ -177,8 +187,8 @@ specific_flux_c1 = multiply_matrices(calibration_wheel, specific_flux.copy())
 specific_flux_c1 = multiply_matrices(retarder, specific_flux_c1)
 c1_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux_c1.copy())
 c1_extra_ordinary_ray = multiply_matrices(analyser_extra_ordinary_ray, specific_flux_c1)
-c1_ordinary_ray = np.multiply(colimator_transmitance, c1_ordinary_ray[0, :])
-c1_extra_ordinary_ray = np.multiply(colimator_transmitance, c1_extra_ordinary_ray[0, :])
+c1_ordinary_ray = np.multiply(colimator_transmitance, c1_ordinary_ray)
+c1_extra_ordinary_ray = np.multiply(colimator_transmitance, c1_extra_ordinary_ray)
 c1_ordinary_ray = np.multiply(dichroic_c1, c1_ordinary_ray)
 c1_extra_ordinary_ray = np.multiply(dichroic_c1, c1_extra_ordinary_ray)
 c1_ordinary_ray = np.multiply(camera_c1, c1_ordinary_ray)
@@ -191,8 +201,8 @@ specific_flux_c2 = multiply_matrices(calibration_wheel, specific_flux.copy())
 specific_flux_c2 = multiply_matrices(retarder, specific_flux_c2)
 c2_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux_c2.copy())
 c2_extra_ordinary_ray = multiply_matrices(analyser_extra_ordinary_ray, specific_flux_c2)
-c2_ordinary_ray = np.multiply(colimator_transmitance, c2_ordinary_ray[0, :])
-c2_extra_ordinary_ray = np.multiply(colimator_transmitance, c2_extra_ordinary_ray[0, :])
+c2_ordinary_ray = np.multiply(colimator_transmitance, c2_ordinary_ray)
+c2_extra_ordinary_ray = np.multiply(colimator_transmitance, c2_extra_ordinary_ray)
 c2_ordinary_ray = np.multiply(dichroic_c2, c2_ordinary_ray)
 c2_extra_ordinary_ray = np.multiply(dichroic_c2, c2_extra_ordinary_ray)
 c2_ordinary_ray = np.multiply(camera_c2, c2_ordinary_ray)
@@ -204,8 +214,8 @@ specific_flux_c3 = multiply_matrices(calibration_wheel, specific_flux.copy())
 specific_flux_c3 = multiply_matrices(retarder, specific_flux_c3)
 c3_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux_c3.copy())
 c3_extra_ordinary_ray = multiply_matrices(analyser_extra_ordinary_ray, specific_flux_c3)
-c3_ordinary_ray = np.multiply(colimator_transmitance, c3_ordinary_ray[0, :])
-c3_extra_ordinary_ray = np.multiply(colimator_transmitance, c3_extra_ordinary_ray[0, :])
+c3_ordinary_ray = np.multiply(colimator_transmitance, c3_ordinary_ray)
+c3_extra_ordinary_ray = np.multiply(colimator_transmitance, c3_extra_ordinary_ray)
 c3_ordinary_ray = np.multiply(dichroic_c3, c3_ordinary_ray)
 c3_extra_ordinary_ray = np.multiply(dichroic_c3, c3_extra_ordinary_ray)
 c3_ordinary_ray = np.multiply(camera_c3, c3_ordinary_ray)
@@ -217,8 +227,8 @@ specific_flux_c4 = multiply_matrices(calibration_wheel, specific_flux.copy())
 specific_flux_c4 = multiply_matrices(retarder, specific_flux_c4)
 c4_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux_c4.copy())
 c4_extra_ordinary_ray = multiply_matrices(analyser_extra_ordinary_ray, specific_flux_c4)
-c4_ordinary_ray = np.multiply(colimator_transmitance, c4_ordinary_ray[0, :])
-c4_extra_ordinary_ray = np.multiply(colimator_transmitance, c4_extra_ordinary_ray[0, :])
+c4_ordinary_ray = np.multiply(colimator_transmitance, c4_ordinary_ray)
+c4_extra_ordinary_ray = np.multiply(colimator_transmitance, c4_extra_ordinary_ray)
 c4_ordinary_ray = np.multiply(dichroic_c4, c4_ordinary_ray)
 c4_extra_ordinary_ray = np.multiply(dichroic_c4, c4_extra_ordinary_ray)
 c4_ordinary_ray = np.multiply(camera_c4, c4_ordinary_ray)
@@ -230,7 +240,9 @@ c4_extra_ordinary_ray = np.multiply(ccd_transmitance_c4, c4_extra_ordinary_ray)
 
 
 def test_apply_sparc4_spectral_response_polarimetric_1():
-    chc1_pol = Concrete_Channel_1(sparc4_operation_mode="pol")
+    chc1_pol = Concrete_Channel_1(
+        sparc4_operation_mode="pol", wavelength_interval=wavelength_interval
+    )
     (
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
@@ -242,7 +254,9 @@ def test_apply_sparc4_spectral_response_polarimetric_1():
 
 
 def test_apply_sparc4_spectral_response_polarimetric_2():
-    chc2_pol = Concrete_Channel_2(sparc4_operation_mode="pol")
+    chc2_pol = Concrete_Channel_2(
+        sparc4_operation_mode="pol", wavelength_interval=wavelength_interval
+    )
     (
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
@@ -254,7 +268,9 @@ def test_apply_sparc4_spectral_response_polarimetric_2():
 
 
 def test_apply_sparc4_spectral_response_polarimetric_3():
-    chc3_pol = Concrete_Channel_3(sparc4_operation_mode="pol")
+    chc3_pol = Concrete_Channel_3(
+        sparc4_operation_mode="pol", wavelength_interval=wavelength_interval
+    )
     (
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
@@ -266,7 +282,9 @@ def test_apply_sparc4_spectral_response_polarimetric_3():
 
 
 def test_apply_sparc4_spectral_response_polarimetric_4():
-    chc4_pol = Concrete_Channel_4(sparc4_operation_mode="pol")
+    chc4_pol = Concrete_Channel_4(
+        sparc4_operation_mode="pol", wavelength_interval=wavelength_interval
+    )
     (
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
@@ -278,25 +296,25 @@ def test_apply_sparc4_spectral_response_polarimetric_4():
 
 
 # -------------------------------------------------------------------------------------------------------------------------
-c1_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy()[0, :])
+c1_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy())
 c1_ordinary_ray_phot = np.multiply(dichroic_c1, c1_ordinary_ray_phot)
 c1_ordinary_ray_phot = np.multiply(camera_c1, c1_ordinary_ray_phot)
 c1_ordinary_ray_phot = np.multiply(ccd_transmitance_c1, c1_ordinary_ray_phot)
 c1_extra_ordinary_ray_phot = 0
 
-c2_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy()[0, :])
+c2_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy())
 c2_ordinary_ray_phot = np.multiply(dichroic_c2, c2_ordinary_ray_phot)
 c2_ordinary_ray_phot = np.multiply(camera_c2, c2_ordinary_ray_phot)
 c2_ordinary_ray_phot = np.multiply(ccd_transmitance_c2, c2_ordinary_ray_phot)
 c2_extra_ordinary_ray_phot = 0
 
-c3_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy()[0, :])
+c3_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy())
 c3_ordinary_ray_phot = np.multiply(dichroic_c3, c3_ordinary_ray_phot)
 c3_ordinary_ray_phot = np.multiply(camera_c3, c3_ordinary_ray_phot)
 c3_ordinary_ray_phot = np.multiply(ccd_transmitance_c3, c3_ordinary_ray_phot)
 c3_extra_ordinary_ray_phot = 0
 
-c4_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy()[0, :])
+c4_ordinary_ray_phot = np.multiply(colimator_transmitance, specific_flux.copy())
 c4_ordinary_ray_phot = np.multiply(dichroic_c4, c4_ordinary_ray_phot)
 c4_ordinary_ray_phot = np.multiply(camera_c4, c4_ordinary_ray_phot)
 c4_ordinary_ray_phot = np.multiply(ccd_transmitance_c4, c4_ordinary_ray_phot)

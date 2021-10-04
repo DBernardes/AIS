@@ -20,6 +20,8 @@ from Channel_Creator import Concrete_Channel_1
 from SPARC4_Spectral_Response import Concrete_SPARC4_Spectral_Response_1
 from Spectrum_Calculation import Spectrum_Calculation
 from Telescope_Spectral_Response import Telescope_Spectral_Response
+from tests.SPARC4_SR_curves import *
+from tests.test_AIS_operation import multiply_matrices
 
 # from tests.SPARC4_SR_curves import *
 # from tests.test_AIS_operation import multiply_matrices
@@ -47,36 +49,40 @@ from Telescope_Spectral_Response import Telescope_Spectral_Response
 
 # -------------------------------------------------------------------------------
 
-# l_init, l_final, l_step = 400, 1150, 50
-# wavelength_interval = range(l_init, l_final, l_step)
-# n = len(wavelength_interval)
-# sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
-# specific_flux = sc.calculate_star_specific_flux()
 
-# c1_s4sr = Concrete_SPARC4_Spectral_Response_1()
-# c1_s4sr.write_specific_flux(specific_flux.copy(), wavelength_interval)
+l_init, l_final, l_step = 400, 1150, 50
+magnitude = 22
+wavelength_interval = range(l_init, l_final, l_step)
+n = len(wavelength_interval)
+sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
+specific_flux = sc.calculate_specific_flux(magnitude)
 
-# c1_s4sr.apply_calibration_wheel()
-# specific_flux = multiply_matrices(calibration_wheel, specific_flux)
+c1_s4sr = Concrete_SPARC4_Spectral_Response_1(wavelength_interval)
+c1_s4sr.write_specific_flux(specific_flux.copy())
 
-# c1_s4sr.apply_retarder()
-# specific_flux = multiply_matrices(retarder, specific_flux)
 
-# c1_s4sr.apply_analyser()
-# specific_flux = multiply_matrices(analyser_ordinary_ray, specific_flux)
+c1_s4sr.apply_calibration_wheel()
+specific_flux = multiply_matrices(calibration_wheel, specific_flux)
 
-# c1_s4sr.apply_collimator()
-# specific_flux = np.multiply(colimator_transmitance, specific_flux[0, :])
+c1_s4sr.apply_retarder()
+specific_flux = multiply_matrices(retarder, specific_flux)
 
-# c1_s4sr.apply_dichroic()
-# specific_flux = np.multiply(dichroic_c1, specific_flux)
+c1_s4sr.apply_analyser()
+specific_flux = multiply_matrices(analyser_ordinary_ray, specific_flux)
 
-# c1_s4sr.apply_camera()
-# specific_flux - np.multiply(camera_c1, specific_flux)
+c1_s4sr.apply_collimator()
+specific_flux = np.multiply(colimator_transmitance, specific_flux)
 
-# c1_s4sr.apply_ccd()
-# specific_flux = np.multiply(ccd_transmitance_c1, specific_flux)
-# print(np.allclose(specific_flux, c1_s4sr.specific_ordinary_ray))
+c1_s4sr.apply_dichroic()
+specific_flux = np.multiply(dichroic_c1, specific_flux)
+
+c1_s4sr.apply_camera()
+specific_flux - np.multiply(camera_c1, specific_flux)
+
+c1_s4sr.apply_ccd()
+specific_flux = np.multiply(ccd_transmitance_c1, specific_flux)
+print(specific_flux[0, :], "\n", c1_s4sr.specific_ordinary_ray[0, :])
+print(np.allclose(specific_flux, c1_s4sr.specific_ordinary_ray))
 
 # -------------------------------------------------------------------------------
 
@@ -186,28 +192,28 @@ from Telescope_Spectral_Response import Telescope_Spectral_Response
 
 # -------------------------------------------------------------------------------
 
-dic = {
-    "em_mode": 0,
-    "em_gain": 1,
-    "preamp": 2,
-    "hss": 0.1,
-    "binn": 1,
-    "t_exp": 1,
-    "ccd_temp": -70,
-    "image_size": 1024,
-}
+# dic = {
+#     "em_mode": 0,
+#     "em_gain": 1,
+#     "preamp": 2,
+#     "hss": 0.1,
+#     "binn": 1,
+#     "t_exp": 1,
+#     "ccd_temp": -70,
+#     "image_size": 1024,
+# }
 
 
-ais = Artificial_Image_Simulator(
-    ccd_operation_mode=dic,
-    channel=1,
-    gaussian_std=8,
-    star_coordinates=[512, 512],
-    bias_level=500,
-    sparc4_operation_mode="phot",
-    image_dir=os.path.join("..", "FITS"),
-    star_wavelength_interval=(400, 1150, 50),
-    star_temperature=5700,
-)
-ais.apply_sparc4_spectral_response()
-ais._integrate_specific_fluxes()
+# ais = Artificial_Image_Simulator(
+#     ccd_operation_mode=dic,
+#     channel=1,
+#     gaussian_std=8,
+#     star_coordinates=[512, 512],
+#     bias_level=500,
+#     sparc4_operation_mode="phot",
+#     image_dir=os.path.join("..", "FITS"),
+#     star_wavelength_interval=(400, 1150, 50),
+#     star_temperature=5700,
+# )
+
+# ais.create_artificial_image()

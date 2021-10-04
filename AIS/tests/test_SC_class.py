@@ -31,15 +31,15 @@ T = temperature
 h = _H
 c = _C
 k = _K
-specific_flux = []
+temp = []
 num = int((l_final - l_init) / l_step)
 for Lambda in np.linspace(l_init, l_final, num):
     Lambda *= 1e-9
     photons_number = S_0 * 10 ** (-magnitude / 2.5) * Lambda * B * tel_area / (h * c)
-    specific_flux.append(photons_number)
+    temp.append(photons_number)
 
-star_specific_flux = np.zeros((4, num))
-star_specific_flux[0, :] = specific_flux
+specific_flux = np.zeros((4, num))
+specific_flux[0, :] = temp
 
 # ---------------------------------------Initialize the class ------------------------------------------------
 
@@ -61,13 +61,6 @@ def test_l_step(sc):
 
 
 # --------------------------------------------------------------------------------------------------------------
-
-
-# def test_calculate_sky_specific_flux(sc):
-#     sky_specific_flux = sc.calculate_sky_specific_flux()
-#     assert np.allclose(sky_specific_flux, star_specific_flux * 0.1)
-
-
-def test_calculate_star_specific_flux(sc):
-    star_specific_flux = sc.calculate_star_specific_flux(magnitude)
+def test_calculate_specific_flux(sc):
+    star_specific_flux = sc.calculate_specific_flux(magnitude)
     assert np.allclose(star_specific_flux, star_specific_flux)

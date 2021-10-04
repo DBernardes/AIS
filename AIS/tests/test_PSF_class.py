@@ -28,11 +28,14 @@ ordinary_ray = 100
 extra_ordinary_ray = 0
 image_size = 200
 star_coord = [100, 100]
+wavelength_interval = range(400, 1150, 50)
 
 
 @pytest.fixture
 def chc1():
-    return Concrete_Channel_1(sparc4_operation_mode="phot")
+    return Concrete_Channel_1(
+        sparc4_operation_mode="phot", wavelength_interval=wavelength_interval
+    )
 
 
 @pytest.fixture

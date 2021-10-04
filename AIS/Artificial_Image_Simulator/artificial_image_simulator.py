@@ -89,7 +89,7 @@ class Artificial_Image_Simulator:
     image_dir: str, optional
         Directory where the image should be saved
 
-    star_wavelength_interval: (350, 1100, 50), optional
+    wavelength_interval: (400, 1100, 50), optional
         Wavelength interval of the star for the calculation of the specific flux.
 
     star_temperature: 5700, optional
@@ -117,7 +117,7 @@ class Artificial_Image_Simulator:
 
     """
 
-    _sparc4_seeing = 4  # pixels
+    _SPARC4_SEEING = 4  # pixels
 
     def __init__(
         self,
@@ -128,7 +128,7 @@ class Artificial_Image_Simulator:
         bias_level=500,
         sparc4_operation_mode="phot",
         image_dir="",
-        star_wavelength_interval=(350, 1150, 50),
+        wavelength_interval=(400, 1100, 50),
         star_temperature=5700,
         star_magnitude=22,
     ):
@@ -189,17 +189,17 @@ class Artificial_Image_Simulator:
         else:
             self.image_dir = image_dir
 
-        for wavelength in star_wavelength_interval:
+        for wavelength in wavelength_interval:
             if type(wavelength) is not int:
                 raise ValueError(
-                    f"The star waveelength interval must be an integer: {wavelength}"
+                    f"The wavelength interval must be an integer: {wavelength}"
                 )
             elif wavelength <= 0:
                 raise ValueError(
-                    f"The star waveelength interval must be positive: {wavelength}"
+                    f"The wavelength interval must be positive: {wavelength}"
                 )
             else:
-                self.star_wavelength_interval = star_wavelength_interval
+                self.wavelength_interval = wavelength_interval
 
         if type(star_temperature) not in [int, float]:
             raise ValueError(
@@ -225,15 +225,38 @@ class Artificial_Image_Simulator:
         self._configure_gain()
         self._configure_image_name()
 
+        # -------------------------------------------------------------------------------------------
+
+        self.l_init, self.l_final, self.l_step = (
+            wavelength_interval[0],
+            wavelength_interval[1] + wavelength_interval[2],
+            wavelength_interval[2],
+        )
+        self.wavelength_len = int((self.l_final - self.l_init) / self.l_step)
+        self.wavelength_interval = range(self.l_init, self.l_final, self.l_step)
+
+        self.SC = Spectrum_Calculation(
+            temperature=self.star_temperature,
+            l_init=self.l_init,
+            l_final=self.l_final,
+            l_step=self.l_step,
+        )
+        self.TSR = Telescope_Spectral_Response()
+        self.ASR = Atmosphere_Spectral_Response()
+        self._calculate_sky_specific_flux()
+        self._calculate_star_specific_flux()
+
+        # -------------------------------------------------------------------------------------------
+
         CHC = 0
         if channel == 1:
-            CHC = Concrete_Channel_1(sparc4_operation_mode)
+            CHC = Concrete_Channel_1(sparc4_operation_mode, self.wavelength_interval)
         elif channel == 2:
-            CHC = Concrete_Channel_2(sparc4_operation_mode)
+            CHC = Concrete_Channel_2(sparc4_operation_mode, self.wavelength_interval)
         elif channel == 3:
-            CHC = Concrete_Channel_3(sparc4_operation_mode)
+            CHC = Concrete_Channel_3(sparc4_operation_mode, self.wavelength_interval)
         elif channel == 4:
-            CHC = Concrete_Channel_4(sparc4_operation_mode)
+            CHC = Concrete_Channel_4(sparc4_operation_mode, self.wavelength_interval)
         self.CHC = CHC
         self._calculate_dark_current()
         self._calculate_read_noise(ccd_operation_mode)
@@ -246,22 +269,6 @@ class Artificial_Image_Simulator:
             self.bias_level,
         )
         self.HDR = Header(ccd_operation_mode, self.ccd_gain, CHC.get_serial_number())
-
-        self.l_init, self.l_final, self.l_step = (
-            self.star_wavelength_interval[0],
-            self.star_wavelength_interval[1],
-            self.star_wavelength_interval[2],
-        )
-        self.SC = Spectrum_Calculation(
-            temperature=self.star_temperature,
-            l_init=self.l_init,
-            l_final=self.l_final,
-            l_step=self.l_step,
-        )
-        self.TSR = Telescope_Spectral_Response()
-        self.ASR = Atmosphere_Spectral_Response()
-        self._calculate_sky_specific_flux()
-        self._calculate_star_specific_flux()
 
     def _verify_ccd_operation_mode(self):
         """Verify if the provided CCD operation mode is correct."""
@@ -346,12 +353,16 @@ class Artificial_Image_Simulator:
         self.read_noise = self.CHC.calculate_read_noise(ccd_operation_mode)
 
     def _calculate_star_specific_flux(self):
-        self.star_specific_flux = self.SC.calculate_star_specific_flux(
+        self.specific_star_ordinary_ray = self.SC.calculate_specific_flux(
             self.star_magnitude
         )
+        self.specific_star_extra_ordinary_ray = np.zeros((4, self.wavelength_len))
 
     def _calculate_sky_specific_flux(self):
-        self.sky_specific_flux = self.SC.calculate_sky_specific_flux()
+        self.specific_sky_ordinary_ray = self.SC.calculate_specific_flux(
+            self.star_magnitude + 3
+        )
+        self.specific_star_extra_ordinary_ray = np.zeros((4, self.wavelength_len))
 
     def apply_atmosphere_spectral_response(self):
         """Apply the atmosphere spectral response.
@@ -361,15 +372,15 @@ class Artificial_Image_Simulator:
 
         """
 
-        self.star_specific_flux = self.ASR.apply_atmosphere_spectral_response(
-            self.star_specific_flux,
+        self.specific_star_ordinary_ray = self.ASR.apply_atmosphere_spectral_response(
+            self.specific_star_ordinary_ray,
             l_init=self.l_init,
             l_final=self.l_final,
             l_step=self.l_step,
         )
 
-        self.sky_specific_flux = self.ASR.apply_atmosphere_spectral_response(
-            self.sky_specific_flux,
+        self.specific_sky_ordinary_ray = self.ASR.apply_atmosphere_spectral_response(
+            self.specific_sky_ordinary_ray,
             l_init=self.l_init,
             l_final=self.l_final,
             l_step=self.l_step,
@@ -383,15 +394,15 @@ class Artificial_Image_Simulator:
 
         """
 
-        self.star_specific_flux = self.TSR.apply_telescope_spectral_response(
-            self.star_specific_flux,
+        self.specific_star_ordinary_ray = self.TSR.apply_telescope_spectral_response(
+            self.specific_star_ordinary_ray,
             l_init=self.l_init,
             l_final=self.l_final,
             l_step=self.l_step,
         )
 
-        self.sky_specific_flux = self.TSR.apply_telescope_spectral_response(
-            self.sky_specific_flux,
+        self.specific_sky_ordinary_ray = self.TSR.apply_telescope_spectral_response(
+            self.specific_sky_ordinary_ray,
             l_init=self.l_init,
             l_final=self.l_final,
             l_step=self.l_step,
@@ -408,7 +419,7 @@ class Artificial_Image_Simulator:
             self.specific_star_ordinary_ray,
             self.specific_star_extra_ordinary_ray,
         ) = self.CHC.apply_sparc4_spectral_response(
-            self.star_specific_flux,
+            self.specific_star_ordinary_ray,
             l_init=self.l_init,
             l_final=self.l_final,
             l_step=self.l_step,
@@ -418,7 +429,7 @@ class Artificial_Image_Simulator:
             self.specific_sky_ordinary_ray,
             self.specific_sky_extra_ordinary_ray,
         ) = self.CHC.apply_sparc4_spectral_response(
-            self.sky_specific_flux,
+            self.specific_sky_ordinary_ray,
             l_init=self.l_init,
             l_final=self.l_final,
             l_step=self.l_step,
@@ -426,16 +437,21 @@ class Artificial_Image_Simulator:
 
     def _integrate_specific_fluxes(self):
         """Integrate the star and the sky specific fluxes."""
-        self.star_ordinary_ray = np.trapz(self.specific_star_ordinary_ray)
-        self.star_extra_ordinary_ray = np.trapz(self.specific_star_extra_ordinary_ray)
-        self.sky_ordinary_ray = np.trapz(self.specific_sky_ordinary_ray)
-        self.sky_extra_ordinary_ray = np.trapz(self.specific_sky_extra_ordinary_ray)
-        print(
-            self.star_ordinary_ray,
-            self.star_extra_ordinary_ray,
-            self.sky_ordinary_ray,
-            self.sky_extra_ordinary_ray,
+        self.star_ordinary_ray = np.trapz(self.specific_star_ordinary_ray[0, :])
+        self.sky_ordinary_ray = np.trapz(self.specific_sky_ordinary_ray[0, :])
+        self.star_extra_ordinary_ray = np.trapz(
+            self.specific_star_extra_ordinary_ray[0, :]
         )
+        self.sky_extra_ordinary_ray = np.trapz(
+            self.specific_sky_extra_ordinary_ray[0, :]
+        )
+
+        # print(
+        #     self.star_ordinary_ray,
+        #     self.star_extra_ordinary_ray,
+        #     self.sky_ordinary_ray,
+        #     self.sky_extra_ordinary_ray,
+        # )
 
     def _configure_image_name(self):
         """Create the image name.
@@ -629,17 +645,16 @@ class Artificial_Image_Simulator:
         )  # posso fazer isso ?
         random_image = self.BGI.create_background_image(sky_flux)
         for i in range(n):
-            x_coord = randint(50, self.image_size - 50)
-            y_coord = randint(50, self.image_size - 50)
-            ordinary_ray = randint(
-                self.star_ordinary_ray // 2, self.star_ordinary_ray // 1
-            )
+            image_size = self.image_size
+            x_coord = randint(0, image_size)
+            y_coord = randint(0, image_size)
+            ordinary_ray = randint(0, self.star_ordinary_ray // 1)
             extra_ordinary_ray = 0
             if self.sparc4_operation_mode == "pol":
                 extra_ordinary_ray = ordinary_ray
             random_image += self.PSF.create_star_PSF(
                 (x_coord, y_coord),
-                self._sparc4_seeing,
+                self._SPARC4_SEEING,
                 ordinary_ray,
                 extra_ordinary_ray,
             )

@@ -28,6 +28,8 @@ Created on Fri Apr 16 09:10:51 2021
 """
 
 
+from random import gauss
+
 import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
@@ -42,20 +44,30 @@ dic = {
     "image_size": 200,
 }
 
+l_init, l_final, l_step = 400, 1100, 50
+channel = 1
+gaussian_std = 3
+star_coordinates = (100, 100)
+sparc4_operation_mode = "phot"
+image_dir = "a"
+star_temperature = 5700
+star_magnitude = 22
+bias_level = 500
+
 
 @pytest.fixture
 def ais():
     return Artificial_Image_Simulator(
         ccd_operation_mode=dic,
-        channel=1,
-        gaussian_std=3,
-        star_coordinates=(100, 100),
-        bias_level=500,
-        sparc4_operation_mode="phot",
-        image_dir="a",
-        star_wavelength_interval=(350, 1100, 50),
-        star_temperature=5700,
-        star_magnitude=22,
+        channel=channel,
+        gaussian_std=gaussian_std,
+        star_coordinates=star_coordinates,
+        bias_level=bias_level,
+        sparc4_operation_mode=sparc4_operation_mode,
+        image_dir=image_dir,
+        wavelength_interval=(l_init, l_final, l_step),
+        star_temperature=star_temperature,
+        star_magnitude=star_magnitude,
     )
 
 
@@ -63,39 +75,39 @@ def ais():
 
 
 def test_channel_value(ais):
-    assert ais.channel == 1
+    assert ais.channel == channel
 
 
 def test_gaussian_std_positive_value(ais):
-    assert ais.gaussian_std == 3
+    assert ais.gaussian_std == gaussian_std
 
 
 def test_star_coordinates_value(ais):
-    assert ais.star_coordinates == (100, 100)
+    assert ais.star_coordinates == star_coordinates
 
 
 def test_bias_level(ais):
-    assert ais.bias_level == 500
+    assert ais.bias_level == bias_level
 
 
 def test_sparc4_operation_mode(ais):
-    assert ais.sparc4_operation_mode == "phot"
+    assert ais.sparc4_operation_mode == sparc4_operation_mode
 
 
 def test_image_dir(ais):
-    assert ais.image_dir == "a"
+    assert ais.image_dir == image_dir
 
 
-def test_star_wavelength_interval(ais):
-    assert ais.star_wavelength_interval == (350, 1100, 50)
+def test_wavelength_interval(ais):
+    assert ais.wavelength_interval == range(400, 1150, 50)
 
 
 def test_star_temperature(ais):
-    assert ais.star_temperature == 5700
+    assert ais.star_temperature == star_temperature
 
 
 def test_star_magnitude(ais):
-    assert ais.star_magnitude == 22
+    assert ais.star_magnitude == star_magnitude
 
 
 def test_CHC(ais):
@@ -154,9 +166,9 @@ def test_image_dir_isnot_string():
         Artificial_Image_Simulator(dic, image_dir=1)
 
 
-def test_star_wavelength_interval_isnot_number():
+def test_wavelength_interval_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, star_wavelength_interval="a")
+        Artificial_Image_Simulator(dic, wavelength_interval="a")
 
 
 def test_star_temperature_isnot_number():
@@ -187,9 +199,9 @@ def test_bias_level_negative_value():
         Artificial_Image_Simulator(dic, bias_level=-1)
 
 
-def test_star_wavelength_interval_negative_value():
+def test_wavelength_interval_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, star_wavelength_interval=(-20, 20, 20))
+        Artificial_Image_Simulator(dic, wavelength_interval=(-20, 20, 20))
 
 
 def test_star_temperature_negative_value():
@@ -220,11 +232,9 @@ def test_bias_level_zero_value():
         Artificial_Image_Simulator(dic, bias_level=0)
 
 
-def test_star_wavelength_interval_zero_value():
+def test_wavelength_interval_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(
-            100, 10, 0, dic, star_wavelength_interval=(0, 20, 20)
-        )
+        Artificial_Image_Simulator(100, 10, 0, dic, wavelength_interval=(0, 20, 20))
 
 
 def test_star_temperature_zero_value():

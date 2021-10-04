@@ -38,14 +38,21 @@ dic = {
     "image_size": 100,
 }
 
-magnitude = 22
+l_init, l_final, l_step = 400, 1100, 50
+channel = 1
+gaussian_std = 3
+star_coordinates = (100, 100)
+sparc4_operation_mode = "pol"
+image_dir = "a"
 star_temperature = 5700
-init, final, step = 400, 1150, 50
-sc = Spectrum_Calculation(star_temperature, init, final, step)
-star_specific_flux = sc.calculate_star_specific_flux(magnitude)
-sky_specific_flux = star_specific_flux * 0.1
+star_magnitude = 22
+bias_level = 500
+
+sc = Spectrum_Calculation(star_temperature, l_init, l_final + l_step, l_step)
+star_specific_flux = sc.calculate_specific_flux(star_magnitude)
+sky_specific_flux = sc.calculate_specific_flux(star_magnitude + 3)
 specific_flux_length = len(star_specific_flux)
-wavelength_interval = range(init, final, step)
+wavelength_interval = range(l_init, l_final + l_step, l_step)
 
 
 def multiply_matrices(matrix, specific_flux):
@@ -73,13 +80,13 @@ tel_reflectance = splev(wavelength_interval, spl)
 def ais():
     return Artificial_Image_Simulator(
         ccd_operation_mode=dic,
-        channel=1,
-        gaussian_std=3,
-        star_coordinates=(100, 100),
-        bias_level=500,
-        sparc4_operation_mode="pol",
-        image_dir="a",
-        star_wavelength_interval=(init, final, step),
+        channel=channel,
+        gaussian_std=gaussian_std,
+        star_coordinates=star_coordinates,
+        bias_level=bias_level,
+        sparc4_operation_mode=sparc4_operation_mode,
+        image_dir=image_dir,
+        wavelength_interval=(l_init, l_final, l_step),
         star_temperature=star_temperature,
     )
 
@@ -105,57 +112,51 @@ def test_calculate_read_noise(ais):
 
 def test_calculate_star_specific_flux(ais):
     ais._calculate_star_specific_flux()
-    boolean_test = ais.star_specific_flux == star_specific_flux
-    assert boolean_test.all()
+    assert np.allclose(ais.specific_star_ordinary_ray, star_specific_flux)
 
 
 def test_calculate_sky_specific_flux(ais):
     ais._calculate_sky_specific_flux()
-    assert np.allclose(ais.sky_specific_flux, sky_specific_flux.copy())
+    assert np.allclose(ais.specific_sky_ordinary_ray, sky_specific_flux.copy())
 
 
 def test_apply_atmosphere_spectral_response_star(ais):
     ais.apply_atmosphere_spectral_response()
-    assert np.allclose(ais.star_specific_flux, star_specific_flux)
+    assert np.allclose(ais.specific_star_ordinary_ray, star_specific_flux)
 
 
 def test_apply_atmosphere_spectral_response_sky(ais):
     ais.apply_atmosphere_spectral_response()
-    assert np.allclose(ais.sky_specific_flux, sky_specific_flux.copy())
+    assert np.allclose(ais.specific_sky_ordinary_ray, sky_specific_flux.copy())
 
 
 def test_apply_telescope_spectral_response_star(ais):
     ais.apply_telescope_spectral_response()
-    assert np.allclose(
-        ais.star_specific_flux, np.multiply(star_specific_flux, tel_reflectance)
-    )
+    new_star_specific_flux = np.multiply(star_specific_flux, tel_reflectance)
+    assert np.allclose(ais.specific_star_ordinary_ray, new_star_specific_flux)
 
 
 def test_apply_telescope_spectral_response_sky(ais):
+    new_sky_specific_flux = np.multiply(sky_specific_flux.copy(), tel_reflectance)
     ais.apply_telescope_spectral_response()
-    assert np.allclose(
-        ais.sky_specific_flux, np.multiply(sky_specific_flux.copy(), tel_reflectance)
-    )
+    assert np.allclose(ais.specific_sky_ordinary_ray, new_sky_specific_flux)
 
 
 def test_apply_sparc4_spectral_response_star(ais):
-    ais.apply_sparc4_spectral_response()
 
+    ais.apply_sparc4_spectral_response()
     specific_flux = multiply_matrices(calibration_wheel, star_specific_flux.copy())
     specific_flux = multiply_matrices(retarder, specific_flux)
     new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
     new_extra_ordinary_ray = multiply_matrices(
         analyser_extra_ordinary_ray, specific_flux.copy()
     )
-    new_ordinary_ray = np.multiply(colimator_transmitance, new_ordinary_ray[0, :])
-    new_extra_ordinary_ray = np.multiply(
-        colimator_transmitance, new_extra_ordinary_ray[0, :]
-    )
+    new_ordinary_ray = np.multiply(colimator_transmitance, new_ordinary_ray)
+    new_extra_ordinary_ray = np.multiply(colimator_transmitance, new_extra_ordinary_ray)
     new_ordinary_ray = np.multiply(new_ordinary_ray, dichroic_c1)
     new_extra_ordinary_ray = np.multiply(new_extra_ordinary_ray, dichroic_c1)
     new_ordinary_ray = np.multiply(new_ordinary_ray, ccd_transmitance_c1)
     new_extra_ordinary_ray = np.multiply(new_extra_ordinary_ray, ccd_transmitance_c1)
-
     assert np.allclose(ais.specific_star_ordinary_ray, new_ordinary_ray)
     assert np.allclose(ais.specific_star_extra_ordinary_ray, new_extra_ordinary_ray)
 
@@ -167,11 +168,11 @@ def test_apply_sparc4_spectral_response_sky(ais):
     new_sky_specific_flux = multiply_matrices(retarder, new_sky_specific_flux)
     new_ordinary_ray = multiply_matrices(
         analyser_ordinary_ray, new_sky_specific_flux.copy()
-    )[0, :]
+    )
 
     new_extra_ordinary_ray = multiply_matrices(
         analyser_extra_ordinary_ray, new_sky_specific_flux
-    )[0, :]
+    )
     new_ordinary_ray = np.multiply(colimator_transmitance, new_ordinary_ray)
     new_extra_ordinary_ray = np.multiply(colimator_transmitance, new_extra_ordinary_ray)
     new_ordinary_ray = np.multiply(new_ordinary_ray, dichroic_c1)
@@ -190,10 +191,10 @@ def test_apply_sparc4_spectral_response_sky(ais):
 
 def test_integrate_fluxes(ais):
     photons_per_second = np.trapz(star_specific_flux[0, :])
-    ais.specific_star_ordinary_ray = star_specific_flux[0, :]
-    ais.specific_star_extra_ordinary_ray = [0]
-    ais.specific_sky_ordinary_ray = star_specific_flux[0, :]
-    ais.specific_sky_extra_ordinary_ray = [0]
+    ais.specific_star_ordinary_ray = star_specific_flux
+    ais.specific_star_extra_ordinary_ray = np.zeros((4, n))
+    ais.specific_sky_ordinary_ray = star_specific_flux
+    ais.specific_sky_extra_ordinary_ray = np.zeros((4, n))
     ais._integrate_specific_fluxes()
     assert ais.star_ordinary_ray == photons_per_second
     assert ais.star_extra_ordinary_ray == 0
