@@ -170,7 +170,7 @@ class Abstract_SPARC4_Spectral_Response:
         )
 
     def _read_spreadsheet(self, file):
-        ss = pd.read_csv(file, dtype=np.float64, skiprows=1, decimal=",")
+        ss = pd.read_csv(file, dtype=np.float64, skiprows=1, decimal=".")
         wavelength = ss["(nm)"]
         transmitance = ss["(%)"] / 100
         return wavelength, transmitance

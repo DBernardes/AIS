@@ -65,7 +65,7 @@ ss = pd.read_csv(
     os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 tel_wavelength_interval = ss["(nm)"]
@@ -79,7 +79,7 @@ tel_reflectance = splev(wavelength_interval, spl)
 def ais():
     return Artificial_Image_Simulator(
         ccd_operation_mode=dic,
-        channel=channel,        
+        channel=channel,
         star_coordinates=star_coordinates,
         bias_level=bias_level,
         sparc4_operation_mode=sparc4_operation_mode,

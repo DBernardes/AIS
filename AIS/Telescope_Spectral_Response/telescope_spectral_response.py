@@ -26,7 +26,7 @@ class Telescope_Spectral_Response:
 
     def _read_spreadsheet(self):
         ss = pd.read_csv(
-            self._SPECTRAL_RESPONSE_FILE, dtype=np.float64, skiprows=1, decimal=","
+            self._SPECTRAL_RESPONSE_FILE, dtype=np.float64, skiprows=1, decimal="."
         )
         self.tel_wavelength_interval = ss["(nm)"]
         self.reflectance = ss["(%)"] / 100

@@ -15,8 +15,6 @@ image.
 import sys
 from sys import exit
 
-sys.path.append("..")
-
 import numpy as np
 from Read_Noise_Calculation import Read_Noise_Calculation
 from SPARC4_Spectral_Response import (

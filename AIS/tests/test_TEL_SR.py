@@ -30,7 +30,7 @@ ss = pd.read_csv(
     os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 tel_wavelength_interval = ss["(nm)"]
 reflectance = ss["(%)"] / 100
@@ -50,7 +50,7 @@ def test_calculate_spline(tel_sr):
         os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
         dtype=np.float64,
         skiprows=1,
-        decimal=",",
+        decimal=".",
     )
     tel_wavelength_interval = ss["(nm)"]
     reflectance = ss["(%)"] / 100
@@ -67,7 +67,7 @@ def test_apply_telescope_spectral_response(tel_sr):
         os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
         dtype=np.float64,
         skiprows=1,
-        decimal=",",
+        decimal=".",
     )
     tel_wavelength_interval = ss["(nm)"]
     reflectance = ss["(%)"] / 100

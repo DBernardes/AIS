@@ -50,39 +50,39 @@ from tests.test_AIS_operation import multiply_matrices
 # -------------------------------------------------------------------------------
 
 
-l_init, l_final, l_step = 400, 1150, 50
-magnitude = 22
-wavelength_interval = range(l_init, l_final, l_step)
-n = len(wavelength_interval)
-sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
-specific_flux = sc.calculate_specific_flux(magnitude)
+# l_init, l_final, l_step = 400, 1150, 50
+# magnitude = 22
+# wavelength_interval = range(l_init, l_final, l_step)
+# n = len(wavelength_interval)
+# sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
+# specific_flux = sc.calculate_specific_flux(magnitude)
 
-c1_s4sr = Concrete_SPARC4_Spectral_Response_1(wavelength_interval)
-c1_s4sr.write_specific_flux(specific_flux.copy())
+# c1_s4sr = Concrete_SPARC4_Spectral_Response_1(wavelength_interval)
+# c1_s4sr.write_specific_flux(specific_flux.copy())
 
 
-c1_s4sr.apply_calibration_wheel()
-specific_flux = multiply_matrices(calibration_wheel, specific_flux)
+# c1_s4sr.apply_calibration_wheel()
+# specific_flux = multiply_matrices(calibration_wheel, specific_flux)
 
-c1_s4sr.apply_retarder()
-specific_flux = multiply_matrices(retarder, specific_flux)
+# c1_s4sr.apply_retarder()
+# specific_flux = multiply_matrices(retarder, specific_flux)
 
-c1_s4sr.apply_analyser()
-specific_flux = multiply_matrices(analyser_ordinary_ray, specific_flux)
+# c1_s4sr.apply_analyser()
+# specific_flux = multiply_matrices(analyser_ordinary_ray, specific_flux)
 
-c1_s4sr.apply_collimator()
-specific_flux = np.multiply(colimator_transmitance, specific_flux)
+# c1_s4sr.apply_collimator()
+# specific_flux = np.multiply(colimator_transmitance, specific_flux)
 
-c1_s4sr.apply_dichroic()
-specific_flux = np.multiply(dichroic_c1, specific_flux)
+# c1_s4sr.apply_dichroic()
+# specific_flux = np.multiply(dichroic_c1, specific_flux)
 
-c1_s4sr.apply_camera()
-specific_flux - np.multiply(camera_c1, specific_flux)
+# c1_s4sr.apply_camera()
+# specific_flux - np.multiply(camera_c1, specific_flux)
 
-c1_s4sr.apply_ccd()
-specific_flux = np.multiply(ccd_transmitance_c1, specific_flux)
-print(specific_flux[0, :], "\n", c1_s4sr.specific_ordinary_ray[0, :])
-print(np.allclose(specific_flux, c1_s4sr.specific_ordinary_ray))
+# c1_s4sr.apply_ccd()
+# specific_flux = np.multiply(ccd_transmitance_c1, specific_flux)
+# print(specific_flux[0, :], "\n", c1_s4sr.specific_ordinary_ray[0, :])
+# print(np.allclose(specific_flux, c1_s4sr.specific_ordinary_ray))
 
 # -------------------------------------------------------------------------------
 
@@ -164,7 +164,7 @@ print(np.allclose(specific_flux, c1_s4sr.specific_ordinary_ray))
 # num = int((l_final - l_init) / l_step)
 # wavelength_interval = np.linspace(l_init, l_final, num)
 # sc = Spectrum_Calculation(5700, l_init, l_final, l_step)
-# pps = sc.calculate_star_specific_flux(22)
+# pps = sc.calculate_specific_flux(22)
 # plt.plot(wavelength_interval, pps[0, :])
 # plt.show()
 

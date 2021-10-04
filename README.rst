@@ -10,10 +10,10 @@ This result is added to a noise image, created based on the noise information of
 Figure below presents an example of an image created by the AIS. This page explains the step-by-step procedure of the AIS to create the images. 
 Also, it is presented a simple execution example. 
 
-.. image:: /docs/images/random_image.png
-   :width: 400
+.. image:: /docs/images/random_image.png   
    :alt: Artificial star image
    :align: center
+   :width: 400
 
 
 Software Description

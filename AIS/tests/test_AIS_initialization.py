@@ -213,7 +213,7 @@ def test_bias_level_zero_value():
 
 def test_wavelength_interval_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(100, 10, 0, dic, wavelength_interval=(0, 20, 20))
+        Artificial_Image_Simulator(dic, wavelength_interval=(0, 20, 20))
 
 
 def test_star_temperature_zero_value():
@@ -568,6 +568,11 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
 def test_channel_wrong_value():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(dic, channel=5)
+
+
+def test_star_coordinates_greater_than_image_size():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, star_coordinates=(500, 500))
 
 
 # ---------------------------Missing CCD operation mode parameter -------------

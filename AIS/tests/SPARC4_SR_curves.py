@@ -57,7 +57,7 @@ colimator_transmitance = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "collimator.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 colimator_transmitance = (
@@ -77,14 +77,14 @@ dichroic_c0_1 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 0", "dichroic_1.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 dichroic_c0_2 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 0", "dichroic_2.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 dichroic_c0_1 = calculate_spline(
@@ -100,14 +100,14 @@ dichroic_c1_1 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 1", "dichroic_1.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 dichroic_c1_2 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 1", "dichroic_2.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 dichroic_c1_1 = calculate_spline(
@@ -122,14 +122,14 @@ dichroic_c2_1 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 2", "dichroic_1.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 dichroic_c2_2 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 2", "dichroic_2.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 dichroic_c2_1 = calculate_spline(
@@ -145,14 +145,14 @@ dichroic_c3_1 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 3", "dichroic_1.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 dichroic_c3_2 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 3", "dichroic_2.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 dichroic_c3_1 = calculate_spline(
@@ -168,14 +168,14 @@ dichroic_c4_1 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 4", "dichroic_1.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 dichroic_c4_2 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 4", "dichroic_2.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 dichroic_c4_1 = calculate_spline(
@@ -193,7 +193,7 @@ camera_c0 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 0", "camera.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 camera_c0 = (
     calculate_spline(camera_c0["(%)"], camera_c0["(nm)"], wavelength_interval) / 100
@@ -203,7 +203,7 @@ camera_c1 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 1", "camera.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 camera_c1 = (
     calculate_spline(camera_c1["(%)"], camera_c1["(nm)"], wavelength_interval) / 100
@@ -213,7 +213,7 @@ camera_c2 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 2", "camera.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 camera_c2 = (
     calculate_spline(camera_c2["(%)"], camera_c2["(nm)"], wavelength_interval) / 100
@@ -224,7 +224,7 @@ camera_c3 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 4", "camera.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 camera_c3 = (
     calculate_spline(camera_c3["(%)"], camera_c3["(nm)"], wavelength_interval) / 100
@@ -235,7 +235,7 @@ camera_c4 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 4", "camera.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 camera_c4 = (
     calculate_spline(camera_c4["(%)"], camera_c4["(nm)"], wavelength_interval) / 100
@@ -248,7 +248,7 @@ ccd_transmitance_c0 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 0", "ccd.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 ccd_transmitance_c0 = (
     calculate_spline(
@@ -262,7 +262,7 @@ ccd_transmitance_c1 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 1", "ccd.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 
@@ -278,7 +278,7 @@ ccd_transmitance_c2 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 2", "ccd.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 ccd_transmitance_c2 = (
@@ -293,7 +293,7 @@ ccd_transmitance_c3 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 3", "ccd.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 ccd_transmitance_c3 = (
@@ -308,7 +308,7 @@ ccd_transmitance_c4 = pd.read_csv(
     os.path.join("SPARC4_Spectral_Response", "Channel 4", "ccd.csv"),
     dtype=np.float64,
     skiprows=1,
-    decimal=",",
+    decimal=".",
 )
 
 ccd_transmitance_c4 = (

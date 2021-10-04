@@ -14,11 +14,9 @@ import sys
 from random import randint
 from sys import exit
 
+import astropy.io.fits as fits
 import numpy as np
 import pandas as pd
-
-sys.path.append("..")
-import astropy.io.fits as fits
 from Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
 from Background_Image import Background_Image
 from Channel_Creator import (
@@ -129,6 +127,9 @@ class Artificial_Image_Simulator:
     ):
         """Initialize the class."""
 
+        self.ccd_operation_mode = ccd_operation_mode
+        self._verify_ccd_operation_mode()
+
         if channel in [1, 2, 3, 4]:
             self.channel = channel
         else:
@@ -142,6 +143,10 @@ class Artificial_Image_Simulator:
             elif coord <= 0:
                 raise ValueError(
                     f"The star coordinates must be greater than zero: {coord}"
+                )
+            elif coord > self.ccd_operation_mode["image_size"]:
+                raise ValueError(
+                    f"The star coordinates must be smaller than the image size: {coord}"
                 )
             else:
                 self.star_coordinates = star_coordinates
@@ -202,8 +207,6 @@ class Artificial_Image_Simulator:
         else:
             self.star_magnitude = star_magnitude
 
-        self.ccd_operation_mode = ccd_operation_mode
-        self._verify_ccd_operation_mode()
         self._configure_gain()
         self._configure_image_name()
 
@@ -264,24 +267,23 @@ class Artificial_Image_Simulator:
             "preamp",
             "t_exp",
         ]
-        ccd_operation_mode = self.ccd_operation_mode
-        for key in ccd_operation_mode.keys():
+        for key in self.ccd_operation_mode.keys():
             if key not in dic_keywords_list:
                 raise ValueError(f"The name provided is not a CCD parameter: {key}")
 
-        keyvalues = list(ccd_operation_mode.keys())
+        keyvalues = list(self.ccd_operation_mode.keys())
         keyvalues.sort()
         if keyvalues != dic_keywords_list:
             raise ValueError("There is a missing parameter of the CCD operation mode")
 
-        em_mode = ccd_operation_mode["em_mode"]
-        em_gain = ccd_operation_mode["em_gain"]
-        hss = ccd_operation_mode["hss"]
-        preamp = ccd_operation_mode["preamp"]
-        binn = ccd_operation_mode["binn"]
-        t_exp = ccd_operation_mode["t_exp"]
-        ccd_temp = ccd_operation_mode["ccd_temp"]
-        image_size = ccd_operation_mode["image_size"]
+        em_mode = self.ccd_operation_mode["em_mode"]
+        em_gain = self.ccd_operation_mode["em_gain"]
+        hss = self.ccd_operation_mode["hss"]
+        preamp = self.ccd_operation_mode["preamp"]
+        binn = self.ccd_operation_mode["binn"]
+        t_exp = self.ccd_operation_mode["t_exp"]
+        ccd_temp = self.ccd_operation_mode["ccd_temp"]
+        image_size = self.ccd_operation_mode["image_size"]
 
         if em_mode not in [0, 1]:
             raise ValueError(f"Invalid value for the EM mode: {em_mode}")
@@ -314,7 +316,7 @@ class Artificial_Image_Simulator:
 
         if type(t_exp) not in [float, int]:
             raise ValueError(f"The exposure time must be a number: {t_exp}")
-        elif ccd_operation_mode["t_exp"] < 1e-5:
+        elif t_exp < 1e-5:
             raise ValueError(f"Invalid value for the exposure time: {t_exp}")
 
         if type(ccd_temp) not in [float, int]:
