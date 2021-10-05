@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""
-Test of the Telescope Spectral Response Class.
+"""Test of the Telescope Spectral Response Class.
 
 Jun 14, 2021
 
@@ -9,7 +8,6 @@ Jun 14, 2021
 """
 
 import os
-from sys import exit
 
 import numpy as np
 import pandas as pd

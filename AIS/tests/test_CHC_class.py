@@ -41,7 +41,6 @@ from .SPARC4_SR_curves import (
     retarder,
     specific_flux,
     wavelength_interval,
-    wavelength_interval_len,
 )
 
 dic = {
@@ -58,8 +57,6 @@ dic = {
 magnitude = 22
 star_temperature = 5700
 ccd_temp = -70
-sc = Spectrum_Calculation(star_temperature, wavelength_interval)
-# specific_flux = sc.calculate_specific_flux(magnitude)
 
 
 # --------------------------------------------------------------------------------------------------------------------

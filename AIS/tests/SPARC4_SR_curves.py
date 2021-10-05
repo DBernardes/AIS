@@ -8,9 +8,9 @@ import pandas as pd
 from scipy.interpolate import splev, splrep
 from Spectrum_Calculation import Spectrum_Calculation
 
-init, final, step = 400, 1100, 50
+l_init, l_final, l_step = 400, 1100, 50
 magnitude = 22
-wavelength_interval = range(init, final + step, step)
+wavelength_interval = range(l_init, l_final + l_step, l_step)
 wavelength_interval_len = len(wavelength_interval)
 sc = Spectrum_Calculation(
     wavelength_interval=wavelength_interval, star_temperature=5700

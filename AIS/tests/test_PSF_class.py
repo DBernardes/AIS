@@ -18,6 +18,8 @@ from AIS.Point_Spread_Function import Point_Spread_Function
 from astropy.table import Table
 from photutils.datasets import make_gaussian_sources_image
 
+from .SPARC4_SR_curves import wavelength_interval
+
 dic = {
     "em_gain": 1,
     "binn": 1,
@@ -29,7 +31,6 @@ ordinary_ray = 100
 extra_ordinary_ray = 0
 image_size = 200
 star_coord = [100, 100]
-wavelength_interval = range(400, 1150, 50)
 _SPARC4_SEEING = 4  # pix
 
 

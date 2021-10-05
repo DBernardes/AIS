@@ -18,7 +18,7 @@ dic = {
     "binn": 1,
     "t_exp": 1,
     "ccd_temp": -70,
-    "image_size": 200,
+    "image_size": 1024,
 }
 
 
@@ -27,7 +27,7 @@ ais = Artificial_Image_Simulator(
     channel=1,
     star_coordinates=[50, 50],
     bias_level=500,
-    sparc4_operation_mode="pol",
+    sparc4_operation_mode="phot",
     image_dir=os.path.join("..", "FITS"),
     wavelength_interval=(400, 1150, 50),
     star_temperature=5700,
@@ -36,6 +36,6 @@ ais = Artificial_Image_Simulator(
 
 # ais.apply_atmosphere_spectral_response()
 # ais.apply_telescope_spectral_response()
-ais.apply_sparc4_spectral_response()
-ais.create_artificial_image()
-ais.create_random_image(10)
+# ais.apply_sparc4_spectral_response()
+# ais.create_artificial_image()
+ais.create_random_image(30)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-Channel Creator Package.
+
+"""Channel Creator Package.
 
 This package creates an abstract channel as well as the four concrete channels
 that simulates the 4 SPARC4 channels. This abstract channel is provided to the

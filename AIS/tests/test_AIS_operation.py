@@ -33,6 +33,9 @@ from .SPARC4_SR_curves import (
     ccd_transmitance_c1,
     colimator_transmitance,
     dichroic_c1,
+    l_final,
+    l_init,
+    l_step,
     retarder,
     wavelength_interval,
     wavelength_interval_len,
@@ -56,7 +59,6 @@ image_dir = "a"
 star_temperature = 5700
 star_magnitude = 22
 bias_level = 500
-l_init, l_final, l_step = 400, 1100, 50
 sc = Spectrum_Calculation(wavelength_interval, star_temperature)
 star_specific_flux = sc.calculate_specific_flux(star_magnitude)
 sky_specific_flux = sc.calculate_specific_flux(star_magnitude + 3)

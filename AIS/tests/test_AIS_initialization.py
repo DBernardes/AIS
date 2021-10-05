@@ -31,6 +31,8 @@ Created on Fri Apr 16 09:10:51 2021
 import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
+from .SPARC4_SR_curves import l_final, l_init, l_step
+
 dic = {
     "em_mode": 0,
     "em_gain": 1,
@@ -42,8 +44,7 @@ dic = {
     "image_size": 200,
 }
 
-l_init, l_final, l_step = 400, 1100, 50
-wavelength_interval = range(l_init, l_final, l_step)
+
 channel = 1
 star_coordinates = (100, 100)
 sparc4_operation_mode = "phot"

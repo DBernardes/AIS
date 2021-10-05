@@ -8,12 +8,9 @@ import numpy as np
 import pytest
 from AIS.Spectrum_Calculation import Spectrum_Calculation
 
-from .SPARC4_SR_curves import wavelength_interval
+from .SPARC4_SR_curves import wavelength_interval, wavelength_interval_len
 
 temperature = 5700
-l_init = 400
-l_final = 1150
-l_step = 50
 
 
 @pytest.fixture
@@ -34,13 +31,12 @@ h = _H
 c = _C
 k = _K
 temp = []
-num = int((l_final - l_init) / l_step)
-for Lambda in np.linspace(l_init, l_final, num):
+for Lambda in wavelength_interval:
     Lambda *= 1e-9
     photons_number = S_0 * 10 ** (-magnitude / 2.5) * Lambda * B * tel_area / (h * c)
     temp.append(photons_number)
 
-specific_flux = np.zeros((4, num))
+specific_flux = np.zeros((4, wavelength_interval_len))
 specific_flux[0, :] = temp
 
 # ---------------------------------------Initialize the class ------------------------------------------------
