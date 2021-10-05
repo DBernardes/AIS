@@ -43,6 +43,7 @@ class Abstract_Channel_Creator:
     def __init__(self, sparc4_operation_mode, wavelength_interval):
         """Initialize the class."""
         self.sparc4_operation_mode = sparc4_operation_mode
+        self.wavelength_interval = wavelength_interval
         self._S4_SR = Abstract_SPARC4_Spectral_Response(wavelength_interval)
         self._CHANNEL_ID = 0
         self._SERIAL_NUMBER = 0
@@ -93,7 +94,7 @@ class Abstract_Channel_Creator:
 
         return self.read_noise
 
-    def apply_sparc4_spectral_response(self, specific_flux, l_init, l_final, l_step):
+    def apply_sparc4_spectral_response(self, specific_flux):
         """
         Apply the sparc4 spectral response.
 

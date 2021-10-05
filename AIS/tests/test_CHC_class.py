@@ -57,11 +57,8 @@ dic = {
 
 magnitude = 22
 star_temperature = 5700
-l_init, l_final, l_step = 400, 1150, 50
-# wavelength_interval = range(l_init, l_final, l_step)
-n = len(wavelength_interval)
 ccd_temp = -70
-sc = Spectrum_Calculation(star_temperature, l_init, l_final, l_step)
+sc = Spectrum_Calculation(star_temperature, wavelength_interval)
 # specific_flux = sc.calculate_specific_flux(magnitude)
 
 
@@ -261,9 +258,7 @@ def test_apply_sparc4_spectral_response_polarimetric_1():
     (
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
-    ) = chc1_pol.apply_sparc4_spectral_response(
-        specific_flux.copy(), l_init, l_final, l_step
-    )
+    ) = chc1_pol.apply_sparc4_spectral_response(specific_flux.copy())
     assert np.allclose(specific_star_ordinary_ray, c1_ordinary_ray)
     assert np.allclose(specific_star_extra_ordinary_ray, c1_extra_ordinary_ray)
 
@@ -276,7 +271,7 @@ def test_apply_sparc4_spectral_response_polarimetric_2():
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
     ) = chc2_pol.apply_sparc4_spectral_response(
-        specific_flux.copy(), l_init, l_final, l_step
+        specific_flux.copy(),
     )
     assert np.allclose(specific_star_ordinary_ray, c2_ordinary_ray)
     assert np.allclose(specific_star_extra_ordinary_ray, c2_extra_ordinary_ray)
@@ -290,7 +285,7 @@ def test_apply_sparc4_spectral_response_polarimetric_3():
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
     ) = chc3_pol.apply_sparc4_spectral_response(
-        specific_flux.copy(), l_init, l_final, l_step
+        specific_flux.copy(),
     )
     assert np.allclose(specific_star_ordinary_ray, c3_ordinary_ray)
     assert np.allclose(specific_star_extra_ordinary_ray, c3_extra_ordinary_ray)
@@ -304,7 +299,7 @@ def test_apply_sparc4_spectral_response_polarimetric_4():
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
     ) = chc4_pol.apply_sparc4_spectral_response(
-        specific_flux.copy(), l_init, l_final, l_step
+        specific_flux.copy(),
     )
     assert np.allclose(specific_star_ordinary_ray, c4_ordinary_ray)
     assert np.allclose(specific_star_extra_ordinary_ray, c4_extra_ordinary_ray)
@@ -342,9 +337,6 @@ def test_apply_sparc4_spectral_response_photometric_1(chc1):
         specific_star_extra_ordinary_ray,
     ) = chc1.apply_sparc4_spectral_response(
         specific_flux.copy(),
-        l_init,
-        l_final,
-        l_step,
     )
     assert np.allclose(specific_star_ordinary_ray, c1_ordinary_ray_phot)
     assert np.allclose(specific_star_extra_ordinary_ray, c1_extra_ordinary_ray_phot)
@@ -354,7 +346,7 @@ def test_apply_sparc4_spectral_response_photometric_2(chc2):
     (
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
-    ) = chc2.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
+    ) = chc2.apply_sparc4_spectral_response(specific_flux)
     assert np.allclose(specific_star_ordinary_ray, c2_ordinary_ray_phot)
     assert np.allclose(specific_star_extra_ordinary_ray, c2_extra_ordinary_ray_phot)
 
@@ -363,7 +355,7 @@ def test_apply_sparc4_spectral_response_photometric_3(chc3):
     (
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
-    ) = chc3.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
+    ) = chc3.apply_sparc4_spectral_response(specific_flux)
     assert np.allclose(specific_star_ordinary_ray, c3_ordinary_ray_phot)
     assert np.allclose(specific_star_extra_ordinary_ray, c3_extra_ordinary_ray_phot)
 
@@ -372,6 +364,6 @@ def test_apply_sparc4_spectral_response_photometric_4(chc4):
     (
         specific_star_ordinary_ray,
         specific_star_extra_ordinary_ray,
-    ) = chc4.apply_sparc4_spectral_response(specific_flux, l_init, l_final, l_step)
+    ) = chc4.apply_sparc4_spectral_response(specific_flux)
     assert np.allclose(specific_star_ordinary_ray, c4_ordinary_ray_phot)
     assert np.allclose(specific_star_extra_ordinary_ray, c4_extra_ordinary_ray_phot)

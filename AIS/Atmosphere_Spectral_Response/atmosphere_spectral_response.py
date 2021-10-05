@@ -27,7 +27,7 @@ class Atmosphere_Spectral_Response:
 
     def _read_spreadsheet(self):
         ss = pd.read_csv(
-            self._SPECTRAL_RESPONSE_FILE, dtype=np.float64, skiprows=1, decimal=","
+            self._SPECTRAL_RESPONSE_FILE, dtype=np.float64, skiprows=1, decimal="."
         )
         self.atm_wavelength_interval = ss["(nm)"]
         self.transmitance = ss["(%)"] / 100
@@ -38,7 +38,7 @@ class Atmosphere_Spectral_Response:
         return transmitance
 
     def apply_atmosphere_spectral_response(
-        self, star_specific_flux, l_init, l_final, l_step
+        self, star_specific_flux, wavelength_interval
     ):
         """Apply the atmosphere spectral response.
 
@@ -56,17 +56,10 @@ class Atmosphere_Spectral_Response:
             Specific flux of the star after the application atmosphere
             spectral response.
 
-        l_init: int
-            Initial wavelength in nanometers.
-
-        l_final: int
-            Final wavelength in nanometers.
-
-        l_step: int
-            Step for the wavelength interval in nanometers.
+        wavelength_interval: array like
+            Array with the wavelengths of the spectrum of the star.
         """
         self.star_specific_flux = star_specific_flux
-        wavelength_interval = range(l_init, l_final, l_step)
         self._read_spreadsheet()
         transmitance = self._calculate_spline(wavelength_interval)
         new_specific_flux = np.multiply(star_specific_flux[0, :], transmitance)

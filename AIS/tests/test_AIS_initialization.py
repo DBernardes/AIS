@@ -43,6 +43,7 @@ dic = {
 }
 
 l_init, l_final, l_step = 400, 1100, 50
+wavelength_interval = range(l_init, l_final, l_step)
 channel = 1
 star_coordinates = (100, 100)
 sparc4_operation_mode = "phot"

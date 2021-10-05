@@ -49,7 +49,6 @@ dic = {
     "image_size": 100,
 }
 
-l_init, l_final, l_step = 400, 1100, 50
 channel = 1
 star_coordinates = (100, 100)
 sparc4_operation_mode = "pol"
@@ -57,12 +56,11 @@ image_dir = "a"
 star_temperature = 5700
 star_magnitude = 22
 bias_level = 500
-
-sc = Spectrum_Calculation(star_temperature, l_init, l_final + l_step, l_step)
+l_init, l_final, l_step = 400, 1100, 50
+sc = Spectrum_Calculation(wavelength_interval, star_temperature)
 star_specific_flux = sc.calculate_specific_flux(star_magnitude)
 sky_specific_flux = sc.calculate_specific_flux(star_magnitude + 3)
 specific_flux_length = len(star_specific_flux)
-# wavelength_interval = range(l_init, l_final + l_step, l_step)
 
 
 def multiply_matrices(matrix, specific_flux):

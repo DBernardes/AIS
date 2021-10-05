@@ -11,10 +11,11 @@ import numpy as np
 import pytest
 from AIS.Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
 
-l_init, l_final, l_step = 400, 1150, 50
-wavelength_interv = np.asarray(range(l_init, l_final, l_step))
-n = len(wavelength_interv)
-specific_flux = np.ones((4, n))
+from .SPARC4_SR_curves import (
+    specific_flux,
+    wavelength_interval,
+    wavelength_interval_len,
+)
 
 
 @pytest.fixture
@@ -26,23 +27,22 @@ def atm_sr():
 
 
 def test_read_spreadsheet(atm_sr):
-    wavelength_interv = range(350, 1150, 50)  # por hora vale
-    n = len(wavelength_interv)
-    transmitance = np.ones((1, n))  # por hora vale
+    wavelength_interval = range(350, 1150, 50)
+    transmitance = np.ones((1, wavelength_interval_len + 1))  # por hora vale
     atm_sr._read_spreadsheet()
-    assert np.allclose(atm_sr.atm_wavelength_interval, wavelength_interv)
+    assert np.allclose(atm_sr.atm_wavelength_interval, wavelength_interval)
     assert np.allclose(atm_sr.transmitance, transmitance)
 
 
 def test_calculate_spline(atm_sr):
-    transmitance = np.ones((1, n))
+    transmitance = np.ones((1, wavelength_interval_len))
     atm_sr._read_spreadsheet()
-    new_transmitance = atm_sr._calculate_spline(wavelength_interv)
+    new_transmitance = atm_sr._calculate_spline(wavelength_interval)
     assert np.allclose(new_transmitance, transmitance)
 
 
 def test_apply_atmosphere_spectral_response(atm_sr):
     new_flux = atm_sr.apply_atmosphere_spectral_response(
-        specific_flux, l_init, l_final, l_step
+        specific_flux, wavelength_interval
     )
     assert np.allclose(new_flux, specific_flux)

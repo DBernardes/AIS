@@ -102,14 +102,7 @@ class Abstract_SPARC4_Spectral_Response:
     def apply_collimator(self):
         """Collimator spectral response."""
         file = os.path.join(self._DIR_PATH, "collimator.csv")
-        coll_wavelength_interv, coll_transmitance = self._read_spreadsheet(file)
-        transmitance = self._calculate_spline(coll_transmitance, coll_wavelength_interv)
-        self.specific_ordinary_ray = np.multiply(
-            self.specific_ordinary_ray, transmitance
-        )
-        self.specific_extra_ordinary_ray = np.multiply(
-            self.specific_extra_ordinary_ray, transmitance
-        )
+        self._apply_optical_component(file)
 
     def apply_dichroic(self):
         """
@@ -119,54 +112,21 @@ class Abstract_SPARC4_Spectral_Response:
         This functions applies the spectral response of the two
         dichroics that compose each channel.
         """
-        file = os.path.join(
-            self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "dichroic_1.csv"
-        )
-        wavelength_interv, transmitance = self._read_spreadsheet(file)
-        transmitance = self._calculate_spline(transmitance, wavelength_interv)
-
-        self.specific_ordinary_ray = np.multiply(
-            self.specific_ordinary_ray, transmitance
-        )
-        self.specific_extra_ordinary_ray = np.multiply(
-            self.specific_extra_ordinary_ray, transmitance
-        )
-
-        file = os.path.join(
-            self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "dichroic_2.csv"
-        )
-        wavelength_interv, transmitance = self._read_spreadsheet(file)
-        transmitance = self._calculate_spline(transmitance, wavelength_interv)
-        self.specific_ordinary_ray = np.multiply(
-            self.specific_ordinary_ray, transmitance
-        )
-        self.specific_extra_ordinary_ray = np.multiply(
-            self.specific_extra_ordinary_ray, transmitance
-        )
+        for i in [1, 2]:
+            file = os.path.join(
+                self._DIR_PATH, f"Channel {self._CHANNEL_ID}", f"dichroic_{i}.csv"
+            )
+            self._apply_optical_component(file)
 
     def apply_camera(self):
         """Apply the camera spectral response."""
         file = os.path.join(self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "camera.csv")
-        wavelength_interv, transmitance = self._read_spreadsheet(file)
-        transmitance = self._calculate_spline(transmitance, wavelength_interv)
-        self.specific_ordinary_ray = np.multiply(
-            self.specific_ordinary_ray, transmitance
-        )
-        self.specific_extra_ordinary_ray = np.multiply(
-            self.specific_extra_ordinary_ray, transmitance
-        )
+        self._apply_optical_component(file)
 
     def apply_ccd(self):
         """Apply the ccd spectral response."""
         file = os.path.join(self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "ccd.csv")
-        wavelength_interv, transmitance = self._read_spreadsheet(file)
-        transmitance = self._calculate_spline(transmitance, wavelength_interv)
-        self.specific_ordinary_ray = np.multiply(
-            self.specific_ordinary_ray, transmitance
-        )
-        self.specific_extra_ordinary_ray = np.multiply(
-            self.specific_extra_ordinary_ray, transmitance
-        )
+        self._apply_optical_component(file)
 
     def _read_spreadsheet(self, file):
         ss = pd.read_csv(file, dtype=np.float64, skiprows=1, decimal=".")
@@ -183,6 +143,16 @@ class Abstract_SPARC4_Spectral_Response:
         spl = splrep(component_wavelength_interv, transmitance)
         transmitance = splev(self.wavelength_interval, spl)
         return transmitance
+
+    def _apply_optical_component(self, file):
+        wavelength_interv, transmitance = self._read_spreadsheet(file)
+        transmitance = self._calculate_spline(transmitance, wavelength_interv)
+        self.specific_ordinary_ray = np.multiply(
+            self.specific_ordinary_ray, transmitance
+        )
+        self.specific_extra_ordinary_ray = np.multiply(
+            self.specific_extra_ordinary_ray, transmitance
+        )
 
 
 class Concrete_SPARC4_Spectral_Response_1(Abstract_SPARC4_Spectral_Response):

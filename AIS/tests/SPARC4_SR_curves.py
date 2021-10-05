@@ -8,12 +8,14 @@ import pandas as pd
 from scipy.interpolate import splev, splrep
 from Spectrum_Calculation import Spectrum_Calculation
 
-init, final, step = 400, 1150, 50
+init, final, step = 400, 1100, 50
 magnitude = 22
-sc = Spectrum_Calculation(5700, init, final, step)
-specific_flux = sc.calculate_specific_flux(magnitude)
-wavelength_interval = range(init, final, step)
+wavelength_interval = range(init, final + step, step)
 wavelength_interval_len = len(wavelength_interval)
+sc = Spectrum_Calculation(
+    wavelength_interval=wavelength_interval, star_temperature=5700
+)
+specific_flux = sc.calculate_specific_flux(magnitude)
 
 
 def calculate_spline(transmitance, component_wavelength_interv, wavelength_interval):

@@ -28,30 +28,21 @@ class Spectrum_Calculation:
 
     def __init__(
         self,
-        temperature=5700,
-        l_init=400,
-        l_final=1150,
-        l_step=50,
+        wavelength_interval,
+        star_temperature=5700,
         star_radius=1,
         star_dist=1,
     ):
-        """Initialize the class.
+        """
+        Initialize the class.
 
         Parameters
         ----------
 
+        wavelength_interval: array like
+            Array with the wavelengths of the spectrum of the star.
         temperature: float, optional
             Black-body star temperature in Kelvin.
-
-        l_init: int, optional
-            Initial wavelength in nanometers.
-
-        l_final: int, optional
-            Final wavelength in nanometers.
-
-        l_step: int, optional
-            Step for the wavelength interval in nanometers.
-
         star_radius: float, optional
             Radius of the star in solar unitis.
         star_dist: float, optional
@@ -64,31 +55,27 @@ class Spectrum_Calculation:
             Star specific flux.
         """
 
-        self.temperature = temperature
-        self.l_init = l_init
-        self.l_final = l_final
-        self.l_step = l_step
+        self.star_temperature = star_temperature
+        self.wavelength_interval = wavelength_interval
         self.star_radius = star_radius * self._SOLAR_RADIUS
         self.star_dist = star_dist * self._SOLAR_DISTANCE
 
     def calculate_specific_flux(self, magnitude):
         """Calculate the star specific flux."""
-
         h = self._H
         c = self._C
         S_0 = self._S_0
         B = self._BAND_PASS
         tel_area = self._TELESCOPE_EFFECTIVE_AREA
         temp = []
-        num = int((self.l_final - self.l_init) / self.l_step)
-        for Lambda in np.linspace(self.l_init, self.l_final, num):
+        for Lambda in self.wavelength_interval:
             Lambda *= 1e-9
             photons_number = (
                 S_0 * 10 ** (-magnitude / 2.5) * Lambda * B * tel_area / (h * c)
             )
             temp.append(photons_number)
 
-        specific_flux = np.zeros((4, num))
+        specific_flux = np.zeros((4, len(self.wavelength_interval)))
         specific_flux[0, :] = temp
 
         return specific_flux

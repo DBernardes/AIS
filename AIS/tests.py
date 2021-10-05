@@ -191,30 +191,34 @@ Created on Tue Apr 27 10:23:27 2021
 # header = hdr.create_header()
 # fits.writeto("image.fits", np.zeros((10, 10)), header=header, overwrite=True)
 
+
 # -------------------------------------------------------------------------------
 
-# dic = {
-#     "em_mode": 0,
-#     "em_gain": 1,
-#     "preamp": 2,
-#     "hss": 0.1,
-#     "binn": 1,
-#     "t_exp": 1,
-#     "ccd_temp": -70,
-#     "image_size": 1024,
-# }
+import os
+
+from Artificial_Image_Simulator import Artificial_Image_Simulator
+
+dic = {
+    "em_mode": 0,
+    "em_gain": 1,
+    "preamp": 2,
+    "hss": 0.1,
+    "binn": 1,
+    "t_exp": 1,
+    "ccd_temp": -70,
+    "image_size": 1024,
+}
 
 
-# ais = Artificial_Image_Simulator(
-#     ccd_operation_mode=dic,
-#     channel=1,
-#     gaussian_std=8,
-#     star_coordinates=[512, 512],
-#     bias_level=500,
-#     sparc4_operation_mode="phot",
-#     image_dir=os.path.join("..", "FITS"),
-#     star_wavelength_interval=(400, 1150, 50),
-#     star_temperature=5700,
-# )
+ais = Artificial_Image_Simulator(
+    ccd_operation_mode=dic,
+    channel=1,
+    star_coordinates=[512, 512],
+    bias_level=500,
+    sparc4_operation_mode="phot",
+    image_dir=os.path.join("..", "FITS"),
+    wavelength_interval=(400, 1100, 50),
+    star_temperature=5700,
+)
 
-# ais.create_artificial_image()
+ais.create_artificial_image()

@@ -128,16 +128,40 @@ class Artificial_Image_Simulator:
     ):
         """Initialize the class."""
         self.ccd_operation_mode = ccd_operation_mode
-        self._verify_ccd_operation_mode()
+        self.channel = channel
+        self.star_coordinates = star_coordinates
+        self.bias_level = bias_level
+        self.sparc4_operation_mode = sparc4_operation_mode
+        self.image_dir = image_dir
+        self.wavelength_interval = wavelength_interval
+        self.star_temperature = star_temperature
+        self.star_magnitude = star_magnitude
 
-        if channel in [1, 2, 3, 4]:
-            self.channel = channel
-        else:
+        self._verify_ccd_operation_mode()
+        self._verify_class_parameters()
+
+        l_init, l_final, l_step = (
+            self.wavelength_interval[0],
+            self.wavelength_interval[1],
+            self.wavelength_interval[2],
+        )
+
+        self.wavelength_interval = range(l_init, l_final + l_step, l_step)
+        self.wavelength_len = len(self.wavelength_interval)
+
+        self._configure_gain()
+        self._configure_image_name()
+        self._initialize_subclasses()
+        self._calculate_sky_specific_flux()
+        self._calculate_star_specific_flux()
+
+    def _verify_class_parameters(self):
+        if self.channel not in [1, 2, 3, 4]:
             raise ValueError(
-                "There is no camera with the provided" + f" channel: {channel}"
+                "There is no camera with the provided" + f" channel: {self.channel}"
             )
 
-        for coord in star_coordinates:
+        for coord in self.star_coordinates:
             if not isinstance(coord, int):
                 raise ValueError(f"The star coordinates must be an integer: {coord}")
             elif coord <= 0:
@@ -148,35 +172,27 @@ class Artificial_Image_Simulator:
                 raise ValueError(
                     f"The star coordinates must be smaller than the image size: {coord}"
                 )
-            else:
-                self.star_coordinates = star_coordinates
 
-        if not isinstance(bias_level, int):
-            raise ValueError(f"The bias level must be an integer: {bias_level}")
-        elif bias_level <= 0:
-            raise ValueError(f"The bias level must be positive: {bias_level}")
-        else:
-            self.bias_level = bias_level
+        if not isinstance(self.bias_level, int):
+            raise ValueError(f"The bias level must be an integer: {self.bias_level}")
+        elif self.bias_level <= 0:
+            raise ValueError(f"The bias level must be positive: {self.bias_level}")
 
-        if not isinstance(sparc4_operation_mode, str):
+        if not isinstance(self.sparc4_operation_mode, str):
             raise ValueError(
                 r"The SPARC4 operation mode must be a string: "
-                + f"{sparc4_operation_mode}"
+                + f"{self.sparc4_operation_mode}"
             )
-        elif sparc4_operation_mode not in ["phot", "pol"]:
+        elif self.sparc4_operation_mode not in ["phot", "pol"]:
             raise ValueError(
                 'The SPARC4 operation mode must be "phot" '
-                + f'or "pol": {sparc4_operation_mode}'
+                + f'or "pol": {self.sparc4_operation_mode}'
             )
-        else:
-            self.sparc4_operation_mode = sparc4_operation_mode
 
-        if not isinstance(image_dir, str):
-            raise ValueError(f"The directory path must be a string: {image_dir}")
-        else:
-            self.image_dir = image_dir
+        if not isinstance(self.image_dir, str):
+            raise ValueError(f"The directory path must be a string: {self.image_dir}")
 
-        for wavelength in wavelength_interval:
+        for wavelength in self.wavelength_interval:
             if not isinstance(wavelength, int):
                 raise ValueError(
                     f"The wavelength interval must be an integer: {wavelength}"
@@ -185,75 +201,21 @@ class Artificial_Image_Simulator:
                 raise ValueError(
                     f"The wavelength interval must be positive: {wavelength}"
                 )
-            else:
-                self.wavelength_interval = wavelength_interval
 
-        if not isinstance(star_temperature, (int, float)):
+        if not isinstance(self.star_temperature, (int, float)):
             raise ValueError(
-                "The star temperature must be" + f"a number: {star_temperature}"
+                "The star temperature must be" + f"a number: {self.star_temperature}"
             )
-        elif star_temperature <= 0:
+        elif self.star_temperature <= 0:
             raise ValueError(
                 r"The star temperature must be greater"
-                + f"than zero: {star_temperature}"
+                + f"than zero: {self.star_temperature}"
             )
-        else:
-            self.star_temperature = star_temperature
 
-        if not isinstance(star_magnitude, (int, float)):
+        if not isinstance(self.star_magnitude, (int, float)):
             raise ValueError(
-                "The star magnitude must be" + f"a number: {star_magnitude}"
+                "The star magnitude must be" + f"a number: {self.star_magnitude}"
             )
-        else:
-            self.star_magnitude = star_magnitude
-
-        self._configure_gain()
-        self._configure_image_name()
-
-        # -------------------------------------------------------------------------------------------
-
-        self.l_init, self.l_final, self.l_step = (
-            wavelength_interval[0],
-            wavelength_interval[1] + wavelength_interval[2],
-            wavelength_interval[2],
-        )
-        self.wavelength_len = int((self.l_final - self.l_init) / self.l_step)
-        self.wavelength_interval = range(self.l_init, self.l_final, self.l_step)
-
-        self.SC = Spectrum_Calculation(
-            temperature=self.star_temperature,
-            l_init=self.l_init,
-            l_final=self.l_final,
-            l_step=self.l_step,
-        )
-        self.TSR = Telescope_Spectral_Response()
-        self.ASR = Atmosphere_Spectral_Response()
-        self._calculate_sky_specific_flux()
-        self._calculate_star_specific_flux()
-
-        # -------------------------------------------------------------------------------------------
-
-        CHC = 0
-        if channel == 1:
-            CHC = Concrete_Channel_1(sparc4_operation_mode, self.wavelength_interval)
-        elif channel == 2:
-            CHC = Concrete_Channel_2(sparc4_operation_mode, self.wavelength_interval)
-        elif channel == 3:
-            CHC = Concrete_Channel_3(sparc4_operation_mode, self.wavelength_interval)
-        elif channel == 4:
-            CHC = Concrete_Channel_4(sparc4_operation_mode, self.wavelength_interval)
-        self.CHC = CHC
-        self._calculate_dark_current()
-        self._calculate_read_noise(ccd_operation_mode)
-        self.PSF = Point_Spread_Function(CHC, ccd_operation_mode, self.ccd_gain)
-        self.BGI = Background_Image(
-            ccd_operation_mode,
-            self.ccd_gain,
-            self.dark_current,
-            self.read_noise,
-            self.bias_level,
-        )
-        self.HDR = Header(ccd_operation_mode, self.ccd_gain, CHC.get_serial_number())
 
     def _verify_ccd_operation_mode(self):
         """Verify if the provided CCD operation mode is correct."""
@@ -324,6 +286,48 @@ class Artificial_Image_Simulator:
         if ccd_temp < -80 or ccd_temp > 20:
             raise ValueError(f"CCD temperature out of range [-80, 20]: {ccd_temp}")
 
+    def _initialize_subclasses(self):
+        self.SC = Spectrum_Calculation(
+            star_temperature=self.star_temperature,
+            wavelength_interval=self.wavelength_interval,
+        )
+        self.TSR = Telescope_Spectral_Response()
+        self.ASR = Atmosphere_Spectral_Response()
+
+        # -------------------------------------------------------------------------------------------
+
+        CHC = 0
+        if self.channel == 1:
+            CHC = Concrete_Channel_1(
+                self.sparc4_operation_mode, self.wavelength_interval
+            )
+        elif self.channel == 2:
+            CHC = Concrete_Channel_2(
+                self.sparc4_operation_mode, self.wavelength_interval
+            )
+        elif self.channel == 3:
+            CHC = Concrete_Channel_3(
+                self.sparc4_operation_mode, self.wavelength_interval
+            )
+        elif self.channel == 4:
+            CHC = Concrete_Channel_4(
+                self.sparc4_operation_mode, self.wavelength_interval
+            )
+        self.CHC = CHC
+        self._calculate_dark_current()
+        self._calculate_read_noise(self.ccd_operation_mode)
+        self.PSF = Point_Spread_Function(CHC, self.ccd_operation_mode, self.ccd_gain)
+        self.BGI = Background_Image(
+            self.ccd_operation_mode,
+            self.ccd_gain,
+            self.dark_current,
+            self.read_noise,
+            self.bias_level,
+        )
+        self.HDR = Header(
+            self.ccd_operation_mode, self.ccd_gain, CHC.get_serial_number()
+        )
+
     def get_channel_ID(self):
         """Return the ID for the respective SPARC4 channel."""
         return self.CHC.get_channel_ID()
@@ -359,16 +363,12 @@ class Artificial_Image_Simulator:
 
         self.specific_star_ordinary_ray = self.ASR.apply_atmosphere_spectral_response(
             self.specific_star_ordinary_ray,
-            l_init=self.l_init,
-            l_final=self.l_final,
-            l_step=self.l_step,
+            wavelength_interval=self.wavelength_interval,
         )
 
         self.specific_sky_ordinary_ray = self.ASR.apply_atmosphere_spectral_response(
             self.specific_sky_ordinary_ray,
-            l_init=self.l_init,
-            l_final=self.l_final,
-            l_step=self.l_step,
+            wavelength_interval=self.wavelength_interval,
         )
 
     def apply_telescope_spectral_response(self):
@@ -382,16 +382,11 @@ class Artificial_Image_Simulator:
 
         self.specific_star_ordinary_ray = self.TSR.apply_telescope_spectral_response(
             self.specific_star_ordinary_ray,
-            l_init=self.l_init,
-            l_final=self.l_final,
-            l_step=self.l_step,
+            wavelength_interval=self.wavelength_interval,
         )
 
         self.specific_sky_ordinary_ray = self.TSR.apply_telescope_spectral_response(
-            self.specific_sky_ordinary_ray,
-            l_init=self.l_init,
-            l_final=self.l_final,
-            l_step=self.l_step,
+            self.specific_sky_ordinary_ray, wavelength_interval=self.wavelength_interval
         )
 
     def apply_sparc4_spectral_response(self):
@@ -407,9 +402,6 @@ class Artificial_Image_Simulator:
             self.specific_star_extra_ordinary_ray,
         ) = self.CHC.apply_sparc4_spectral_response(
             self.specific_star_ordinary_ray,
-            l_init=self.l_init,
-            l_final=self.l_final,
-            l_step=self.l_step,
         )
 
         (
@@ -417,9 +409,6 @@ class Artificial_Image_Simulator:
             self.specific_sky_extra_ordinary_ray,
         ) = self.CHC.apply_sparc4_spectral_response(
             self.specific_sky_ordinary_ray,
-            l_init=self.l_init,
-            l_final=self.l_final,
-            l_step=self.l_step,
         )
 
     def _integrate_specific_fluxes(self):

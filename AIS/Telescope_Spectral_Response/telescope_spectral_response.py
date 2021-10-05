@@ -38,7 +38,7 @@ class Telescope_Spectral_Response:
         return reflectance
 
     def apply_telescope_spectral_response(
-        self, star_specific_flux, l_init, l_final, l_step
+        self, star_specific_flux, wavelength_interval
     ):
         """
         Apply the telescope spectral response.
@@ -51,14 +51,8 @@ class Telescope_Spectral_Response:
         star_specific_flux : array like
             Specific flux of the star
 
-        l_init: int
-            Initial wavelength in nanometers.
-
-        l_final: int
-            Final wavelength in nanometers.
-
-        l_step: int
-            Step for the wavelength interval in nanometers.
+        wavelength_interval: array like
+            Array with the wavelengths of the spectrum of the star.
 
         Returns
         -------
@@ -67,7 +61,6 @@ class Telescope_Spectral_Response:
             1.6 m Perkin-Elmer telescope
         """
         self.star_specific_flux = star_specific_flux
-        wavelength_interval = range(l_init, l_final, l_step)
         self._read_spreadsheet()
         reflectance = self._calculate_spline(wavelength_interval)
         new_specific_flux = np.multiply(star_specific_flux[0, :], reflectance)

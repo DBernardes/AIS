@@ -8,6 +8,8 @@ import numpy as np
 import pytest
 from AIS.Spectrum_Calculation import Spectrum_Calculation
 
+from .SPARC4_SR_curves import wavelength_interval
+
 temperature = 5700
 l_init = 400
 l_final = 1150
@@ -16,7 +18,7 @@ l_step = 50
 
 @pytest.fixture
 def sc():
-    return Spectrum_Calculation(temperature, l_init, l_final, l_step)
+    return Spectrum_Calculation(wavelength_interval, temperature)
 
 
 _H = 6.62607004e-34  # m2 kg / s
@@ -45,19 +47,11 @@ specific_flux[0, :] = temp
 
 
 def test_temperature(sc):
-    assert sc.temperature == 5700
+    assert sc.star_temperature == 5700
 
 
 def test_l_init(sc):
-    assert sc.l_init == 400
-
-
-def test_l_final(sc):
-    assert sc.l_final == 1150
-
-
-def test_l_step(sc):
-    assert sc.l_step == 50
+    assert sc.wavelength_interval == wavelength_interval
 
 
 # --------------------------------------------------------------------------------------------------------------
