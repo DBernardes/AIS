@@ -25,7 +25,18 @@ from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 from scipy.interpolate import splev, splrep
 from Spectrum_Calculation import Spectrum_Calculation
 
-from .SPARC4_SR_curves import *
+from .SPARC4_SR_curves import (
+    analyser_extra_ordinary_ray,
+    analyser_ordinary_ray,
+    calibration_wheel,
+    camera_c1,
+    ccd_transmitance_c1,
+    colimator_transmitance,
+    dichroic_c1,
+    retarder,
+    wavelength_interval,
+    wavelength_interval_len,
+)
 
 dic = {
     "em_mode": 0,
@@ -51,7 +62,7 @@ sc = Spectrum_Calculation(star_temperature, l_init, l_final + l_step, l_step)
 star_specific_flux = sc.calculate_specific_flux(star_magnitude)
 sky_specific_flux = sc.calculate_specific_flux(star_magnitude + 3)
 specific_flux_length = len(star_specific_flux)
-wavelength_interval = range(l_init, l_final + l_step, l_step)
+# wavelength_interval = range(l_init, l_final + l_step, l_step)
 
 
 def multiply_matrices(matrix, specific_flux):
@@ -111,13 +122,17 @@ def test_calculate_read_noise(ais):
 def test_calculate_star_specific_flux(ais):
     ais._calculate_star_specific_flux()
     assert np.allclose(ais.specific_star_ordinary_ray, star_specific_flux)
-    assert np.allclose(ais.specific_star_extra_ordinary_ray, np.zeros((4, n)))
+    assert np.allclose(
+        ais.specific_star_extra_ordinary_ray, np.zeros((4, wavelength_interval_len))
+    )
 
 
 def test_calculate_sky_specific_flux(ais):
     ais._calculate_sky_specific_flux()
     assert np.allclose(ais.specific_sky_ordinary_ray, sky_specific_flux.copy())
-    assert np.allclose(ais.specific_sky_extra_ordinary_ray, np.zeros((4, n)))
+    assert np.allclose(
+        ais.specific_sky_extra_ordinary_ray, np.zeros((4, wavelength_interval_len))
+    )
 
 
 def test_apply_atmosphere_spectral_response_star(ais):
@@ -192,9 +207,9 @@ def test_apply_sparc4_spectral_response_sky(ais):
 def test_integrate_fluxes(ais):
     photons_per_second = np.trapz(star_specific_flux[0, :])
     ais.specific_star_ordinary_ray = star_specific_flux
-    ais.specific_star_extra_ordinary_ray = np.zeros((4, n))
+    ais.specific_star_extra_ordinary_ray = np.zeros((4, wavelength_interval_len))
     ais.specific_sky_ordinary_ray = star_specific_flux
-    ais.specific_sky_extra_ordinary_ray = np.zeros((4, n))
+    ais.specific_sky_extra_ordinary_ray = np.zeros((4, wavelength_interval_len))
     ais._integrate_specific_fluxes()
     assert ais.star_ordinary_ray == photons_per_second
     assert ais.star_extra_ordinary_ray == 0

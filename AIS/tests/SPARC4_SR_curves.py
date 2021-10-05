@@ -13,7 +13,7 @@ magnitude = 22
 sc = Spectrum_Calculation(5700, init, final, step)
 specific_flux = sc.calculate_specific_flux(magnitude)
 wavelength_interval = range(init, final, step)
-n = len(wavelength_interval)
+wavelength_interval_len = len(wavelength_interval)
 
 
 def calculate_spline(transmitance, component_wavelength_interv, wavelength_interval):

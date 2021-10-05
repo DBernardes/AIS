@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Test of the Read Noise Calculation Class.
+
+"""
+Test of the Read Noise Calculation Class.
 
 Created on Fri Apr 23 11:59:02 2021
 

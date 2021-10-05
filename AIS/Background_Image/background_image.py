@@ -1,4 +1,5 @@
 """
+
 Background Image
 ================
 
@@ -6,15 +7,14 @@ This is the Background Image Class used to generate a back ground image like
 a bias image acquired by the SPARC4 cameras.
 """
 
-import sys
 
 import numpy as np
-from astropy.table import Table
 from photutils.datasets import make_noise_image
 
 
 class Background_Image:
-    """Background Image Class.
+    """
+    Background Image Class.
 
     Parameters
     ----------
@@ -76,7 +76,8 @@ class Background_Image:
             self._NOISE_FACTOR = 1.4
 
     def create_background_image(self, sky_flux):
-        """Create a background image.
+        """
+        Create a background image.
 
         This functions creates a background image with a background level given
         by the ccd operation mode, the sky flux, the dc noise, and the bias
@@ -122,7 +123,8 @@ class Background_Image:
         return self.background_image
 
     def create_dark_image(self):
-        """Create a dark image.
+        """
+        Create a dark image.
 
         This functions creates a dark image with a background level given
         by the ccd operation mode, the dc noise, and the bias
@@ -161,7 +163,8 @@ class Background_Image:
         return self.dark_image
 
     def create_bias_image(self):
-        """Create the bias image.
+        """
+        Create the bias image.
 
         This functions creates a bias image with the provided bias level given
         as a function of the ccd operation mode. Over this image there is a
@@ -188,7 +191,8 @@ class Background_Image:
         return self.bias_image
 
     def create_flat_image(self):
-        """Create a flat image.
+        """
+        Create a flat image.
 
         This functions creates a flat image with a background level of
         half of the CCD's pixel depth. Over this background, the read noise,

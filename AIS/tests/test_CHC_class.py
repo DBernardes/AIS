@@ -8,10 +8,7 @@ Created on Thu Apr 22 13:44:35 2021
 @author: denis
 """
 
-import os
-
 import numpy as np
-import pandas as pd
 import pytest
 from AIS.Channel_Creator import (
     Abstract_Channel_Creator,
@@ -20,14 +17,32 @@ from AIS.Channel_Creator import (
     Concrete_Channel_3,
     Concrete_Channel_4,
 )
-from SPARC4_Spectral_Response.sparc4_spectral_response import (
-    Concrete_SPARC4_Spectral_Response_1,
-)
 from Spectrum_Calculation import Spectrum_Calculation
 
 from tests.test_AIS_operation import multiply_matrices
 
-from .SPARC4_SR_curves import *
+from .SPARC4_SR_curves import (
+    analyser_extra_ordinary_ray,
+    analyser_ordinary_ray,
+    calibration_wheel,
+    camera_c1,
+    camera_c2,
+    camera_c3,
+    camera_c4,
+    ccd_transmitance_c1,
+    ccd_transmitance_c2,
+    ccd_transmitance_c3,
+    ccd_transmitance_c4,
+    colimator_transmitance,
+    dichroic_c1,
+    dichroic_c2,
+    dichroic_c3,
+    dichroic_c4,
+    retarder,
+    specific_flux,
+    wavelength_interval,
+    wavelength_interval_len,
+)
 
 dic = {
     "em_mode": 0,
@@ -43,11 +58,11 @@ dic = {
 magnitude = 22
 star_temperature = 5700
 l_init, l_final, l_step = 400, 1150, 50
-wavelength_interval = range(l_init, l_final, l_step)
+# wavelength_interval = range(l_init, l_final, l_step)
 n = len(wavelength_interval)
 ccd_temp = -70
 sc = Spectrum_Calculation(star_temperature, l_init, l_final, l_step)
-specific_flux = sc.calculate_specific_flux(magnitude)
+# specific_flux = sc.calculate_specific_flux(magnitude)
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -181,7 +196,7 @@ def test_calculate_read_noise_4(chc4):
     assert chc4.read_noise == 6.67
 
 
-# ------------------- Teste apply_sparc4_spectral_response ----------------------------------------------------------
+# ------------------- Teste apply_sparc4_spectral_response -----------------------------
 
 specific_flux_c1 = multiply_matrices(calibration_wheel, specific_flux.copy())
 specific_flux_c1 = multiply_matrices(retarder, specific_flux_c1)

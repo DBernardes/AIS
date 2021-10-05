@@ -10,7 +10,8 @@ import numpy as np
 
 
 class Spectrum_Calculation:
-    """Spectrum Calculation class.
+    """
+    Spectrum Calculation class.
 
     This class calculates the star and the sky spectrum based on the object
     magnitude.

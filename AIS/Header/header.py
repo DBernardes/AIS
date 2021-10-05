@@ -8,13 +8,13 @@ the AIS.
 """
 
 import os
-from sys import exit
 
 import astropy.io.fits as fits
 import pandas as pd
 
 
 class Header:
+
     """Image header class.
 
     Parameters

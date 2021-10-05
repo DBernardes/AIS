@@ -13,7 +13,8 @@ from photutils.datasets import make_gaussian_sources_image
 
 
 class Point_Spread_Function:
-    """Point Spread Function Class.
+    """
+    Point Spread Function Class.
 
     This class creates the image of the star. The PSF of the
     object is based on a 2D gaussian distribution. Initially, the star flux is
@@ -67,7 +68,8 @@ class Point_Spread_Function:
         ordinary_ray,
         extra_ordinary_ray=0,
     ):
-        """Create the star point spread function.
+        """
+        Create the star point spread function.
 
         Parameters
         ----------

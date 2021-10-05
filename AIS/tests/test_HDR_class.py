@@ -11,7 +11,6 @@ Created on Fri Apr 16 11:53:12 2021
 
 import os
 
-import numpy as np
 import pandas as pd
 import pytest
 from AIS.Header import Header
@@ -134,7 +133,7 @@ def test_EXTEND(hdr):
 
 
 def test_COMMENT(hdr):
-    hdr.hdr["COMMENT"]
+    assert hdr.hdr["COMMENT"]
 
 
 def test_FILENAME(hdr):

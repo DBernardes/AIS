@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """AIS strucute tests.
 
 This script was created to test the structure of the classes as presented in
@@ -12,15 +13,6 @@ Created on Fri Apr 16 09:10:51 2021
 
 import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
-from AIS.Background_Image import Background_Image
-from AIS.Channel_Creator import (
-    Concrete_Channel_1,
-    Concrete_Channel_2,
-    Concrete_Channel_3,
-    Concrete_Channel_4,
-)
-from AIS.Header import Header
-from AIS.Point_Spread_Function import Point_Spread_Function
 
 dic = {
     "em_mode": 0,
@@ -40,21 +32,6 @@ def ais():
         ccd_operation_mode=dic,
         channel=1,
     )
-
-
-@pytest.fixture
-def chc1():
-    return Concrete_Channel_1(ccd_temp=-70, sparc4_acquisition_mode="phot")
-
-
-@pytest.fixture
-def psf(chc1):
-    return Point_Spread_Function(dic, 3, 3)
-
-
-@pytest.fixture
-def bgi(chc1):
-    return Background_Image(dic, 3, 500)
 
 
 # -------------------- Testing the AIS structure -----------------------------

@@ -1,4 +1,5 @@
 """
+
 Atmosphere Spectral Response
 ============================
 
@@ -13,6 +14,7 @@ from scipy.interpolate import splev, splrep
 
 
 class Atmosphere_Spectral_Response:
+
     """Atmosphere Spectral Response Class."""
 
     _SPECTRAL_RESPONSE_FILE = os.path.join(

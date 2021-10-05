@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""SPARC4 spectral response tests.
+
+"""
+SPARC4 spectral response tests.
 
 This script tests the operation of the SPARC4 spectral response classes.
 """
@@ -7,7 +9,6 @@ This script tests the operation of the SPARC4 spectral response classes.
 import os
 
 import numpy as np
-import pandas as pd
 import pytest
 from AIS.SPARC4_Spectral_Response import (
     Abstract_SPARC4_Spectral_Response,
@@ -17,7 +18,31 @@ from AIS.SPARC4_Spectral_Response import (
     Concrete_SPARC4_Spectral_Response_4,
 )
 
-from .SPARC4_SR_curves import *
+from .SPARC4_SR_curves import (
+    analyser_extra_ordinary_ray,
+    analyser_ordinary_ray,
+    calibration_wheel,
+    camera_c0,
+    camera_c1,
+    camera_c2,
+    camera_c3,
+    camera_c4,
+    ccd_transmitance_c0,
+    ccd_transmitance_c1,
+    ccd_transmitance_c2,
+    ccd_transmitance_c3,
+    ccd_transmitance_c4,
+    colimator_transmitance,
+    dichroic_c0,
+    dichroic_c1,
+    dichroic_c2,
+    dichroic_c3,
+    dichroic_c4,
+    retarder,
+    specific_flux,
+    wavelength_interval,
+    wavelength_interval_len,
+)
 
 # -------------------------------------------------------------------------------------------------------------
 
@@ -314,13 +339,19 @@ def test_write_specific_flux():
     assert np.allclose(s4_sr.specific_ordinary_ray, specific_flux)
 
 
-# ---------------------- get_specific_ordinary_ray -----------------------------
+# ---------------------- get specific ordinary and extraordinary rays -----------------------------
 
 
 def test_get_specific_ordinary_ray(abs_s4_sr):
-    vec = abs_s4_sr.get_specific_ordinary_ray()
-    boolean_test = vec.all() == specific_flux.all()
-    assert boolean_test.all()
+    abs_ordinary_ray = abs_s4_sr.get_specific_ordinary_ray()
+    assert np.allclose(abs_ordinary_ray, specific_flux)
+
+
+def test_get_specific_extra_ordinary_ray(abs_s4_sr):
+    assert np.allclose(
+        abs_s4_sr.get_specific_extra_ordinary_ray(),
+        np.zeros((4, wavelength_interval_len)),
+    )
 
 
 # ----------------------- read_spreadsheet---------------------------
@@ -442,18 +473,8 @@ def test_multiply_matrices(abs_s4_sr):
 
 
 def test_calculate_spline():
-    transmitance = np.ones((1, n))[0]
+    transmitance = np.ones((1, wavelength_interval_len))[0]
     chc = Abstract_SPARC4_Spectral_Response(wavelength_interval)
     chc.write_specific_flux(specific_flux)
     new_transmitance = chc._calculate_spline(transmitance, wavelength_interval)
     assert np.allclose(new_transmitance, transmitance)
-
-
-def test_get_specific_ordinary_ray(abs_s4_sr):
-    abs_s4_sr.apply_analyser()
-    assert np.allclose(abs_s4_sr.get_specific_ordinary_ray(), ordinary_ray)
-
-
-def test_get_specific_extra_ordinary_ray(abs_s4_sr):
-    abs_s4_sr.apply_analyser()
-    assert np.allclose(abs_s4_sr.get_specific_extra_ordinary_ray(), extra_ordinary_ray)

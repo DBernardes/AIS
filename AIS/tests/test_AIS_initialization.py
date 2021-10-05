@@ -28,8 +28,6 @@ Created on Fri Apr 16 09:10:51 2021
 """
 
 
-from random import gauss
-
 import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
