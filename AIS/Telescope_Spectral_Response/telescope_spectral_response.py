@@ -14,6 +14,7 @@ from scipy.interpolate import splev, splrep
 
 
 class Telescope_Spectral_Response:
+
     """Telescope Spectral Response Class."""
 
     _SPECTRAL_RESPONSE_FILE = os.path.join(
@@ -39,7 +40,8 @@ class Telescope_Spectral_Response:
     def apply_telescope_spectral_response(
         self, star_specific_flux, l_init, l_final, l_step
     ):
-        """Apply the telescope spectral response.
+        """
+        Apply the telescope spectral response.
 
         This function applies the telescope spectral response on the
         calculated star specific flux.

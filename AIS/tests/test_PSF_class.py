@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Flux Calculation class tests.
+
+"""
+Flux Calculation class tests.
 
 This script tests the operation of the Flux Calculation Class.
 

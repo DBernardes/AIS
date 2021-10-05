@@ -10,9 +10,7 @@ flux is added to an image with a background level given by counts distribution
 of an image of the SPARC4 cameras, as a function of its operation mode.
 """
 import os
-import sys
 from random import randint
-from sys import exit
 
 import astropy.io.fits as fits
 import numpy as np
@@ -30,9 +28,12 @@ from Point_Spread_Function import Point_Spread_Function
 from Spectrum_Calculation import Spectrum_Calculation
 from Telescope_Spectral_Response import Telescope_Spectral_Response
 
+# from sys import exit
+
 
 class Artificial_Image_Simulator:
-    """Create an image cube with the star flux distribution.
+    """
+    Create an image cube with the star flux distribution.
 
     Parameters
     ----------
@@ -126,7 +127,6 @@ class Artificial_Image_Simulator:
         star_magnitude=22,
     ):
         """Initialize the class."""
-
         self.ccd_operation_mode = ccd_operation_mode
         self._verify_ccd_operation_mode()
 
@@ -138,7 +138,7 @@ class Artificial_Image_Simulator:
             )
 
         for coord in star_coordinates:
-            if type(coord) is not int:
+            if not isinstance(coord, int):
                 raise ValueError(f"The star coordinates must be an integer: {coord}")
             elif coord <= 0:
                 raise ValueError(
@@ -151,14 +151,14 @@ class Artificial_Image_Simulator:
             else:
                 self.star_coordinates = star_coordinates
 
-        if type(bias_level) is not int:
+        if not isinstance(bias_level, int):
             raise ValueError(f"The bias level must be an integer: {bias_level}")
         elif bias_level <= 0:
             raise ValueError(f"The bias level must be positive: {bias_level}")
         else:
             self.bias_level = bias_level
 
-        if type(sparc4_operation_mode) is not str:
+        if not isinstance(sparc4_operation_mode, str):
             raise ValueError(
                 r"The SPARC4 operation mode must be a string: "
                 + f"{sparc4_operation_mode}"
@@ -171,13 +171,13 @@ class Artificial_Image_Simulator:
         else:
             self.sparc4_operation_mode = sparc4_operation_mode
 
-        if type(image_dir) is not str:
+        if not isinstance(image_dir, str):
             raise ValueError(f"The directory path must be a string: {image_dir}")
         else:
             self.image_dir = image_dir
 
         for wavelength in wavelength_interval:
-            if type(wavelength) is not int:
+            if not isinstance(wavelength, int):
                 raise ValueError(
                     f"The wavelength interval must be an integer: {wavelength}"
                 )
@@ -188,7 +188,7 @@ class Artificial_Image_Simulator:
             else:
                 self.wavelength_interval = wavelength_interval
 
-        if type(star_temperature) not in [int, float]:
+        if not isinstance(star_temperature, (int, float)):
             raise ValueError(
                 "The star temperature must be" + f"a number: {star_temperature}"
             )
@@ -200,7 +200,7 @@ class Artificial_Image_Simulator:
         else:
             self.star_temperature = star_temperature
 
-        if type(star_magnitude) not in [int, float]:
+        if not isinstance(star_magnitude, (int, float)):
             raise ValueError(
                 "The star magnitude must be" + f"a number: {star_magnitude}"
             )
@@ -293,7 +293,7 @@ class Artificial_Image_Simulator:
                     "The EM Gain must be 1 for the Conventional" + f" Mode: {em_gain}"
                 )
         else:
-            if type(em_gain) not in [float, int]:
+            if not isinstance(em_gain, (float, int)):
                 raise ValueError(f"The EM gain must be a number: {em_gain}")
             elif em_gain < 2 or em_gain > 300:
                 raise ValueError(f"EM gain out of range [2, 300]: {em_gain}")
@@ -307,19 +307,19 @@ class Artificial_Image_Simulator:
         if binn not in [1, 2]:
             raise ValueError(f"Invalid value for the binning: {bin}")
 
-        if type(image_size) is not int:
+        if not isinstance(image_size, int):
             raise ValueError(f"The image size must be an integer: {image_size}")
         elif image_size <= 0:
             raise ValueError(f"The image size must be greater than zero: {image_size}")
         else:
             self.image_size = image_size
 
-        if type(t_exp) not in [float, int]:
+        if not isinstance(t_exp, (float, int)):
             raise ValueError(f"The exposure time must be a number: {t_exp}")
         elif t_exp < 1e-5:
             raise ValueError(f"Invalid value for the exposure time: {t_exp}")
 
-        if type(ccd_temp) not in [float, int]:
+        if not isinstance(ccd_temp, (float, int)):
             raise ValueError(f"The CCD temperature must be a number: {ccd_temp}")
         if ccd_temp < -80 or ccd_temp > 20:
             raise ValueError(f"CCD temperature out of range [-80, 20]: {ccd_temp}")
@@ -349,7 +349,8 @@ class Artificial_Image_Simulator:
         self.specific_sky_extra_ordinary_ray = np.zeros((4, self.wavelength_len))
 
     def apply_atmosphere_spectral_response(self):
-        """Apply the atmosphere spectral response.
+        """
+        Apply the atmosphere spectral response.
 
         This functions applies the atmosphere spectral response on the
         calculated star and sky specific flux.
@@ -371,7 +372,8 @@ class Artificial_Image_Simulator:
         )
 
     def apply_telescope_spectral_response(self):
-        """Apply the telescope spectral response.
+        """
+        Apply the telescope spectral response.
 
         This functions applies the telescope spectral response on the
         calculated star and sky specific flux.
@@ -393,7 +395,8 @@ class Artificial_Image_Simulator:
         )
 
     def apply_sparc4_spectral_response(self):
-        """Apply the SPARC4 spectral response.
+        """
+        Apply the SPARC4 spectral response.
 
         This functions applies the SPARC4 spectral response on the
         calculated star and sky specific flux.
@@ -438,7 +441,8 @@ class Artificial_Image_Simulator:
         # )
 
     def _configure_image_name(self):
-        """Create the image name.
+        """
+        Create the image name.
 
         The image name will be created based on the provided information
 
@@ -494,7 +498,8 @@ class Artificial_Image_Simulator:
         self.ccd_gain = float(spreadsheet["Gain"][tab_index])
 
     def create_artificial_image(self):
-        """Create the artificial star image.
+        """
+        Create the artificial star image.
 
         This function will sum the background image with the star SPF image
         to create an artificil image, similar to those acquired by the
@@ -528,7 +533,8 @@ class Artificial_Image_Simulator:
         )
 
     def create_background_image(self):
-        """Create the background image.
+        """
+        Create the background image.
 
         This function creates the background image, similar to those
         acquired by the SPARC4 cameras.
@@ -556,7 +562,8 @@ class Artificial_Image_Simulator:
         )
 
     def create_dark_image(self):
-        """Create a dark image.
+        """
+        Create a dark image.
 
         This function creates a dark image, similar to those
         acquired by the SPARC4 cameras.
@@ -579,7 +586,8 @@ class Artificial_Image_Simulator:
         )
 
     def create_bias_image(self):
-        """Create a bias image.
+        """
+        Create a bias image.
 
         This function creates a bias image, similar to those
         acquired by the SPARC4 cameras.
@@ -604,7 +612,8 @@ class Artificial_Image_Simulator:
         )
 
     def create_random_image(self, n=10):
-        """Create a random star image.
+        """
+        Create a random star image.
 
         This function creates an artificial image with a set of random stars.
         The number of star created by the function can be provided to the class. Otherwise,
@@ -651,7 +660,8 @@ class Artificial_Image_Simulator:
         )
 
     def create_flat_image(self):
-        """Create a flat image.
+        """
+        Create a flat image.
 
         This function creates a flat image, similar to those
         acquired by the SPARC4 cameras.

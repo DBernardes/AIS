@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
+
 Channel Creator
 ===============
 
@@ -12,8 +13,7 @@ class will call the correct concrete channel creator for the respective desired
 image.
 """
 
-import sys
-from sys import exit
+# from sys import exit
 
 import numpy as np
 from Read_Noise_Calculation import Read_Noise_Calculation
@@ -27,7 +27,8 @@ from SPARC4_Spectral_Response import (
 
 
 class Abstract_Channel_Creator:
-    """Abstract Channel Creator Class.
+    """
+    Abstract Channel Creator Class.
 
     This is an abstracty class that represents the SPARC4 channels. It is
     responsible to calculate the star or the sky flux as a function of the
@@ -51,7 +52,8 @@ class Abstract_Channel_Creator:
         return f"Channel {self._CHANNEL_ID}"
 
     def get_serial_number(self):
-        """Return CCD serial number.
+        """
+        Return CCD serial number.
 
         Returns
         -------
@@ -62,7 +64,8 @@ class Abstract_Channel_Creator:
         return self._SERIAL_NUMBER
 
     def calculate_dark_current(self, ccd_temp):
-        """Calculate the cark current.
+        """
+        Calculate the cark current.
 
         This function calculates the dark current for each SPARC4 CCD. This is
         an abstract function that is extended in the child classes.
@@ -77,7 +80,8 @@ class Abstract_Channel_Creator:
         return dark_current
 
     def calculate_read_noise(self, ccd_operation_mode):
-        """Calculate the read noise the CCD.
+        """
+        Calculate the read noise the CCD.
 
         The calculation is performed by providing the CCD operation mode to
         the ReadNoiseCalc package
@@ -90,7 +94,8 @@ class Abstract_Channel_Creator:
         return self.read_noise
 
     def apply_sparc4_spectral_response(self, specific_flux, l_init, l_final, l_step):
-        """Apply the sparc4 spectral response.
+        """
+        Apply the sparc4 spectral response.
 
         This function applies the SPARC4 spectral response on the
         calculated star specific flux
@@ -127,13 +132,15 @@ class Abstract_Channel_Creator:
 
 
 class Concrete_Channel_1(Abstract_Channel_Creator):
-    """Concreat Channel Creator Class 1.
+    """
+    Concreat Channel Creator Class 1.
 
     This class calculates the star and/or the sky flux as a function of the
     instrumental response of the SPARC4 Channel 1.
     """
 
     def __init__(self, sparc4_operation_mode, wavelength_interval):
+        """Initialize the Channel 1 Class."""
         self.sparc4_operation_mode = sparc4_operation_mode
         self._CHANNEL_ID = 1
         self._SERIAL_NUMBER = 9914
@@ -159,13 +166,15 @@ class Concrete_Channel_1(Abstract_Channel_Creator):
 
 
 class Concrete_Channel_2(Abstract_Channel_Creator):
-    """Concreat Channel Creator Class 2.
+    """
+    Concreat Channel Creator Class 2.
 
     This class calculates the star and/or the sky flux as a function of the
     instrumental response of the SPARC4 Channel 2.
     """
 
     def __init__(self, sparc4_operation_mode, wavelength_interval):
+        """Initialize the Channel 2 Class."""
         self.sparc4_operation_mode = sparc4_operation_mode
         self._CHANNEL_ID = 2
         self._SERIAL_NUMBER = 9915
@@ -191,13 +200,15 @@ class Concrete_Channel_2(Abstract_Channel_Creator):
 
 
 class Concrete_Channel_3(Abstract_Channel_Creator):
-    """Concreat Channel Creator Class 3.
+    """
+    Concreat Channel Creator Class 3.
 
     This class calculates the star and/or the sky flux as a function of the
     instrumental response of the SPARC4 Channel 3.
     """
 
     def __init__(self, sparc4_operation_mode, wavelength_interval):
+        """Initialize the Channel 3 Class."""
         self.sparc4_operation_mode = sparc4_operation_mode
         self._CHANNEL_ID = 3
         self._SERIAL_NUMBER = 9916
@@ -223,13 +234,15 @@ class Concrete_Channel_3(Abstract_Channel_Creator):
 
 
 class Concrete_Channel_4(Abstract_Channel_Creator):
-    """Concreat Channel Creator Class 4.
+    """
+    Concreat Channel Creator Class 4.
 
     This class calculates the star and/or the sky flux as a function of the
     instrumental response of the SPARC4 Channel 4.
     """
 
     def __init__(self, sparc4_operation_mode, wavelength_interval):
+        """Initialize the Channel 4 Class."""
         self.sparc4_operation_mode = sparc4_operation_mode
         self._CHANNEL_ID = 4
         self._SERIAL_NUMBER = 9917

@@ -9,23 +9,24 @@ response.
 
 
 import os
-import sys
-from sys import exit
 
 import numpy as np
 import pandas as pd
-import scipy
 from scipy.interpolate import splev, splrep
+
+# from sys import exit
 
 
 class Abstract_SPARC4_Spectral_Response:
+
     """Abstract class of the SPARC4 spectral response."""
 
     _CHANNEL_ID = 0
     _DIR_PATH = "SPARC4_Spectral_Response"
 
     def __init__(self, wavelength_interval):
-        """Initialize the class.
+        """
+        Initialize the class.
 
         Parameters
         ----------
@@ -38,7 +39,8 @@ class Abstract_SPARC4_Spectral_Response:
         self.wavelength_interval = wavelength_interval
 
     def get_channel_ID(self):
-        """Return the chanel ID.
+        """
+        Return the chanel ID.
 
         Returns
         -------
@@ -48,7 +50,8 @@ class Abstract_SPARC4_Spectral_Response:
         return self._CHANNEL_ID
 
     def write_specific_flux(self, specific_flux):
-        """Write the specific flux.
+        """
+        Write the specific flux.
 
         This function writes the specific flux of the object in the class.
 
@@ -79,7 +82,6 @@ class Abstract_SPARC4_Spectral_Response:
 
     def apply_retarder(self):
         """Apply retarder spectral response."""
-
         file = os.path.join(self._DIR_PATH, "retarder.csv")
         matrix = np.loadtxt(open(file, "rb"), delimiter=",")
         self.specific_ordinary_ray = self._multiply_matrices(
@@ -88,7 +90,6 @@ class Abstract_SPARC4_Spectral_Response:
 
     def apply_analyser(self):
         """Apply analyser spectral response."""
-
         file = os.path.join(self._DIR_PATH, "analyser_ordinary.csv")
         matrix = np.loadtxt(open(file, "rb"), delimiter=",")
         temp = self.specific_ordinary_ray
@@ -100,7 +101,6 @@ class Abstract_SPARC4_Spectral_Response:
 
     def apply_collimator(self):
         """Collimator spectral response."""
-
         file = os.path.join(self._DIR_PATH, "collimator.csv")
         coll_wavelength_interv, coll_transmitance = self._read_spreadsheet(file)
         transmitance = self._calculate_spline(coll_transmitance, coll_wavelength_interv)
@@ -112,12 +112,13 @@ class Abstract_SPARC4_Spectral_Response:
         )
 
     def apply_dichroic(self):
-        """Apply the dichroic spectral response.
+        """
+        Apply the dichroic spectral response.
 
 
         This functions applies the spectral response of the two
-        dichroics that compose each channel."""
-
+        dichroics that compose each channel.
+        """
         file = os.path.join(
             self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "dichroic_1.csv"
         )
@@ -145,7 +146,6 @@ class Abstract_SPARC4_Spectral_Response:
 
     def apply_camera(self):
         """Apply the camera spectral response."""
-
         file = os.path.join(self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "camera.csv")
         wavelength_interv, transmitance = self._read_spreadsheet(file)
         transmitance = self._calculate_spline(transmitance, wavelength_interv)
@@ -158,7 +158,6 @@ class Abstract_SPARC4_Spectral_Response:
 
     def apply_ccd(self):
         """Apply the ccd spectral response."""
-
         file = os.path.join(self._DIR_PATH, f"Channel {self._CHANNEL_ID}", "ccd.csv")
         wavelength_interv, transmitance = self._read_spreadsheet(file)
         transmitance = self._calculate_spline(transmitance, wavelength_interv)
@@ -187,30 +186,28 @@ class Abstract_SPARC4_Spectral_Response:
 
 
 class Concrete_SPARC4_Spectral_Response_1(Abstract_SPARC4_Spectral_Response):
+
     """Concrete SPARC4 spectral response of the channel 1."""
 
     _CHANNEL_ID = 1
 
-    pass
-
 
 class Concrete_SPARC4_Spectral_Response_2(Abstract_SPARC4_Spectral_Response):
+
     """Concrete SPARC4 spectral response of the channel 2."""
 
     _CHANNEL_ID = 2
 
-    pass
-
 
 class Concrete_SPARC4_Spectral_Response_3(Abstract_SPARC4_Spectral_Response):
+
     """Concrete SPARC4 spectral response of the channel 3."""
 
     _CHANNEL_ID = 3
-    pass
 
 
 class Concrete_SPARC4_Spectral_Response_4(Abstract_SPARC4_Spectral_Response):
+
     """Concrete SPARC4 spectral response of the channel 4."""
 
     _CHANNEL_ID = 4
-    pass

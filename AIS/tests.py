@@ -1,27 +1,28 @@
 # -*- coding: utf-8 -*-
+
 """
 Created on Tue Apr 27 10:23:27 2021
 
 @author: denis
 """
 
-import os
-from random import gauss
+# import os
+# from random import gauss
 
 # -------------------------------------------------------------------------------------------------------
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
+# import matplotlib.pyplot as plt
+# import numpy as np
+# import pandas as pd
 
-import Header
-from Artificial_Image_Simulator import Artificial_Image_Simulator
-from Background_Image import Background_Image
-from Channel_Creator import Concrete_Channel_1
-from SPARC4_Spectral_Response import Concrete_SPARC4_Spectral_Response_1
-from Spectrum_Calculation import Spectrum_Calculation
-from Telescope_Spectral_Response import Telescope_Spectral_Response
-from tests.SPARC4_SR_curves import *
-from tests.test_AIS_operation import multiply_matrices
+# import Header
+# from Artificial_Image_Simulator import Artificial_Image_Simulator
+# from Background_Image import Background_Image
+# from Channel_Creator import Concrete_Channel_1
+# from SPARC4_Spectral_Response import Concrete_SPARC4_Spectral_Response_1
+# from Spectrum_Calculation import Spectrum_Calculation
+# from Telescope_Spectral_Response import Telescope_Spectral_Response
+# from tests.SPARC4_SR_curves import *
+# from tests.test_AIS_operation import multiply_matrices
 
 # from tests.SPARC4_SR_curves import *
 # from tests.test_AIS_operation import multiply_matrices

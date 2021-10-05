@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Test of the Telescope Spectral Response Class.
+
+"""
+Test of the Telescope Spectral Response Class.
 
 Jun 14, 2021
 
