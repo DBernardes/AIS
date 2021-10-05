@@ -1,4 +1,4 @@
-|Unit Tests| |Documentation| |Code Cov| |Codacy| 
+|Unit Tests| |Documentation| |Code Cov| |Codacy| |Black|
 
 Introduction
 ============
@@ -194,4 +194,8 @@ References
       
 .. |Codacy| image:: https://app.codacy.com/project/badge/Grade/b2724af0f0b043bc84f768659f73fb77    
     :target: https://www.codacy.com/gh/DBernardes/AIS/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DBernardes/AIS&amp;utm_campaign=Badge_Grade
+
+.. |Black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+
       
