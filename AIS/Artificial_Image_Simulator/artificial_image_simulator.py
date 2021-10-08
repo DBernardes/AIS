@@ -422,13 +422,6 @@ class Artificial_Image_Simulator:
             self.specific_sky_extra_ordinary_ray[0, :]
         )
 
-        # print(
-        #     self.star_ordinary_ray,
-        #     self.star_extra_ordinary_ray,
-        #     self.sky_ordinary_ray,
-        #     self.sky_extra_ordinary_ray,
-        # )
-
     def _configure_image_name(self):
         """
         Create the image name.

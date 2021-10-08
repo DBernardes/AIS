@@ -1,12 +1,14 @@
-# This file has all the spectral response curves used in the test_SR_SR.py file
+"""This file has all the spectral response curves used in the test_SR_SR.py file"""
 
 import os
-from sys import exit
 
 import numpy as np
 import pandas as pd
 from scipy.interpolate import splev, splrep
 from Spectrum_Calculation import Spectrum_Calculation
+
+# from sys import exit
+
 
 l_init, l_final, l_step = 400, 1100, 50
 magnitude = 22
