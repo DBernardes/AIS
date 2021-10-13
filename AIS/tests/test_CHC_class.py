@@ -329,38 +329,30 @@ c4_extra_ordinary_ray_phot = 0
 
 
 def test_apply_sparc4_spectral_response_photometric_1(chc1):
-    (
-        specific_star_ordinary_ray,
-        specific_star_extra_ordinary_ray,
-    ) = chc1.apply_sparc4_spectral_response(
+    star_specific_photons_per_second = chc1.apply_sparc4_spectral_response(
         specific_flux.copy(),
     )
-    assert np.allclose(specific_star_ordinary_ray, c1_ordinary_ray_phot)
-    assert np.allclose(specific_star_extra_ordinary_ray, c1_extra_ordinary_ray_phot)
+    assert np.allclose(star_specific_photons_per_second, c1_ordinary_ray_phot)
 
 
 def test_apply_sparc4_spectral_response_photometric_2(chc2):
-    (
-        specific_star_ordinary_ray,
-        specific_star_extra_ordinary_ray,
-    ) = chc2.apply_sparc4_spectral_response(specific_flux)
-    assert np.allclose(specific_star_ordinary_ray, c2_ordinary_ray_phot)
-    assert np.allclose(specific_star_extra_ordinary_ray, c2_extra_ordinary_ray_phot)
+    star_specific_photons_per_second = chc2.apply_sparc4_spectral_response(
+        specific_flux.copy()
+    )
+    assert np.allclose(star_specific_photons_per_second, c2_ordinary_ray_phot)
 
 
 def test_apply_sparc4_spectral_response_photometric_3(chc3):
-    (
-        specific_star_ordinary_ray,
-        specific_star_extra_ordinary_ray,
-    ) = chc3.apply_sparc4_spectral_response(specific_flux)
-    assert np.allclose(specific_star_ordinary_ray, c3_ordinary_ray_phot)
-    assert np.allclose(specific_star_extra_ordinary_ray, c3_extra_ordinary_ray_phot)
+
+    star_specific_photons_per_second = chc3.apply_sparc4_spectral_response(
+        specific_flux.copy()
+    )
+    assert np.allclose(star_specific_photons_per_second, c3_ordinary_ray_phot)
 
 
 def test_apply_sparc4_spectral_response_photometric_4(chc4):
-    (
-        specific_star_ordinary_ray,
-        specific_star_extra_ordinary_ray,
-    ) = chc4.apply_sparc4_spectral_response(specific_flux)
-    assert np.allclose(specific_star_ordinary_ray, c4_ordinary_ray_phot)
-    assert np.allclose(specific_star_extra_ordinary_ray, c4_extra_ordinary_ray_phot)
+
+    star_specific_photons_per_second = chc4.apply_sparc4_spectral_response(
+        specific_flux.copy()
+    )
+    assert np.allclose(star_specific_photons_per_second, c4_ordinary_ray_phot)
