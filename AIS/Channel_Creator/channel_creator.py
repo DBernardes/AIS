@@ -127,9 +127,12 @@ class Abstract_Channel_Creator:
         self._S4_SR.apply_camera()
         self._S4_SR.apply_ccd()
         self.ordinary_ray = self._S4_SR.get_specific_ordinary_ray()
-        self.extra_ordinary_ray = self._S4_SR.get_specific_extra_ordinary_ray()
 
-        return self.ordinary_ray, self.extra_ordinary_ray
+        if self.sparc4_operation_mode == "phot":
+            return [self.ordinary_ray]
+        else:
+            self.extra_ordinary_ray = self._S4_SR.get_specific_extra_ordinary_ray()
+            return [self.ordinary_ray, self.extra_ordinary_ray]
 
 
 class Concrete_Channel_1(Abstract_Channel_Creator):

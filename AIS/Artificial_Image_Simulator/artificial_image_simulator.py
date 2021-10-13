@@ -341,16 +341,14 @@ class Artificial_Image_Simulator:
         self.read_noise = self.CHC.calculate_read_noise(ccd_operation_mode)
 
     def _calculate_star_specific_flux(self):
-        self.specific_star_ordinary_ray = self.SC.calculate_specific_flux(
-            self.star_magnitude
-        )
-        self.specific_star_extra_ordinary_ray = np.zeros((4, self.wavelength_len))
+        self.star_specific_photons_per_second = [
+            self.SC.calculate_specific_flux(self.star_magnitude)
+        ]
 
     def _calculate_sky_specific_flux(self):
-        self.specific_sky_ordinary_ray = self.SC.calculate_specific_flux(
-            self.star_magnitude + 3
-        )
-        self.specific_sky_extra_ordinary_ray = np.zeros((4, self.wavelength_len))
+        self.sky_specific_photons_per_second = [
+            self.SC.calculate_specific_flux(self.star_magnitude + 3)
+        ]
 
     def apply_atmosphere_spectral_response(self):
         """
@@ -361,15 +359,19 @@ class Artificial_Image_Simulator:
 
         """
 
-        self.specific_star_ordinary_ray = self.ASR.apply_atmosphere_spectral_response(
-            self.specific_star_ordinary_ray,
-            wavelength_interval=self.wavelength_interval,
-        )
+        self.star_specific_photons_per_second = [
+            self.ASR.apply_atmosphere_spectral_response(
+                self.star_specific_photons_per_second[0],
+                wavelength_interval=self.wavelength_interval,
+            )
+        ]
 
-        self.specific_sky_ordinary_ray = self.ASR.apply_atmosphere_spectral_response(
-            self.specific_sky_ordinary_ray,
-            wavelength_interval=self.wavelength_interval,
-        )
+        self.sky_specific_photons_per_second = [
+            self.ASR.apply_atmosphere_spectral_response(
+                self.sky_specific_photons_per_second[0],
+                wavelength_interval=self.wavelength_interval,
+            )
+        ]
 
     def apply_telescope_spectral_response(self):
         """
@@ -380,14 +382,19 @@ class Artificial_Image_Simulator:
 
         """
 
-        self.specific_star_ordinary_ray = self.TSR.apply_telescope_spectral_response(
-            self.specific_star_ordinary_ray,
-            wavelength_interval=self.wavelength_interval,
-        )
+        self.star_specific_photons_per_second = [
+            self.TSR.apply_telescope_spectral_response(
+                self.star_specific_photons_per_second[0],
+                wavelength_interval=self.wavelength_interval,
+            )
+        ]
 
-        self.specific_sky_ordinary_ray = self.TSR.apply_telescope_spectral_response(
-            self.specific_sky_ordinary_ray, wavelength_interval=self.wavelength_interval
-        )
+        self.sky_specific_photons_per_second = [
+            self.TSR.apply_telescope_spectral_response(
+                self.sky_specific_photons_per_second[0],
+                wavelength_interval=self.wavelength_interval,
+            )
+        ]
 
     def apply_sparc4_spectral_response(self):
         """
@@ -396,31 +403,25 @@ class Artificial_Image_Simulator:
         This functions applies the SPARC4 spectral response on the
         calculated star and sky specific flux.
         """
-
-        (
-            self.specific_star_ordinary_ray,
-            self.specific_star_extra_ordinary_ray,
-        ) = self.CHC.apply_sparc4_spectral_response(
-            self.specific_star_ordinary_ray,
+        self.star_specific_photons_per_second = self.CHC.apply_sparc4_spectral_response(
+            self.star_specific_photons_per_second[0]
         )
-
-        (
-            self.specific_sky_ordinary_ray,
-            self.specific_sky_extra_ordinary_ray,
-        ) = self.CHC.apply_sparc4_spectral_response(
-            self.specific_sky_ordinary_ray,
+        self.sky_specific_photons_per_second = self.CHC.apply_sparc4_spectral_response(
+            self.sky_specific_photons_per_second[0]
         )
 
     def _integrate_specific_fluxes(self):
         """Integrate the star and the sky specific fluxes."""
-        self.star_ordinary_ray = np.trapz(self.specific_star_ordinary_ray[0, :])
-        self.sky_ordinary_ray = np.trapz(self.specific_sky_ordinary_ray[0, :])
-        self.star_extra_ordinary_ray = np.trapz(
-            self.specific_star_extra_ordinary_ray[0, :]
-        )
-        self.sky_extra_ordinary_ray = np.trapz(
-            self.specific_sky_extra_ordinary_ray[0, :]
-        )
+        self.sky_photons_per_second = 0
+        for array in self.sky_specific_photons_per_second:
+            self.sky_photons_per_second += np.trapz(array[0, :])
+        star_photons_per_second = []
+        for array in self.star_specific_photons_per_second:
+            star_photons_per_second.append(np.trapz(array[0, :]))
+        self.star_ordinary_ray = star_photons_per_second[0]
+        self.star_extra_ordinary_ray = 0
+        if len(star_photons_per_second) > 1:
+            self.star_extra_ordinary_ray = star_photons_per_second[1]
 
     def _configure_image_name(self):
         """
@@ -494,11 +495,8 @@ class Artificial_Image_Simulator:
             A FITS file with the calculated artificial image
         """
         self._integrate_specific_fluxes()
-        sky_flux = (
-            self.sky_ordinary_ray + self.sky_extra_ordinary_ray
-        )  # posso fazer isso ?
-        background = self.BGI.create_background_image(sky_flux)
-        star_PSF = self.PSF.create_star_PSF(
+        background = self.BGI.create_background_image(self.sky_photons_per_second)
+        star_psf = self.PSF.create_star_PSF(
             self.star_coordinates,
             self.star_ordinary_ray,
             self.star_extra_ordinary_ray,
@@ -509,7 +507,7 @@ class Artificial_Image_Simulator:
 
         fits.writeto(
             image_name,
-            background + star_PSF,
+            background + star_psf,
             overwrite=True,
             header=header,
         )
@@ -528,10 +526,7 @@ class Artificial_Image_Simulator:
             A FITS file with the calculated background image
         """
         self._integrate_specific_fluxes()
-        sky_flux = (
-            self.sky_ordinary_ray + self.sky_extra_ordinary_ray
-        )  # posso fazer isso ?
-        background = self.BGI.create_background_image(sky_flux)
+        background = self.BGI.create_background_image(self.sky_photons_per_second)
         header = self.HDR.create_header()
 
         image_name = os.path.join(self.image_dir, self.image_name + "_BG.fits")
@@ -614,10 +609,7 @@ class Artificial_Image_Simulator:
         """
 
         self._integrate_specific_fluxes()
-        sky_flux = (
-            self.sky_ordinary_ray + self.sky_extra_ordinary_ray
-        )  # posso fazer isso ?
-        random_image = self.BGI.create_background_image(sky_flux)
+        random_image = self.BGI.create_background_image(self.sky_photons_per_second)
         for i in range(n):
             image_size = self.image_size
             x_coord = randint(0, image_size)
