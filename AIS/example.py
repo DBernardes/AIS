@@ -35,20 +35,12 @@ ais = Artificial_Image_Simulator(
     seeing=1.5,
 )
 
-ais.apply_atmosphere_spectral_response()
-ais.apply_telescope_spectral_response()
-ais.apply_sparc4_spectral_response()
+# ais.apply_atmosphere_spectral_response()
+# ais.apply_telescope_spectral_response()
+# ais.apply_sparc4_spectral_response()
 ais.create_artificial_image()
-<<<<<<< Updated upstream
-ais.create_background_image()
-ais.create_bias_image()
-ais.create_dark_image()
-ais.create_flat_image()
-ais.create_random_image(10)
-=======
 # ais.create_background_image()
 # ais.create_bias_image()
 # ais.create_dark_image()
 # ais.create_flat_image()
 # ais.create_random_image(10)
->>>>>>> Stashed changes
