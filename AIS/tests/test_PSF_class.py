@@ -77,7 +77,7 @@ def test_calculate_star_psf_photometric(psf):
     em_gain = dic["em_gain"]
     binn = dic["binn"]
     t_exp = dic["t_exp"]
-    gaussian_std = seeing * _SPARC4_PLATE_SCALE
+    gaussian_std = seeing / _SPARC4_PLATE_SCALE
 
     gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
     shape = (image_size, image_size)
@@ -99,7 +99,7 @@ def test_calculate_star_psf_photometric_polarimetric(psf):
     em_gain = dic["em_gain"]
     binn = dic["binn"]
     t_exp = dic["t_exp"]
-    gaussian_std = seeing * _SPARC4_PLATE_SCALE
+    gaussian_std = seeing / _SPARC4_PLATE_SCALE
 
     gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
     shape = (image_size, image_size)
