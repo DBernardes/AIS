@@ -48,7 +48,7 @@ class Abstract_Channel_Creator:
         self._CHANNEL_ID = 0
         self._SERIAL_NUMBER = 0
 
-    def get_channel_ID(self):
+    def get_channel_id(self):
         """Return the Channel ID."""
         return f"Channel {self._CHANNEL_ID}"
 

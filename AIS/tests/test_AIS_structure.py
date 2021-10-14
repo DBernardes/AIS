@@ -39,48 +39,48 @@ def ais():
 
 def test_Channel_Creator(ais):
     var = 0
-    if ais.CHC:
+    if ais.chc:
         var = 1
     assert var == 1
 
 
 def test_Point_Spread_Function(ais):
     var = 0
-    if ais.PSF:
+    if ais.psf:
         var = 1
     assert var == 1
 
 
 def test_Background_Image(ais):
     var = 0
-    if ais.BGI:
+    if ais.bgi:
         var = 1
     assert var == 1
 
 
 def test_HDR(ais):
     var = 0
-    if ais.HDR:
+    if ais.hdr:
         var = 1
     assert var == 1
 
 
 def test_Spectrum_Calculation(ais):
     var = 0
-    if ais.SC:
+    if ais.sc:
         var = 1
     assert var == 1
 
 
 def test_Telescope_Spectral_Response(ais):
     var = 0
-    if ais.TSR:
+    if ais.tsr:
         var = 1
     assert var == 1
 
 
 def test_Atmosphere_Spectral_Response(ais):
     var = 0
-    if ais.ASR:
+    if ais.asr:
         var = 1
     assert var == 1

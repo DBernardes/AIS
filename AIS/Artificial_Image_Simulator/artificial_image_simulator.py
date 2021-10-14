@@ -95,6 +95,9 @@ class Artificial_Image_Simulator:
     star_magnitude: 22, optional
         Magnitude of the star.
 
+    seeing: 1.5, optional
+        Seeing disc of the observatory.
+
     Yields
     ------
         image cube: array like
@@ -125,6 +128,7 @@ class Artificial_Image_Simulator:
         wavelength_interval=(400, 1100, 50),
         star_temperature=5700,
         star_magnitude=22,
+        seeing=1.5,
     ):
         """Initialize the class."""
         self.ccd_operation_mode = ccd_operation_mode
@@ -136,6 +140,7 @@ class Artificial_Image_Simulator:
         self.wavelength_interval = wavelength_interval
         self.star_temperature = star_temperature
         self.star_magnitude = star_magnitude
+        self.seeing = seeing
 
         self._verify_ccd_operation_mode()
         self._verify_class_parameters()
@@ -217,6 +222,13 @@ class Artificial_Image_Simulator:
                 "The star magnitude must be" + f"a number: {self.star_magnitude}"
             )
 
+        if not isinstance(self.seeing, (int, float)):
+            raise ValueError("The seeing must be" + f"a number: {self.seeing}")
+        elif self.seeing <= 0:
+            raise ValueError(
+                r"The seeing must be greater" + f"than zero: {self.seeing}"
+            )
+
     def _verify_ccd_operation_mode(self):
         """Verify if the provided CCD operation mode is correct."""
         dic_keywords_list = [
@@ -287,12 +299,12 @@ class Artificial_Image_Simulator:
             raise ValueError(f"CCD temperature out of range [-80, 20]: {ccd_temp}")
 
     def _initialize_subclasses(self):
-        self.SC = Spectrum_Calculation(
+        self.sc = Spectrum_Calculation(
             star_temperature=self.star_temperature,
             wavelength_interval=self.wavelength_interval,
         )
-        self.TSR = Telescope_Spectral_Response()
-        self.ASR = Atmosphere_Spectral_Response()
+        self.tsr = Telescope_Spectral_Response()
+        self.asr = Atmosphere_Spectral_Response()
 
         # -------------------------------------------------------------------------------------------
 
@@ -313,34 +325,37 @@ class Artificial_Image_Simulator:
             CHC = Concrete_Channel_4(
                 self.sparc4_operation_mode, self.wavelength_interval
             )
-        self.CHC = CHC
+        self.chc = CHC
         self._calculate_dark_current()
         self._calculate_read_noise(self.ccd_operation_mode)
-        self.PSF = Point_Spread_Function(CHC, self.ccd_operation_mode, self.ccd_gain)
-        self.BGI = Background_Image(
+        self.psf = Point_Spread_Function(
+            CHC, self.ccd_operation_mode, self.ccd_gain, self.seeing
+        )
+        self.bgi = Background_Image(
             self.ccd_operation_mode,
             self.ccd_gain,
             self.dark_current,
             self.read_noise,
             self.bias_level,
         )
-        self.HDR = Header(
+        self.hdr = Header(
             self.ccd_operation_mode, self.ccd_gain, CHC.get_serial_number()
         )
 
-    def get_channel_ID(self):
+    def get_channel_id(self):
         """Return the ID for the respective SPARC4 channel."""
-        return self.CHC.get_channel_ID()
+        return self.chc.get_channel_id()
 
     def _calculate_dark_current(self):
-        self.dark_current = self.CHC.calculate_dark_current(
+        self.dark_current = self.chc.calculate_dark_current(
             self.ccd_operation_mode["ccd_temp"]
         )
 
     def _calculate_read_noise(self, ccd_operation_mode):
-        self.read_noise = self.CHC.calculate_read_noise(ccd_operation_mode)
+        self.read_noise = self.chc.calculate_read_noise(ccd_operation_mode)
 
     def _calculate_star_specific_flux(self):
+<<<<<<< Updated upstream
         self.star_specific_photons_per_second = [
             self.SC.calculate_specific_flux(self.star_magnitude)
         ]
@@ -349,6 +364,18 @@ class Artificial_Image_Simulator:
         self.sky_specific_photons_per_second = [
             self.SC.calculate_specific_flux(self.star_magnitude + 3)
         ]
+=======
+        self.specific_star_ordinary_ray = self.sc.calculate_specific_flux(
+            self.star_magnitude
+        )
+        self.specific_star_extra_ordinary_ray = np.zeros((4, self.wavelength_len))
+
+    def _calculate_sky_specific_flux(self):
+        self.specific_sky_ordinary_ray = self.sc.calculate_specific_flux(
+            self.star_magnitude + 3
+        )
+        self.specific_sky_extra_ordinary_ray = np.zeros((4, self.wavelength_len))
+>>>>>>> Stashed changes
 
     def apply_atmosphere_spectral_response(self):
         """
@@ -359,6 +386,7 @@ class Artificial_Image_Simulator:
 
         """
 
+<<<<<<< Updated upstream
         self.star_specific_photons_per_second = [
             self.ASR.apply_atmosphere_spectral_response(
                 self.star_specific_photons_per_second[0],
@@ -372,6 +400,17 @@ class Artificial_Image_Simulator:
                 wavelength_interval=self.wavelength_interval,
             )
         ]
+=======
+        self.specific_star_ordinary_ray = self.asr.apply_atmosphere_spectral_response(
+            self.specific_star_ordinary_ray,
+            wavelength_interval=self.wavelength_interval,
+        )
+
+        self.specific_sky_ordinary_ray = self.asr.apply_atmosphere_spectral_response(
+            self.specific_sky_ordinary_ray,
+            wavelength_interval=self.wavelength_interval,
+        )
+>>>>>>> Stashed changes
 
     def apply_telescope_spectral_response(self):
         """
@@ -382,6 +421,7 @@ class Artificial_Image_Simulator:
 
         """
 
+<<<<<<< Updated upstream
         self.star_specific_photons_per_second = [
             self.TSR.apply_telescope_spectral_response(
                 self.star_specific_photons_per_second[0],
@@ -395,6 +435,16 @@ class Artificial_Image_Simulator:
                 wavelength_interval=self.wavelength_interval,
             )
         ]
+=======
+        self.specific_star_ordinary_ray = self.tsr.apply_telescope_spectral_response(
+            self.specific_star_ordinary_ray,
+            wavelength_interval=self.wavelength_interval,
+        )
+
+        self.specific_sky_ordinary_ray = self.tsr.apply_telescope_spectral_response(
+            self.specific_sky_ordinary_ray, wavelength_interval=self.wavelength_interval
+        )
+>>>>>>> Stashed changes
 
     def apply_sparc4_spectral_response(self):
         """
@@ -403,11 +453,27 @@ class Artificial_Image_Simulator:
         This functions applies the SPARC4 spectral response on the
         calculated star and sky specific flux.
         """
+<<<<<<< Updated upstream
         self.star_specific_photons_per_second = self.CHC.apply_sparc4_spectral_response(
             self.star_specific_photons_per_second[0]
         )
         self.sky_specific_photons_per_second = self.CHC.apply_sparc4_spectral_response(
             self.sky_specific_photons_per_second[0]
+=======
+
+        (
+            self.specific_star_ordinary_ray,
+            self.specific_star_extra_ordinary_ray,
+        ) = self.chc.apply_sparc4_spectral_response(
+            self.specific_star_ordinary_ray,
+        )
+
+        (
+            self.specific_sky_ordinary_ray,
+            self.specific_sky_extra_ordinary_ray,
+        ) = self.chc.apply_sparc4_spectral_response(
+            self.specific_sky_ordinary_ray,
+>>>>>>> Stashed changes
         )
 
     def _integrate_specific_fluxes(self):
@@ -495,13 +561,19 @@ class Artificial_Image_Simulator:
             A FITS file with the calculated artificial image
         """
         self._integrate_specific_fluxes()
+<<<<<<< Updated upstream
         background = self.BGI.create_background_image(self.sky_photons_per_second)
         star_psf = self.PSF.create_star_PSF(
+=======
+        sky_flux = self.sky_ordinary_ray + self.sky_extra_ordinary_ray
+        background = self.bgi.create_background_image(sky_flux)
+        star_psf = self.psf.create_star_psf(
+>>>>>>> Stashed changes
             self.star_coordinates,
             self.star_ordinary_ray,
             self.star_extra_ordinary_ray,
         )
-        header = self.HDR.create_header()
+        header = self.hdr.create_header()
 
         image_name = os.path.join(self.image_dir, self.image_name + ".fits")
 
@@ -526,8 +598,14 @@ class Artificial_Image_Simulator:
             A FITS file with the calculated background image
         """
         self._integrate_specific_fluxes()
+<<<<<<< Updated upstream
         background = self.BGI.create_background_image(self.sky_photons_per_second)
         header = self.HDR.create_header()
+=======
+        sky_flux = self.sky_ordinary_ray + self.sky_extra_ordinary_ray
+        background = self.bgi.create_background_image(sky_flux)
+        header = self.hdr.create_header()
+>>>>>>> Stashed changes
 
         image_name = os.path.join(self.image_dir, self.image_name + "_BG.fits")
 
@@ -551,8 +629,8 @@ class Artificial_Image_Simulator:
         Dark Image:
             A FITS file with the calculated dark image
         """
-        dark_image = self.BGI.create_dark_image()
-        header = self.HDR.create_header()
+        dark_image = self.bgi.create_dark_image()
+        header = self.hdr.create_header()
         image_name = os.path.join(self.image_dir, self.image_name + "_DARK.fits")
 
         fits.writeto(
@@ -575,8 +653,8 @@ class Artificial_Image_Simulator:
         Bias Image:
             A FITS file with the calculated bias image
         """
-        bias = self.BGI.create_bias_image()
-        header = self.HDR.create_header()
+        bias = self.bgi.create_bias_image()
+        header = self.hdr.create_header()
         header["EXPOSURE"] = 1e-5
 
         image_name = os.path.join(self.image_dir, self.image_name + "_BIAS.fits")
@@ -609,7 +687,12 @@ class Artificial_Image_Simulator:
         """
 
         self._integrate_specific_fluxes()
+<<<<<<< Updated upstream
         random_image = self.BGI.create_background_image(self.sky_photons_per_second)
+=======
+        sky_flux = self.sky_ordinary_ray + self.sky_extra_ordinary_ray
+        random_image = self.bgi.create_background_image(sky_flux)
+>>>>>>> Stashed changes
         for i in range(n):
             image_size = self.image_size
             x_coord = randint(0, image_size)
@@ -618,12 +701,12 @@ class Artificial_Image_Simulator:
             extra_ordinary_ray = 0
             if self.sparc4_operation_mode == "pol":
                 extra_ordinary_ray = ordinary_ray
-            random_image += self.PSF.create_star_PSF(
+            random_image += self.psf.create_star_psf(
                 (x_coord, y_coord),
                 ordinary_ray,
                 extra_ordinary_ray,
             )
-        header = self.HDR.create_header()
+        header = self.hdr.create_header()
         image_name = os.path.join(self.image_dir, self.image_name + "_RAND.fits")
 
         fits.writeto(
@@ -646,8 +729,8 @@ class Artificial_Image_Simulator:
         Flat Image:
             A FITS file with the calculated flat image
         """
-        flat_image = self.BGI.create_flat_image()
-        header = self.HDR.create_header()
+        flat_image = self.bgi.create_flat_image()
+        header = self.hdr.create_header()
 
         image_name = os.path.join(self.image_dir, self.image_name + "_FLAT.fits")
 

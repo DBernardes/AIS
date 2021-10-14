@@ -31,7 +31,8 @@ ordinary_ray = 100
 extra_ordinary_ray = 0
 image_size = 200
 star_coord = [100, 100]
-_SPARC4_SEEING = 4  # pix
+seeing = 1.5  # pix
+_SPARC4_PLATE_SCALE = 0.35  # pix/arcsec
 
 
 @pytest.fixture
@@ -43,7 +44,7 @@ def chc1():
 
 @pytest.fixture
 def psf(chc1):
-    return Point_Spread_Function(chc1, dic, ccd_gain)
+    return Point_Spread_Function(chc1, dic, ccd_gain, seeing)
 
 
 # ------------------------ Initialize the class --------------------------
@@ -69,13 +70,14 @@ def test_ccd_gain(psf):
     assert psf.ccd_gain == 3
 
 
-# ----------------------- Calculate star PSF -----------------------------
+# ----------------------- Calculate star psf -----------------------------
 
 
-def test_calculate_star_PSF_photometric(psf):
+def test_calculate_star_psf_photometric(psf):
     em_gain = dic["em_gain"]
     binn = dic["binn"]
     t_exp = dic["t_exp"]
+    gaussian_std = seeing * _SPARC4_PLATE_SCALE
 
     gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
     shape = (image_size, image_size)
@@ -83,20 +85,21 @@ def test_calculate_star_PSF_photometric(psf):
     table["amplitude"] = [gaussian_amplitude]
     table["x_mean"] = [star_coord[0]]
     table["y_mean"] = [star_coord[1]]
-    table["x_stddev"] = [_SPARC4_SEEING / binn]
-    table["y_stddev"] = [_SPARC4_SEEING / binn]
+    table["x_stddev"] = [gaussian_std / binn]
+    table["y_stddev"] = [gaussian_std / binn]
     table["theta"] = np.radians(np.array([0]))
 
     star_image = make_gaussian_sources_image(shape, table)
-    psf_image = psf.create_star_PSF(star_coord, ordinary_ray)
+    psf_image = psf.create_star_psf(star_coord, ordinary_ray)
 
     assert np.allclose(star_image, psf_image)
 
 
-def test_calculate_star_PSF_photometric_polarimetric(psf):
+def test_calculate_star_psf_photometric_polarimetric(psf):
     em_gain = dic["em_gain"]
     binn = dic["binn"]
     t_exp = dic["t_exp"]
+    gaussian_std = seeing * _SPARC4_PLATE_SCALE
 
     gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
     shape = (image_size, image_size)
@@ -104,8 +107,8 @@ def test_calculate_star_PSF_photometric_polarimetric(psf):
     table["amplitude"] = [gaussian_amplitude]
     table["x_mean"] = [star_coord[0]]
     table["y_mean"] = [star_coord[1]]
-    table["x_stddev"] = [_SPARC4_SEEING / binn]
-    table["y_stddev"] = [_SPARC4_SEEING / binn]
+    table["x_stddev"] = [gaussian_std / binn]
+    table["y_stddev"] = [gaussian_std / binn]
     table["theta"] = np.radians(np.array([0]))
     star_image = make_gaussian_sources_image(shape, table)
 
@@ -114,6 +117,6 @@ def test_calculate_star_PSF_photometric_polarimetric(psf):
     table["x_mean"] = [star_coord[0]]
     table["y_mean"] = [star_coord[1]]
     star_image += make_gaussian_sources_image(shape, table)
-    psf_image = psf.create_star_PSF(star_coord, ordinary_ray, extra_ordinary_ray)
+    psf_image = psf.create_star_psf(star_coord, ordinary_ray, extra_ordinary_ray)
 
     assert np.allclose(star_image, psf_image)

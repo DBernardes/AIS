@@ -46,23 +46,21 @@ class Point_Spread_Function:
     """
 
     _SPARC4_POL_SEPARATION = 40  # pix
-    _SPARC4_SEEING = 4  # pixels
+    _SPARC4_PLATE_SCALE = 0.35  # arcsec/pix
 
-    def __init__(
-        self,
-        Abstract_Channel_Creator,
-        ccd_operation_mode,
-        ccd_gain,
-    ):
+    def __init__(self, Abstract_Channel_Creator, ccd_operation_mode, ccd_gain, seeing):
         """Initialize the class."""
-        self.CHC = Abstract_Channel_Creator
+        self.chc = Abstract_Channel_Creator
         self.em_gain = ccd_operation_mode["em_gain"]
         self.binn = ccd_operation_mode["binn"]
         self.t_exp = ccd_operation_mode["t_exp"]
         self.image_size = ccd_operation_mode["image_size"]
         self.ccd_gain = ccd_gain
+        self.seeing = seeing
 
-    def create_star_PSF(
+        self.star_image = []
+
+    def create_star_psf(
         self,
         star_coordinates,
         ordinary_ray,
@@ -96,6 +94,7 @@ class Point_Spread_Function:
         image_size = self.image_size
         x_coord = star_coordinates[0]
         y_coord = star_coordinates[1]
+        gaussian_std = self.seeing / self._SPARC4_PLATE_SCALE
 
         gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
         shape = (image_size, image_size)
@@ -103,8 +102,8 @@ class Point_Spread_Function:
         table["amplitude"] = [gaussian_amplitude]
         table["x_mean"] = [x_coord]
         table["y_mean"] = [y_coord]
-        table["x_stddev"] = [self._SPARC4_SEEING / binn]
-        table["y_stddev"] = [self._SPARC4_SEEING / binn]
+        table["x_stddev"] = [gaussian_std / binn]
+        table["y_stddev"] = [gaussian_std / binn]
         table["theta"] = np.radians(np.array([0]))
 
         self.star_image = make_gaussian_sources_image(shape, table)

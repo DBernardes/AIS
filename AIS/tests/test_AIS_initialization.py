@@ -52,6 +52,7 @@ image_dir = "a"
 star_temperature = 5700
 star_magnitude = 22
 bias_level = 500
+seeing = 1.5
 
 
 @pytest.fixture
@@ -66,6 +67,7 @@ def ais():
         wavelength_interval=(l_init, l_final, l_step),
         star_temperature=star_temperature,
         star_magnitude=star_magnitude,
+        seeing=seeing,
     )
 
 
@@ -104,30 +106,34 @@ def test_star_magnitude(ais):
     assert ais.star_magnitude == star_magnitude
 
 
+def test_seeing(ais):
+    assert ais.seeing == seeing
+
+
 def test_CHC(ais):
     var = 0
-    if ais.CHC:
+    if ais.chc:
         var = 1
     assert var == 1
 
 
 def test_SC(ais):
     var = 0
-    if ais.SC:
+    if ais.sc:
         var = 1
     assert var == 1
 
 
 def test_TSR(ais):
     var = 0
-    if ais.TSR:
+    if ais.tsr:
         var = 1
     assert var == 1
 
 
 def test_ASR(ais):
     var = 0
-    if ais.ASR:
+    if ais.asr:
         var = 1
     assert var == 1
 
@@ -170,6 +176,11 @@ def test_star_magnitude_isnot_number():
         Artificial_Image_Simulator(dic, star_magnitude="a")
 
 
+def test_seeing_isnot_number():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, seeing="a")
+
+
 # ------------------provide a negative value to the parameters-----------------
 
 
@@ -188,14 +199,14 @@ def test_wavelength_interval_negative_value():
         Artificial_Image_Simulator(dic, wavelength_interval=(-20, 20, 20))
 
 
-def test_star_temperature_negative_value():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, star_temperature=-1)
-
-
 def test_star_magnitude_negative_value():
     ais = Artificial_Image_Simulator(dic, star_magnitude=-1)
     assert ais.star_magnitude == -1
+
+
+def test_seeing_negative_value():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, seeing=-1.5)
 
 
 # ----------------provide zero to the parameters----------------------
@@ -224,6 +235,11 @@ def test_star_temperature_zero_value():
 def test_star_magnitude_zero_value():
     ais = Artificial_Image_Simulator(dic, star_magnitude=0)
     assert ais.star_magnitude == 0
+
+
+def test_seeing_zero_value():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, seeing=0)
 
 
 # -------  provide a wrong parameter to the CCD operation mode---------------
@@ -695,19 +711,19 @@ def test_ccd_operation_mode_missing_parameter_image_size():
 
 def test_Channel_output_1():
     ais = Artificial_Image_Simulator(dic, channel=1)
-    assert ais.get_channel_ID() == "Channel 1"
+    assert ais.get_channel_id() == "Channel 1"
 
 
 def test_Channel_output_2():
     ais = Artificial_Image_Simulator(dic, channel=2)
-    assert ais.get_channel_ID() == "Channel 2"
+    assert ais.get_channel_id() == "Channel 2"
 
 
 def test_Channel_output_3():
     ais = Artificial_Image_Simulator(dic, channel=3)
-    assert ais.get_channel_ID() == "Channel 3"
+    assert ais.get_channel_id() == "Channel 3"
 
 
 def test_Channel_output_4():
     ais = Artificial_Image_Simulator(dic, channel=4)
-    assert ais.get_channel_ID() == "Channel 4"
+    assert ais.get_channel_id() == "Channel 4"
