@@ -44,8 +44,7 @@ jobs:
         pip install pytest-cov        
         python -m pytest -x --cov=./  
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1      
+      run: |
+        $ProgressPreference = 'SilentlyContinue'
         Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe 
-        -Outfile codecov.exe 
-      with:
-        fail_ci_if_error: true
+        -Outfile codecov.exe      
