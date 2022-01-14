@@ -227,18 +227,18 @@ Created on Tue Apr 27 10:23:27 2021
 from Artificial_Image_Simulator import Artificial_Image_Simulator
 
 # -------------------------------------------------------------------------------
-from Read_Noise_Calculation import Read_Noise_Calculation
+# from Read_Noise_Calculation import Read_Noise_Calculation
 
-dic = {
-    "em_mode": 1,
-    "em_gain": 2,
-    "preamp": 1,
-    "hss": 1,
-    "binn": 1,
-    "t_exp": 1,
-    "ccd_temp": -70,
-    "image_size": 1024,
-}
+# dic = {
+#     "em_mode": 1,
+#     "em_gain": 2,
+#     "preamp": 1,
+#     "hss": 1,
+#     "binn": 1,
+#     "t_exp": 1,
+#     "ccd_temp": -70,
+#     "image_size": 1024,
+# }
 
-rn_calc = Read_Noise_Calculation(dic, channel=4)
-rn_calc.calculate_read_noise()
+# rn_calc = Read_Noise_Calculation(dic, channel=4)
+# rn_calc.calculate_read_noise()
