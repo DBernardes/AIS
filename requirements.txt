@@ -4,8 +4,6 @@ matplotlib
 scipy
 photutils
 astropy
-openpyxl
-xlrd==2.0.1
 sphinx-rtd-theme
 sphinxcontrib-napoleon
 ipython

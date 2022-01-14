@@ -16,7 +16,7 @@ dic = {"em_mode": 0, "em_gain": 1, "binn": 1, "preamp": 1, "hss": 1}
 
 @pytest.fixture
 def rnc():
-    return Read_Noise_Calculation(dic, "Channel 1")
+    return Read_Noise_Calculation(dic, 1)
 
 
 # ------------------------ Initialize the class --------------------------

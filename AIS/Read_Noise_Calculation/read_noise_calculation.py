@@ -18,7 +18,7 @@ function of the EM gain.
 
 import os
 
-import openpyxl
+import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
 
@@ -45,14 +45,14 @@ class Read_Noise_Calculation:
         Directory of the spreadsheet with the read noise of the CCD
     """
 
-    def __init__(self, ccd_operation_mode, directory):
+    def __init__(self, ccd_operation_mode, channel):
         """Initialize the class."""
         self.em_mode = ccd_operation_mode["em_mode"]
         self.em_gain = ccd_operation_mode["em_gain"]
         self.hss = ccd_operation_mode["hss"]
         self.preamp = ccd_operation_mode["preamp"]
         self.binn = ccd_operation_mode["binn"]
-        self.directory = directory
+        self.directory = f"Channel {channel}"
 
     def get_operation_mode(self):
         """Print the operation mode on the screen."""
@@ -115,11 +115,11 @@ class Read_Noise_Calculation:
             + str(int(self.binn))
             + "HSS"
             + str(int(self.hss))
-            + ".xlsx",
+            + ".csv",
         )
-        spreadsheet = list(openpyxl.load_workbook(tab_name).active.values)
-        column_em_gain = [value[0] for value in spreadsheet[1:12]]
-        column_noise = [value[1] for value in spreadsheet[1:12]]
+        spreadsheet = pd.read_csv(tab_name, dtype=np.float64)
+        column_em_gain = spreadsheet["EM Gain"]
+        column_noise = spreadsheet["Noise (e-)"]
         f = interp1d(column_em_gain, column_noise)
         read_noise = f(self.em_gain)
 

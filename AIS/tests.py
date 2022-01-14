@@ -194,31 +194,51 @@ Created on Tue Apr 27 10:23:27 2021
 
 # -------------------------------------------------------------------------------
 
-import os
+# import os
+
+# from Artificial_Image_Simulator import Artificial_Image_Simulator
+
+# dic = {
+#     "em_mode": 0,
+#     "em_gain": 1,
+#     "preamp": 2,
+#     "hss": 0.1,
+#     "binn": 1,
+#     "t_exp": 1,
+#     "ccd_temp": -70,
+#     "image_size": 1024,
+# }
+
+
+# ais = Artificial_Image_Simulator(
+#     ccd_operation_mode=dic,
+#     channel=1,
+#     star_coordinates=[512, 512],
+#     bias_level=500,
+#     sparc4_operation_mode="phot",
+#     image_dir=os.path.join("..", "FITS"),
+#     wavelength_interval=(400, 1100, 50),
+#     star_temperature=5700,
+# )
+
+# ais.create_artificial_image()
+
 
 from Artificial_Image_Simulator import Artificial_Image_Simulator
 
+# -------------------------------------------------------------------------------
+from Read_Noise_Calculation import Read_Noise_Calculation
+
 dic = {
-    "em_mode": 0,
-    "em_gain": 1,
-    "preamp": 2,
-    "hss": 0.1,
+    "em_mode": 1,
+    "em_gain": 2,
+    "preamp": 1,
+    "hss": 1,
     "binn": 1,
     "t_exp": 1,
     "ccd_temp": -70,
     "image_size": 1024,
 }
 
-
-ais = Artificial_Image_Simulator(
-    ccd_operation_mode=dic,
-    channel=1,
-    star_coordinates=[512, 512],
-    bias_level=500,
-    sparc4_operation_mode="phot",
-    image_dir=os.path.join("..", "FITS"),
-    wavelength_interval=(400, 1100, 50),
-    star_temperature=5700,
-)
-
-ais.create_artificial_image()
+rn_calc = Read_Noise_Calculation(dic, channel=4)
+rn_calc.calculate_read_noise()
