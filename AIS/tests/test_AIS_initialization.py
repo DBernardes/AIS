@@ -34,7 +34,7 @@ from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 from .SPARC4_SR_curves import l_final, l_init, l_step
 
 dic = {
-    "em_mode": 0,
+    "em_mode": "Conv",
     "em_gain": 1,
     "preamp": 1,
     "hss": 1,
@@ -53,6 +53,7 @@ star_temperature = 5700
 star_magnitude = 22
 bias_level = 500
 seeing = 1.5
+air_mass = 1
 
 
 @pytest.fixture
@@ -68,6 +69,7 @@ def ais():
         star_temperature=star_temperature,
         star_magnitude=star_magnitude,
         seeing=seeing,
+        air_mass=air_mass,
     )
 
 
@@ -108,6 +110,10 @@ def test_star_magnitude(ais):
 
 def test_seeing(ais):
     assert ais.seeing == seeing
+
+
+def test_air_mass(ais):
+    assert ais.air_mass == air_mass
 
 
 def test_CHC(ais):
@@ -181,6 +187,11 @@ def test_seeing_isnot_number():
         Artificial_Image_Simulator(dic, seeing="a")
 
 
+def test_air_mass_isnot_number():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, air_mass="a")
+
+
 # ------------------provide a negative value to the parameters-----------------
 
 
@@ -207,6 +218,11 @@ def test_star_magnitude_negative_value():
 def test_seeing_negative_value():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(dic, seeing=-1.5)
+
+
+def test_air_mass_negative_value():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, air_mass=-air_mass)
 
 
 # ----------------provide zero to the parameters----------------------
@@ -242,13 +258,18 @@ def test_seeing_zero_value():
         Artificial_Image_Simulator(dic, seeing=0)
 
 
+def test_air_mass_zero_value():
+    ais = Artificial_Image_Simulator(dic, air_mass=0)
+    assert ais.air_mass == 0
+
+
 # -------  provide a wrong parameter to the CCD operation mode---------------
 
 
 def test_ccd_operation_mode_wrong_keyword_em_mode():
     dic = {
-        "em_modee": 0,
-        "em_gain": 2,
+        "em_modee": "Conv",
+        "em_gain": 1,
         "preamp": 1,
         "hss": 1,
         "binn": 1,
@@ -262,8 +283,8 @@ def test_ccd_operation_mode_wrong_keyword_em_mode():
 
 def test_ccd_operation_mode_wrong_keyword_em_gain():
     dic = {
-        "em_mode": 0,
-        "em_gainn": 2,
+        "em_mode": "Conv",
+        "em_gainn": 1,
         "preamp": 1,
         "hss": 1,
         "binn": 1,
@@ -277,8 +298,8 @@ def test_ccd_operation_mode_wrong_keyword_em_gain():
 
 def test_ccd_operation_mode_wrong_keyword_preamp():
     dic = {
-        "em_mode": 0,
-        "em_gain": 2,
+        "em_mode": "Conv",
+        "em_gain": 1,
         "preampp": 1,
         "hss": 1,
         "binn": 1,
@@ -292,8 +313,8 @@ def test_ccd_operation_mode_wrong_keyword_preamp():
 
 def test_ccd_operation_mode_wrong_keyword_hss():
     dic = {
-        "em_mode": 0,
-        "em_gain": 2,
+        "em_mode": "Conv",
+        "em_gain": 1,
         "preamp": 1,
         "hsss": 1,
         "binn": 1,
@@ -307,8 +328,8 @@ def test_ccd_operation_mode_wrong_keyword_hss():
 
 def test_ccd_operation_mode_wrong_keyword_bin():
     dic = {
-        "em_mode": 0,
-        "em_gain": 2,
+        "em_mode": "Conv",
+        "em_gain": 1,
         "preamp": 1,
         "hss": 1,
         "bin": 1,
@@ -322,8 +343,8 @@ def test_ccd_operation_mode_wrong_keyword_bin():
 
 def test_ccd_operation_mode_wrong_keyword_t_exp():
     dic = {
-        "em_mode": 0,
-        "em_gain": 2,
+        "em_mode": "Conv",
+        "em_gain": 1,
         "preamp": 1,
         "hss": 1,
         "binn": 1,
@@ -337,8 +358,8 @@ def test_ccd_operation_mode_wrong_keyword_t_exp():
 
 def test_ccd_operation_mode_wrong_keyword_ccd_temp():
     dic = {
-        "em_mode": 0,
-        "em_gain": 2,
+        "em_mode": "Conv",
+        "em_gain": 1,
         "preamp": 1,
         "hss": 1,
         "binn": 1,
@@ -352,8 +373,8 @@ def test_ccd_operation_mode_wrong_keyword_ccd_temp():
 
 def test_ccd_operation_mode_wrong_keyword_image_size():
     dic = {
-        "em_mode": 0,
-        "em_gain": 2,
+        "em_mode": "Conv",
+        "em_gain": 1,
         "preamp": 1,
         "hss": 1,
         "binn": 1,
@@ -385,7 +406,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_mode():
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_1():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 2,
         "preamp": 1,
         "hss": 1,
@@ -400,7 +421,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_1():
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_2():
     dic = {
-        "em_mode": 1,
+        "em_mode": "EM",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -415,7 +436,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_2():
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_3():
     dic = {
-        "em_mode": 1,
+        "em_mode": "EM",
         "em_gain": "a",
         "preamp": 1,
         "hss": 1,
@@ -430,7 +451,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_3():
 
 def test_ccd_operation_mode_wrong_keyvalue_preamp():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 3,
         "hss": 1,
@@ -445,7 +466,7 @@ def test_ccd_operation_mode_wrong_keyvalue_preamp():
 
 def test_ccd_operation_mode_wrong_keyvalue_hss():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 0,
@@ -460,7 +481,7 @@ def test_ccd_operation_mode_wrong_keyvalue_hss():
 
 def test_ccd_operation_mode_wrong_keyvalue_bin():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -475,7 +496,7 @@ def test_ccd_operation_mode_wrong_keyvalue_bin():
 
 def test_ccd_operation_mode_wrong_keyvalue_t_exp_1():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -490,7 +511,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_exp_1():
 
 def test_ccd_operation_mode_wrong_keyvalue_t_exp_2():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -505,7 +526,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_exp_2():
 
 def test_ccd_operation_mode_wrong_keyvalue_ccd_temp_1():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -520,7 +541,7 @@ def test_ccd_operation_mode_wrong_keyvalue_ccd_temp_1():
 
 def test_ccd_operation_mode_wrong_keyvalue_t_ccd_temp_2():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -535,7 +556,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_ccd_temp_2():
 
 def test_ccd_operation_mode_wrong_keyvalue_t_image_size_1():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -550,7 +571,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_1():
 
 def test_ccd_operation_mode_wrong_keyvalue_t_image_size_2():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -565,7 +586,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_2():
 
 def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -610,7 +631,7 @@ def test_ccd_operation_mode_missing_parameter_em_mode():
 
 def test_ccd_operation_mode_missing_parameter_em_gain():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "preamp": 1,
         "hss": 1,
         "binn": 1,
@@ -624,7 +645,7 @@ def test_ccd_operation_mode_missing_parameter_em_gain():
 
 def test_ccd_operation_mode_missing_parameter_preamp():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "hss": 1,
         "binn": 1,
@@ -638,7 +659,7 @@ def test_ccd_operation_mode_missing_parameter_preamp():
 
 def test_ccd_operation_mode_missing_parameter_hss():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "binn": 1,
@@ -652,7 +673,7 @@ def test_ccd_operation_mode_missing_parameter_hss():
 
 def test_ccd_operation_mode_missing_parameter_t_exp():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -666,7 +687,7 @@ def test_ccd_operation_mode_missing_parameter_t_exp():
 
 def test_ccd_operation_mode_missing_parameter_bin():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -680,7 +701,7 @@ def test_ccd_operation_mode_missing_parameter_bin():
 
 def test_ccd_operation_mode_missing_parameter_ccd_temp():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -694,7 +715,7 @@ def test_ccd_operation_mode_missing_parameter_ccd_temp():
 
 def test_ccd_operation_mode_missing_parameter_image_size():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,

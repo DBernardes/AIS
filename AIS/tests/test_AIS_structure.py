@@ -15,7 +15,7 @@ import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
 dic = {
-    "em_mode": 0,
+    "em_mode": "Conv",
     "em_gain": 1,
     "preamp": 1,
     "hss": 1,

@@ -41,9 +41,9 @@ class Artificial_Image_Simulator:
         A python dictionary with the CCD operation mode. The allowed keywords
         values for the dictionary are
 
-        * em_mode: {0, 1}
+        * em_mode: {Conv, EM}
 
-           Use the 0 for the Conventional Mode and 1 for the EM Mode
+           Use the Conv for the Conventional Mode and EM for the Electron Multiplying mode
 
         * em_gain: float
 
@@ -76,7 +76,6 @@ class Artificial_Image_Simulator:
     channel: {1, 2, 3, 4}, optional
         The SPARC4 channel
 
-
     star_coordinates: tuple, optional
         XY star coordinates in the image
 
@@ -97,6 +96,25 @@ class Artificial_Image_Simulator:
 
     seeing: 1.5, optional
         Seeing disc of the observatory.
+
+    sparc4_operation_mode: dictinary
+        A python dictionary with the SPARC4 operation mode. The allowed keywords for the
+        dictionary are:
+
+        * acquisition_mode: {photometric, polarimetric}
+
+            The acquisition mode of the sparc4.
+
+        * calibration_wheel: {polarizer, depolarizer, empty}
+
+            The position of the calibration wheel.
+
+        * waveplate: {half, quarter}
+
+            The waveplate for polarimetric measurements.
+
+    air_mass: 1.0, optional
+        The air mass in the light path.
 
     Yields
     ------
@@ -129,6 +147,7 @@ class Artificial_Image_Simulator:
         star_temperature=5700,
         star_magnitude=22,
         seeing=1.5,
+        air_mass=1.0,
     ):
         """Initialize the class."""
         self.ccd_operation_mode = ccd_operation_mode
@@ -141,6 +160,7 @@ class Artificial_Image_Simulator:
         self.star_temperature = star_temperature
         self.star_magnitude = star_magnitude
         self.seeing = seeing
+        self.air_mass = air_mass
 
         self._verify_ccd_operation_mode()
         self._verify_class_parameters()
@@ -229,6 +249,13 @@ class Artificial_Image_Simulator:
                 r"The seeing must be greater" + f"than zero: {self.seeing}"
             )
 
+        if not isinstance(self.air_mass, (int, float)):
+            raise ValueError("The air mass must be" + f"a number: {self.air_mass}")
+        elif self.air_mass < 0:
+            raise ValueError(
+                r"The air mass must be greater or equal to" + f"zero: {self.air_mass}"
+            )
+
     def _verify_ccd_operation_mode(self):
         """Verify if the provided CCD operation mode is correct."""
         dic_keywords_list = [
@@ -259,12 +286,12 @@ class Artificial_Image_Simulator:
         ccd_temp = self.ccd_operation_mode["ccd_temp"]
         image_size = self.ccd_operation_mode["image_size"]
 
-        if em_mode not in [0, 1]:
+        if em_mode not in ["Conv", "EM"]:
             raise ValueError(f"Invalid value for the EM mode: {em_mode}")
-        if em_mode == 0:
+        if em_mode == "Conv":
             if em_gain != 1:
                 raise ValueError(
-                    "The EM Gain must be 1 for the Conventional" + f" Mode: {em_gain}"
+                    f"The EM Gain must be 1 for the Conventional Mode: {em_gain}"
                 )
         else:
             if not isinstance(em_gain, (float, int)):
@@ -377,6 +404,7 @@ class Artificial_Image_Simulator:
             self.asr.apply_atmosphere_spectral_response(
                 self.star_specific_photons_per_second[0],
                 wavelength_interval=self.wavelength_interval,
+                air_mass=self.air_mass,
             )
         ]
 
@@ -384,6 +412,7 @@ class Artificial_Image_Simulator:
             self.asr.apply_atmosphere_spectral_response(
                 self.sky_specific_photons_per_second[0],
                 wavelength_interval=self.wavelength_interval,
+                air_mass=self.air_mass,
             )
         ]
 
@@ -451,9 +480,7 @@ class Artificial_Image_Simulator:
         """
         dic = self.ccd_operation_mode
         em_gain = "_G" + str(dic["em_gain"])
-        em_mode = "CONV"
-        if dic["em_mode"] == 1:
-            em_mode = "EM"
+        em_mode = dic["em_mode"].upper()
         hss = "_HSS" + str(dic["hss"])
         preamp = "_PA" + str(dic["preamp"])
         binn = "_B" + str(dic["binn"])
@@ -473,7 +500,7 @@ class Artificial_Image_Simulator:
             tab_index = 21
         elif hss == 1:
             tab_index = 17
-            if em_mode == 1:
+            if em_mode == "EM":
                 tab_index = 13
         elif hss == 10:
             tab_index = 9

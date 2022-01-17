@@ -42,7 +42,7 @@ from .SPARC4_SR_curves import (
 )
 
 dic = {
-    "em_mode": 0,
+    "em_mode": "Conv",
     "em_gain": 1,
     "preamp": 1,
     "hss": 1,
@@ -213,31 +213,31 @@ def test_integrate_fluxes(ais):
 @pytest.mark.parametrize(
     "em_mode, em_gain, hss, preamp, binn, t_exp, image_name",
     [
-        (0, 1, 0.1, 1, 1, 1, "CONV_HSS0.1_PA1_B1_TEXP1_G1"),
-        (0, 1, 0.1, 1, 2, 1, "CONV_HSS0.1_PA1_B2_TEXP1_G1"),
-        (0, 1, 0.1, 2, 1, 1, "CONV_HSS0.1_PA2_B1_TEXP1_G1"),
-        (0, 1, 0.1, 2, 2, 1, "CONV_HSS0.1_PA2_B2_TEXP1_G1"),
-        (0, 1, 1, 1, 1, 1, "CONV_HSS1_PA1_B1_TEXP1_G1"),
-        (0, 1, 1, 1, 2, 1, "CONV_HSS1_PA1_B2_TEXP1_G1"),
-        (0, 1, 1, 2, 1, 1, "CONV_HSS1_PA2_B1_TEXP1_G1"),
-        (0, 1, 1, 2, 2, 1, "CONV_HSS1_PA2_B2_TEXP1_G1"),
-        (1, 2, 1, 1, 1, 1, "EM_HSS1_PA1_B1_TEXP1_G2"),
-        (1, 2, 1, 1, 2, 1, "EM_HSS1_PA1_B2_TEXP1_G2"),
-        (1, 2, 1, 2, 1, 1, "EM_HSS1_PA2_B1_TEXP1_G2"),
-        (1, 2, 1, 2, 2, 1, "EM_HSS1_PA2_B2_TEXP1_G2"),
-        (1, 2, 10, 1, 1, 1, "EM_HSS10_PA1_B1_TEXP1_G2"),
-        (1, 2, 10, 1, 2, 1, "EM_HSS10_PA1_B2_TEXP1_G2"),
-        (1, 2, 10, 2, 1, 1, "EM_HSS10_PA2_B1_TEXP1_G2"),
-        (1, 2, 10, 2, 2, 1, "EM_HSS10_PA2_B2_TEXP1_G2"),
-        (1, 2, 20, 1, 1, 1, "EM_HSS20_PA1_B1_TEXP1_G2"),
-        (1, 2, 20, 1, 2, 1, "EM_HSS20_PA1_B2_TEXP1_G2"),
-        (1, 2, 20, 2, 1, 1, "EM_HSS20_PA2_B1_TEXP1_G2"),
-        (1, 2, 20, 2, 2, 1, "EM_HSS20_PA2_B2_TEXP1_G2"),
-        (1, 2, 30, 1, 1, 1, "EM_HSS30_PA1_B1_TEXP1_G2"),
-        (1, 2, 30, 1, 2, 1, "EM_HSS30_PA1_B2_TEXP1_G2"),
-        (1, 2, 30, 2, 1, 1, "EM_HSS30_PA2_B1_TEXP1_G2"),
-        (1, 2, 30, 2, 2, 1, "EM_HSS30_PA2_B2_TEXP1_G2"),
-        (1, 2, 30, 2, 2, 2, "EM_HSS30_PA2_B2_TEXP2_G2"),
+        ("Conv", 1, 0.1, 1, 1, 1, "CONV_HSS0.1_PA1_B1_TEXP1_G1"),
+        ("Conv", 1, 0.1, 1, 2, 1, "CONV_HSS0.1_PA1_B2_TEXP1_G1"),
+        ("Conv", 1, 0.1, 2, 1, 1, "CONV_HSS0.1_PA2_B1_TEXP1_G1"),
+        ("Conv", 1, 0.1, 2, 2, 1, "CONV_HSS0.1_PA2_B2_TEXP1_G1"),
+        ("Conv", 1, 1, 1, 1, 1, "CONV_HSS1_PA1_B1_TEXP1_G1"),
+        ("Conv", 1, 1, 1, 2, 1, "CONV_HSS1_PA1_B2_TEXP1_G1"),
+        ("Conv", 1, 1, 2, 1, 1, "CONV_HSS1_PA2_B1_TEXP1_G1"),
+        ("Conv", 1, 1, 2, 2, 1, "CONV_HSS1_PA2_B2_TEXP1_G1"),
+        ("EM", 2, 1, 1, 1, 1, "EM_HSS1_PA1_B1_TEXP1_G2"),
+        ("EM", 2, 1, 1, 2, 1, "EM_HSS1_PA1_B2_TEXP1_G2"),
+        ("EM", 2, 1, 2, 1, 1, "EM_HSS1_PA2_B1_TEXP1_G2"),
+        ("EM", 2, 1, 2, 2, 1, "EM_HSS1_PA2_B2_TEXP1_G2"),
+        ("EM", 2, 10, 1, 1, 1, "EM_HSS10_PA1_B1_TEXP1_G2"),
+        ("EM", 2, 10, 1, 2, 1, "EM_HSS10_PA1_B2_TEXP1_G2"),
+        ("EM", 2, 10, 2, 1, 1, "EM_HSS10_PA2_B1_TEXP1_G2"),
+        ("EM", 2, 10, 2, 2, 1, "EM_HSS10_PA2_B2_TEXP1_G2"),
+        ("EM", 2, 20, 1, 1, 1, "EM_HSS20_PA1_B1_TEXP1_G2"),
+        ("EM", 2, 20, 1, 2, 1, "EM_HSS20_PA1_B2_TEXP1_G2"),
+        ("EM", 2, 20, 2, 1, 1, "EM_HSS20_PA2_B1_TEXP1_G2"),
+        ("EM", 2, 20, 2, 2, 1, "EM_HSS20_PA2_B2_TEXP1_G2"),
+        ("EM", 2, 30, 1, 1, 1, "EM_HSS30_PA1_B1_TEXP1_G2"),
+        ("EM", 2, 30, 1, 2, 1, "EM_HSS30_PA1_B2_TEXP1_G2"),
+        ("EM", 2, 30, 2, 1, 1, "EM_HSS30_PA2_B1_TEXP1_G2"),
+        ("EM", 2, 30, 2, 2, 1, "EM_HSS30_PA2_B2_TEXP1_G2"),
+        ("EM", 2, 30, 2, 2, 2, "EM_HSS30_PA2_B2_TEXP2_G2"),
     ],
 )
 def test_create_image_name(ais, em_mode, em_gain, hss, preamp, binn, t_exp, image_name):
@@ -262,18 +262,18 @@ def test_create_image_name(ais, em_mode, em_gain, hss, preamp, binn, t_exp, imag
 @pytest.mark.parametrize(
     "em_mode, em_gain, hss, preamp, binn, ccd_gain",
     [
-        (0, 2, 0.1, 1, 1, 3.35),
-        (0, 2, 0.1, 2, 1, 0.80),
-        (0, 2, 1, 1, 1, 3.37),
-        (0, 2, 1, 2, 1, 0.80),
-        (1, 2, 1, 1, 1, 15.90),
-        (1, 2, 1, 2, 1, 3.88),
-        (1, 2, 10, 1, 1, 16.00),
-        (1, 2, 10, 2, 1, 3.96),
-        (1, 2, 20, 1, 1, 16.40),
-        (1, 2, 20, 2, 1, 4.39),
-        (1, 2, 30, 1, 1, 17.20),
-        (1, 2, 30, 2, 1, 5.27),
+        ("Conv", 1, 0.1, 1, 1, 3.35),
+        ("Conv", 1, 0.1, 2, 1, 0.80),
+        ("Conv", 1, 1, 1, 1, 3.37),
+        ("Conv", 1, 1, 2, 1, 0.80),
+        ("EM", 2, 1, 1, 1, 15.90),
+        ("EM", 2, 1, 2, 1, 3.88),
+        ("EM", 2, 10, 1, 1, 16.00),
+        ("EM", 2, 10, 2, 1, 3.96),
+        ("EM", 2, 20, 1, 1, 16.40),
+        ("EM", 2, 20, 2, 1, 4.39),
+        ("EM", 2, 30, 1, 1, 17.20),
+        ("EM", 2, 30, 2, 1, 5.27),
     ],
 )
 def test_configure_gain(ais, em_mode, em_gain, hss, preamp, binn, ccd_gain):
@@ -296,7 +296,7 @@ def test_configure_gain(ais, em_mode, em_gain, hss, preamp, binn, ccd_gain):
 
 def test_create_artificial_image_phot():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -312,7 +312,7 @@ def test_create_artificial_image_phot():
 
 def test_create_artificial_image_pol():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -330,7 +330,7 @@ def test_create_artificial_image_pol():
 
 def test_create_background_image():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -346,7 +346,7 @@ def test_create_background_image():
 
 def test_creat_bias_image():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -362,7 +362,7 @@ def test_creat_bias_image():
 
 def test_creat_dark_image():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -378,7 +378,7 @@ def test_creat_dark_image():
 
 def test_creat_random_image():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -394,7 +394,7 @@ def test_creat_random_image():
 
 def test_creat_flat_image():
     dic = {
-        "em_mode": 0,
+        "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,

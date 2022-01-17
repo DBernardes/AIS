@@ -31,7 +31,7 @@ class Read_Noise_Calculation:
     ccd_operation_mode: dictionary
         A dictionary with the parameters of the CCD operation mode.
 
-        em_mode : [0, 1]
+        em_mode : [Conv, EM]
             CCD Electron Multiplying Mode
         em_gain : float
             CCD Electron Multiplying gain
@@ -72,9 +72,9 @@ class Read_Noise_Calculation:
         the values presente by the respective spreadsheet, as a function of the
         CCD EM gain.
         """
-        if self.em_mode == 0:
+        if self.em_mode == "Conv":
             self._calculate_read_noise_conventional_mode()
-        if self.em_mode == 1:
+        if self.em_mode == "EM":
             self._calculate_read_noise_em_mode()
         return self.read_noise
 

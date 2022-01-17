@@ -224,7 +224,8 @@ Created on Tue Apr 27 10:23:27 2021
 # ais.create_artificial_image()
 
 
-from Artificial_Image_Simulator import Artificial_Image_Simulator
+from Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
+from tests.SPARC4_SR_curves import specific_flux, wavelength_interval
 
 # -------------------------------------------------------------------------------
 # from Read_Noise_Calculation import Read_Noise_Calculation
@@ -242,3 +243,11 @@ from Artificial_Image_Simulator import Artificial_Image_Simulator
 
 # rn_calc = Read_Noise_Calculation(dic, channel=4)
 # rn_calc.calculate_read_noise()
+
+# -------------------------------------------------------------------------------
+
+
+atm_sr = Atmosphere_Spectral_Response(1, "photometric")
+print(specific_flux)
+new_flux = atm_sr.apply_atmosphere_spectral_response(specific_flux, wavelength_interval)
+print(new_flux)

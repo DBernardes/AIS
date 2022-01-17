@@ -44,7 +44,7 @@ from .SPARC4_SR_curves import (
 )
 
 dic = {
-    "em_mode": 0,
+    "em_mode": "Conv",
     "em_gain": 1,
     "preamp": 1,
     "hss": 1,
