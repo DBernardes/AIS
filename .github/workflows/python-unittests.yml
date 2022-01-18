@@ -39,8 +39,7 @@ jobs:
         cd AIS
         python -m pytest -x  
     - name: Generate coverage report
-      run: |
-        cd AIS
+      run: |        
         pip install pytest-cov        
         python -m pytest -x --cov=./  
     - name: Upload coverage to Codecov
