@@ -31,7 +31,7 @@ Created on Fri Apr 16 09:10:51 2021
 import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
-from .SPARC4_SR_curves import l_final, l_init, l_step
+from .AIS_spectral_response_curves import l_final, l_init, l_step
 
 dic = {
     "em_mode": "Conv",
@@ -54,6 +54,7 @@ star_magnitude = 22
 bias_level = 500
 seeing = 1.5
 air_mass = 1
+sky_condition = "photometric"
 
 
 @pytest.fixture
@@ -70,6 +71,7 @@ def ais():
         star_magnitude=star_magnitude,
         seeing=seeing,
         air_mass=air_mass,
+        sky_condition=sky_condition,
     )
 
 
@@ -114,6 +116,10 @@ def test_seeing(ais):
 
 def test_air_mass(ais):
     assert ais.air_mass == air_mass
+
+
+def test_sky_condition(ais):
+    assert ais.sky_condition == sky_condition
 
 
 def test_CHC(ais):
@@ -261,6 +267,11 @@ def test_seeing_zero_value():
 def test_air_mass_zero_value():
     ais = Artificial_Image_Simulator(dic, air_mass=0)
     assert ais.air_mass == 0
+
+
+def test_sky_condition_zero_value():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(dic, sky_condition=0)
 
 
 # -------  provide a wrong parameter to the CCD operation mode---------------

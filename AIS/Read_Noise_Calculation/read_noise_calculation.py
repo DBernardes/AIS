@@ -94,6 +94,7 @@ class Read_Noise_Calculation:
         if self.binn == 2:
             indice_tab += 1
         file_name = os.path.join(
+            "AIS",
             "Read_Noise_Calculation",
             "spreadsheet",
             self.directory,
@@ -106,6 +107,7 @@ class Read_Noise_Calculation:
     def _calculate_read_noise_em_mode(self):
         """Calculate the read noise for the EM mode."""
         tab_name = os.path.join(
+            "AIS",
             "Read_Noise_Calculation",
             "spreadsheet",
             self.directory,

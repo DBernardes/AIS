@@ -18,7 +18,7 @@ class Telescope_Spectral_Response:
     """Telescope Spectral Response Class."""
 
     _SPECTRAL_RESPONSE_FILE = os.path.join(
-        "Telescope_Spectral_Response", "telescope_spectral_response.csv"
+        "AIS", "Telescope_Spectral_Response", "telescope_spectral_response.csv"
     )
 
     def __init__(self):

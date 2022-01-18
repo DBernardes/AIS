@@ -19,7 +19,7 @@ class Atmosphere_Spectral_Response:
     """Atmosphere Spectral Response Class."""
 
     _SPECTRAL_RESPONSE_FILE = os.path.join(
-        "Atmosphere_Spectral_Response", "atmosphere_spectral_response.csv"
+        "AIS", "Atmosphere_Spectral_Response", "atmosphere_spectral_response.csv"
     )
 
     def __init__(self, air_mass, sky_condition):
@@ -43,7 +43,7 @@ class Atmosphere_Spectral_Response:
             float(value) for value in spreasheet["Wavelength"][1:]
         ]
         self.extinction_coefs = [
-            float(value) for value in spreasheet[self.sky_condition][1:]
+            float(value) / 100 for value in spreasheet[self.sky_condition][1:]
         ]
 
     def _calculate_atmosphere_transmitance(self, wavelength_interval):
@@ -79,6 +79,7 @@ class Atmosphere_Spectral_Response:
         self.star_specific_flux = star_specific_flux
         self._read_spreadsheet()
         transmitance = self._calculate_atmosphere_transmitance(wavelength_interval)
+        print(transmitance)
         new_specific_flux = np.multiply(star_specific_flux[0, :], transmitance)
         self.star_specific_flux[0, :] = new_specific_flux
 

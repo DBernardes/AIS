@@ -44,7 +44,7 @@ class Header:
         CCD serial number
     """
 
-    _CSV_HEADER_FILE = os.path.join("Header", "header.csv")
+    _CSV_HEADER_FILE = os.path.join("AIS", "Header", "header.csv")
 
     def __init__(self, ccd_operation_mode, ccd_gain, serial_number):
         """Initialize the Header Class."""

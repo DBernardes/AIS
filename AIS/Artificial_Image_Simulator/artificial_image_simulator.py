@@ -15,18 +15,19 @@ from random import randint
 import astropy.io.fits as fits
 import numpy as np
 import pandas as pd
-from Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
-from Background_Image import Background_Image
-from Channel_Creator import (
+
+from ..Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
+from ..Background_Image import Background_Image
+from ..Channel_Creator import (
     Concrete_Channel_1,
     Concrete_Channel_2,
     Concrete_Channel_3,
     Concrete_Channel_4,
 )
-from Header import Header
-from Point_Spread_Function import Point_Spread_Function
-from Spectrum_Calculation import Spectrum_Calculation
-from Telescope_Spectral_Response import Telescope_Spectral_Response
+from ..Header import Header
+from ..Point_Spread_Function import Point_Spread_Function
+from ..Spectrum_Calculation import Spectrum_Calculation
+from ..Telescope_Spectral_Response import Telescope_Spectral_Response
 
 # from sys import exit
 
@@ -101,20 +102,24 @@ class Artificial_Image_Simulator:
         A python dictionary with the SPARC4 operation mode. The allowed keywords for the
         dictionary are:
 
-        * acquisition_mode: {photometric, polarimetric}
+        * acquisition_mode: {"photometry", "polarimetry"}
 
             The acquisition mode of the sparc4.
 
-        * calibration_wheel: {polarizer, depolarizer, empty}
+        * calibration_wheel: {"polarizer", "depolarizer", "empty"}
 
             The position of the calibration wheel.
 
-        * waveplate: {half, quarter}
+        * waveplate: {"half", "quarter"}
 
             The waveplate for polarimetric measurements.
 
     air_mass: 1.0, optional
         The air mass in the light path.
+
+    sky_condition: {"photometric", "regular", "good"}
+        The condition of the sky at the observaiton night. According to the value provided for this variable,
+        a different extinction coeficient for the atmosphere will be selected.
 
     Yields
     ------
@@ -148,6 +153,7 @@ class Artificial_Image_Simulator:
         star_magnitude=22,
         seeing=1.5,
         air_mass=1.0,
+        sky_condition="good",
     ):
         """Initialize the class."""
         self.ccd_operation_mode = ccd_operation_mode
@@ -161,6 +167,7 @@ class Artificial_Image_Simulator:
         self.star_magnitude = star_magnitude
         self.seeing = seeing
         self.air_mass = air_mass
+        self.sky_condition = sky_condition
 
         self._verify_ccd_operation_mode()
         self._verify_class_parameters()
@@ -256,6 +263,15 @@ class Artificial_Image_Simulator:
                 r"The air mass must be greater or equal to" + f"zero: {self.air_mass}"
             )
 
+        if not isinstance(self.sky_condition, str):
+            raise ValueError(
+                "The sky condition must be" + f"a string: {self.sky_condition}"
+            )
+        elif self.sky_condition not in ["photometric", "regular", "good"]:
+            raise ValueError(
+                r"The allowed values for the sky condition are 'photometric', 'regular', or 'good'."
+            )
+
     def _verify_ccd_operation_mode(self):
         """Verify if the provided CCD operation mode is correct."""
         dic_keywords_list = [
@@ -331,7 +347,7 @@ class Artificial_Image_Simulator:
             wavelength_interval=self.wavelength_interval,
         )
         self.tsr = Telescope_Spectral_Response()
-        self.asr = Atmosphere_Spectral_Response()
+        self.asr = Atmosphere_Spectral_Response(self.air_mass, self.sky_condition)
 
         # -------------------------------------------------------------------------------------------
 
@@ -404,7 +420,6 @@ class Artificial_Image_Simulator:
             self.asr.apply_atmosphere_spectral_response(
                 self.star_specific_photons_per_second[0],
                 wavelength_interval=self.wavelength_interval,
-                air_mass=self.air_mass,
             )
         ]
 
@@ -412,7 +427,6 @@ class Artificial_Image_Simulator:
             self.asr.apply_atmosphere_spectral_response(
                 self.sky_specific_photons_per_second[0],
                 wavelength_interval=self.wavelength_interval,
-                air_mass=self.air_mass,
             )
         ]
 
@@ -513,6 +527,7 @@ class Artificial_Image_Simulator:
         if preamp == 2:
             tab_index += 2
         file_name = os.path.join(
+            "AIS",
             "Read_Noise_Calculation",
             "spreadsheet",
             f"Channel {self.channel}",

@@ -15,7 +15,16 @@ import pytest
 from AIS.Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
 from scipy.interpolate import splev, splrep
 
-from .SPARC4_SR_curves import specific_flux, wavelength_interval
+from .AIS_spectral_response_curves import (
+    atm_wavelength_interval,
+    good_extinction_coef,
+    photometric_extinction_coef,
+    regular_extinction_coef,
+    star_specific_flux,
+    wavelength_interval,
+)
+
+star_specific_flux = star_specific_flux.copy()
 
 air_mass = 1
 sky_condition = "photometric"
@@ -24,16 +33,6 @@ sky_condition = "photometric"
 @pytest.fixture
 def atm_sr():
     return Atmosphere_Spectral_Response(air_mass, sky_condition)
-
-
-spreadsheet_path = os.path.join(
-    "Atmosphere_Spectral_Response", "atmosphere_spectral_response.csv"
-)
-spreadsheet = pd.read_csv(spreadsheet_path)
-atm_wavelength_interval = [float(value) for value in spreadsheet["Wavelength"][1:]]
-photometric_extinction_coef = [float(value) for value in spreadsheet["photometric"][1:]]
-regular_extinction_coef = [float(value) for value in spreadsheet["regular"][1:]]
-good_extinction_coef = [float(value) for value in spreadsheet["good"][1:]]
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -70,12 +69,12 @@ def test_calculate_spline(atm_sr):
 
 def test_apply_atmosphere_spectral_response(atm_sr):
     atm_specific_flux = atm_sr.apply_atmosphere_spectral_response(
-        specific_flux, wavelength_interval
+        star_specific_flux, wavelength_interval
     )
 
     transmitance = [10 ** (-0.4 * k * air_mass) for k in photometric_extinction_coef]
     spl = splrep(atm_wavelength_interval, transmitance)
     transmitance = splev(wavelength_interval, spl)
-    specific_flux[0, :] = np.multiply(specific_flux[0, :], transmitance)
+    star_specific_flux[0, :] = np.multiply(star_specific_flux[0, :], transmitance)
 
-    assert np.allclose(atm_specific_flux, specific_flux)
+    assert np.allclose(atm_specific_flux, star_specific_flux)

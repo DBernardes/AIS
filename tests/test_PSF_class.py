@@ -18,7 +18,7 @@ from AIS.Point_Spread_Function import Point_Spread_Function
 from astropy.table import Table
 from photutils.datasets import make_gaussian_sources_image
 
-from .SPARC4_SR_curves import wavelength_interval
+from .AIS_spectral_response_curves import wavelength_interval
 
 dic = {
     "em_gain": 1,

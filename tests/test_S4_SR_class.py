@@ -18,7 +18,7 @@ from AIS.SPARC4_Spectral_Response import (
     Concrete_SPARC4_Spectral_Response_4,
 )
 
-from .SPARC4_SR_curves import (
+from .AIS_spectral_response_curves import (
     analyser_extra_ordinary_ray,
     analyser_ordinary_ray,
     calibration_wheel,
@@ -39,7 +39,7 @@ from .SPARC4_SR_curves import (
     dichroic_c3,
     dichroic_c4,
     retarder,
-    specific_flux,
+    star_specific_flux,
     wavelength_interval,
     wavelength_interval_len,
 )
@@ -50,42 +50,42 @@ from .SPARC4_SR_curves import (
 @pytest.fixture
 def abs_s4_sr():
     chc = Abstract_SPARC4_Spectral_Response(wavelength_interval)
-    chc.write_specific_flux(specific_flux)
+    chc.write_specific_flux(star_specific_flux)
     return chc
 
 
 @pytest.fixture
 def c1_s4_sr():
     chc = Concrete_SPARC4_Spectral_Response_1(wavelength_interval)
-    chc.write_specific_flux(specific_flux)
+    chc.write_specific_flux(star_specific_flux)
     return chc
 
 
 @pytest.fixture
 def c2_s4_sr():
     chc = Concrete_SPARC4_Spectral_Response_2(wavelength_interval)
-    chc.write_specific_flux(specific_flux)
+    chc.write_specific_flux(star_specific_flux)
     return chc
 
 
 @pytest.fixture
 def c3_s4_sr():
     chc = Concrete_SPARC4_Spectral_Response_3(wavelength_interval)
-    chc.write_specific_flux(specific_flux)
+    chc.write_specific_flux(star_specific_flux)
     return chc
 
 
 @pytest.fixture
 def c4_s4_sr():
     chc = Concrete_SPARC4_Spectral_Response_4(wavelength_interval)
-    chc.write_specific_flux(specific_flux)
+    chc.write_specific_flux(star_specific_flux)
     return chc
 
 
-def multiply_matrices(matrix, specific_flux):
-    for i in range(len(specific_flux[0])):
-        specific_flux[:, i] = np.dot(matrix, specific_flux[:, i])
-    return specific_flux
+def multiply_matrices(matrix, star_specific_flux):
+    for i in range(len(star_specific_flux[0])):
+        star_specific_flux[:, i] = np.dot(matrix, star_specific_flux[:, i])
+    return star_specific_flux
 
 
 # -------------------- Initialize the class -----------------------
@@ -93,12 +93,12 @@ def multiply_matrices(matrix, specific_flux):
 
 def test_specific_ordinary_ray_abs(abs_s4_sr):
     abs_specific_ordinary_ray = abs_s4_sr.get_specific_ordinary_ray()
-    assert np.allclose(abs_specific_ordinary_ray, specific_flux)
+    assert np.allclose(abs_specific_ordinary_ray, star_specific_flux)
 
 
 def test_specific_ordinary_ray_c1(c1_s4_sr):
     c1_specific_ordinary_ray = c1_s4_sr.get_specific_ordinary_ray()
-    assert np.allclose(c1_specific_ordinary_ray, specific_flux)
+    assert np.allclose(c1_specific_ordinary_ray, star_specific_flux)
 
 
 # -------------------- Channel ID -----------------------
@@ -127,22 +127,22 @@ def test_channel_ID_c4(c4_s4_sr):
 # -------------------- Apply spectral response  -----------------------
 
 
-ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
+ordinary_ray = multiply_matrices(analyser_ordinary_ray, star_specific_flux.copy())
 extra_ordinary_ray = multiply_matrices(
-    analyser_extra_ordinary_ray, specific_flux.copy()
+    analyser_extra_ordinary_ray, star_specific_flux.copy()
 )
 
 
 def test_calibration_wheel(abs_s4_sr):
     abs_s4_sr.apply_calibration_wheel()
-    new_specific_flux = multiply_matrices(calibration_wheel, specific_flux)
-    assert np.allclose(abs_s4_sr.get_specific_ordinary_ray(), new_specific_flux)
+    new_star_specific_flux = multiply_matrices(calibration_wheel, star_specific_flux)
+    assert np.allclose(abs_s4_sr.get_specific_ordinary_ray(), new_star_specific_flux)
 
 
 def test_retarder(abs_s4_sr):
     abs_s4_sr.apply_retarder()
-    new_specific_flux = multiply_matrices(retarder, specific_flux)
-    assert np.allclose(abs_s4_sr.get_specific_ordinary_ray(), new_specific_flux)
+    new_star_specific_flux = multiply_matrices(retarder, star_specific_flux)
+    assert np.allclose(abs_s4_sr.get_specific_ordinary_ray(), new_star_specific_flux)
 
 
 def test_analyzer(abs_s4_sr):
@@ -326,17 +326,17 @@ def test_ccd_c4(c4_s4_sr):
     assert np.allclose(c4_s4_sr.specific_extra_ordinary_ray, new_extra_ordinary_ray)
 
 
-# --------------------write specific_flux--------------------
+# --------------------write star_specific_flux--------------------
 
 
 def test_write_specific_flux():
-    specific_flux = np.asanyarray(
+    star_specific_flux = np.asanyarray(
         [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]]
     )
     wavelength_interval = range(400, 1150, 50)
     s4_sr = Abstract_SPARC4_Spectral_Response(wavelength_interval)
-    s4_sr.write_specific_flux(specific_flux)
-    assert np.allclose(s4_sr.specific_ordinary_ray, specific_flux)
+    s4_sr.write_specific_flux(star_specific_flux)
+    assert np.allclose(s4_sr.specific_ordinary_ray, star_specific_flux)
 
 
 # ---------------------- get specific ordinary and extraordinary rays -----------------------------
@@ -344,7 +344,7 @@ def test_write_specific_flux():
 
 def test_get_specific_ordinary_ray(abs_s4_sr):
     abs_ordinary_ray = abs_s4_sr.get_specific_ordinary_ray()
-    assert np.allclose(abs_ordinary_ray, specific_flux)
+    assert np.allclose(abs_ordinary_ray, star_specific_flux)
 
 
 def test_get_specific_extra_ordinary_ray(abs_s4_sr):
@@ -356,109 +356,111 @@ def test_get_specific_extra_ordinary_ray(abs_s4_sr):
 
 # ----------------------- read_spreadsheet---------------------------
 
+path = os.path.join("AIS", "SPARC4_Spectral_Response")
+
 
 def test_read_spreadsheet_collimator(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "collimator.csv")
+    file = os.path.join(path, "collimator.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_1(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 0", "dichroic_1.csv")
+    file = os.path.join(path, "Channel 0", "dichroic_1.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_2(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 0", "dichroic_2.csv")
+    file = os.path.join(path, "Channel 0", "dichroic_2.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_camera(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 0", "camera.csv")
+    file = os.path.join(path, "Channel 0", "camera.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_ccd(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 0", "ccd.csv")
+    file = os.path.join(path, "Channel 0", "ccd.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_1_1(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 1", "dichroic_1.csv")
+    file = os.path.join(path, "Channel 1", "dichroic_1.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_1_2(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 1", "dichroic_2.csv")
+    file = os.path.join(path, "Channel 1", "dichroic_2.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_camera_1(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 1", "camera.csv")
+    file = os.path.join(path, "Channel 1", "camera.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_ccd_1(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 1", "ccd.csv")
+    file = os.path.join(path, "Channel 1", "ccd.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_2_1(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 2", "dichroic_1.csv")
+    file = os.path.join(path, "Channel 2", "dichroic_1.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_2_2(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 2", "dichroic_2.csv")
+    file = os.path.join(path, "Channel 2", "dichroic_2.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_camera_2(abs_s4_sr):
-    file = os.path.join("SPARC4_Spectral_Response", "Channel 2", "camera.csv")
+    file = os.path.join(path, "Channel 2", "camera.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_ccd_2(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 2/ccd.csv"
+    file = os.path.join(path, "Channel 2", "ccd.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_3_1(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 3/dichroic_1.csv"
+    file = os.path.join(path, "Channel 3", "dichroic_1.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_3_2(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 3/dichroic_2.csv"
+    file = os.path.join(path, "Channel 3", "dichroic_2.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_camera_3(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 3/camera.csv"
+    file = os.path.join(path, "Channel 3", "camera.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_ccd_3(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 3/ccd.csv"
+    file = os.path.join(path, "Channel 3", "ccd.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_4_1(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 4/dichroic_1.csv"
+    file = os.path.join(path, "Channel 4", "dichroic_1.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_dichroic_4_2(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 4/dichroic_2.csv"
+    file = os.path.join(path, "Channel 4", "dichroic_2.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_camera_4(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 4/camera.csv"
+    file = os.path.join(path, "Channel 4", "camera.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
 def test_read_spreadsheet_ccd_4(abs_s4_sr):
-    file = "./SPARC4_Spectral_Response/Channel 4/ccd.csv"
+    file = os.path.join(path, "Channel 4", "ccd.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
@@ -467,14 +469,14 @@ def test_read_spreadsheet_ccd_4(abs_s4_sr):
 
 def test_multiply_matrices(abs_s4_sr):
     a = np.ones((4, 4))
-    specific_flux = abs_s4_sr._multiply_matrices(a, a)
-    boolean_test = specific_flux == a
+    star_specific_flux = abs_s4_sr._multiply_matrices(a, a)
+    boolean_test = star_specific_flux == a
     assert boolean_test.all()
 
 
 def test_calculate_spline():
     transmitance = np.ones((1, wavelength_interval_len))[0]
     chc = Abstract_SPARC4_Spectral_Response(wavelength_interval)
-    chc.write_specific_flux(specific_flux)
+    chc.write_specific_flux(star_specific_flux)
     new_transmitance = chc._calculate_spline(transmitance, wavelength_interval)
     assert np.allclose(new_transmitance, transmitance)

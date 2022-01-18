@@ -22,7 +22,7 @@ class Abstract_SPARC4_Spectral_Response:
     """Abstract class of the SPARC4 spectral response."""
 
     _CHANNEL_ID = 0
-    _DIR_PATH = "SPARC4_Spectral_Response"
+    _DIR_PATH = os.path.join("AIS", "SPARC4_Spectral_Response")
 
     def __init__(self, wavelength_interval):
         """

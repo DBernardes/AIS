@@ -8,10 +8,10 @@ Created on Tue Apr 27 10:23:27 2021
 
 import os
 
-from Artificial_Image_Simulator import Artificial_Image_Simulator
+from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
 dic = {
-    "em_mode": 0,
+    "em_mode": "Conv",
     "em_gain": 1,
     "preamp": 1,
     "hss": 1,

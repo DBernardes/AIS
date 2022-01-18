@@ -224,8 +224,26 @@ Created on Tue Apr 27 10:23:27 2021
 # ais.create_artificial_image()
 
 
-from Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
-from tests.SPARC4_SR_curves import specific_flux, wavelength_interval
+import os
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from scipy.interpolate import splev, splrep
+
+from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
+from AIS.Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
+from AIS.Channel_Creator import Concrete_Channel_1
+from AIS.SPARC4_Spectral_Response import (
+    Concrete_SPARC4_Spectral_Response_1,
+    sparc4_spectral_response,
+)
+from tests.AIS_spectral_response_curves import star_specific_flux, wavelength_interval
+
+# -------------------------------------------------------------------------------
+
+s4_sr = Concrete_Channel_1("pol", wavelength_interval)
+new_flux = s4_sr.apply_sparc4_spectral_response(star_specific_flux)
+
 
 # -------------------------------------------------------------------------------
 # from Read_Noise_Calculation import Read_Noise_Calculation
@@ -247,7 +265,18 @@ from tests.SPARC4_SR_curves import specific_flux, wavelength_interval
 # -------------------------------------------------------------------------------
 
 
-atm_sr = Atmosphere_Spectral_Response(1, "photometric")
-print(specific_flux)
-new_flux = atm_sr.apply_atmosphere_spectral_response(specific_flux, wavelength_interval)
-print(new_flux)
+# air_mass = 1
+
+# spreadsheet_path = os.path.join(
+#     "Atmosphere_Spectral_Response", "atmosphere_spectral_response.csv"
+# )
+# spreadsheet = pd.read_csv(spreadsheet_path)
+# atm_wavelength_interval = [float(value) for value in spreadsheet["Wavelength"][1:]]
+# photometric_extinction_coef = [
+#     float(value) / 100 for value in spreadsheet["photometric"][1:]
+# ]
+# transmitance = [10 ** (-0.4 * k * air_mass) for k in photometric_extinction_coef]
+# spl = splrep(atm_wavelength_interval, transmitance)
+# atm_transmitance = splev(wavelength_interval, spl)
+# plt.plot(wavelength_interval, atm_transmitance)
+# plt.show()

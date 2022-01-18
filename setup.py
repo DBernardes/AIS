@@ -7,16 +7,16 @@ with open("README.rst", "r", encoding="utf-8") as fh:
 
 
 setuptools.setup(
-    name="Artificial-Images-Simulator",  # Replace with your own username
+    name="AIS",  # Replace with your own username
     version="1.0",
     license="MIT",
     author="Denis Varise Bernardes",
     author_email="denis.bernardes099@gmail.com",
-    description="""This is the Artificial Images Generator (AIG) developed to
-    create artificial star images, simulating the star images acquired by the
+    description="""This is the Artificial Images Simualtor (AIS) developed to
+    create artificial images of stars, simulating those images acquired by the
     SPARC4 CCD cameras in astronomical observations""",
     long_description=long_description,
-    long_description_content_type="markdown",
+    long_description_content_type="restructured text",
     url="https://github.com/DBernardes/AIS.git",
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 from AIS.Spectrum_Calculation import Spectrum_Calculation
 
-from .SPARC4_SR_curves import wavelength_interval, wavelength_interval_len
+from .AIS_spectral_response_curves import wavelength_interval, wavelength_interval_len
 
 temperature = 5700
 

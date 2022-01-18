@@ -22,12 +22,13 @@ import numpy as np
 import pandas as pd
 import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
+from AIS.Spectrum_Calculation import Spectrum_Calculation
 from scipy.interpolate import splev, splrep
-from Spectrum_Calculation import Spectrum_Calculation
 
-from .SPARC4_SR_curves import (
+from .AIS_spectral_response_curves import (
     analyser_extra_ordinary_ray,
     analyser_ordinary_ray,
+    atm_transmitance,
     calibration_wheel,
     camera_c1,
     ccd_transmitance_c1,
@@ -37,9 +38,14 @@ from .SPARC4_SR_curves import (
     l_init,
     l_step,
     retarder,
+    sky_specific_flux,
+    star_specific_flux,
+    tel_reflectance,
     wavelength_interval,
     wavelength_interval_len,
 )
+
+star_specific_flux = star_specific_flux.copy()
 
 dic = {
     "em_mode": "Conv",
@@ -59,31 +65,14 @@ image_dir = "a"
 star_temperature = 5700
 star_magnitude = 22
 bias_level = 500
-sc = Spectrum_Calculation(wavelength_interval, star_temperature)
-star_specific_flux = sc.calculate_specific_flux(star_magnitude)
-sky_specific_flux = sc.calculate_specific_flux(star_magnitude + 3)
-specific_flux_length = len(star_specific_flux)
+air_mass = 1
+sky_condition = "photometric"
 
 
 def multiply_matrices(matrix, specific_flux):
     for i in range(len(specific_flux[0])):
         specific_flux[:, i] = np.dot(matrix, specific_flux[:, i])
     return specific_flux
-
-
-# ----------------------- importing the telescope spectral response ----------------
-ss = pd.read_csv(
-    os.path.join("Telescope_Spectral_Response", "telescope_spectral_response.csv"),
-    dtype=np.float64,
-    skiprows=1,
-    decimal=".",
-)
-
-tel_wavelength_interval = ss["(nm)"]
-tel_reflectance = ss["(%)"] / 100
-spl = splrep(tel_wavelength_interval, tel_reflectance)
-tel_reflectance = splev(wavelength_interval, spl)
-# ------------------------------------------------------------------------------------
 
 
 @pytest.fixture
@@ -97,6 +86,8 @@ def ais():
         image_dir=image_dir,
         wavelength_interval=(l_init, l_final, l_step),
         star_temperature=star_temperature,
+        air_mass=air_mass,
+        sky_condition=sky_condition,
     )
 
 
@@ -130,13 +121,19 @@ def test_calculate_sky_specific_flux(ais):
 
 
 def test_apply_atmosphere_spectral_response_star(ais):
+    new_star_specific_flux = np.multiply(star_specific_flux[0, :], atm_transmitance)
     ais.apply_atmosphere_spectral_response()
-    assert np.allclose(ais.star_specific_photons_per_second, star_specific_flux)
+    assert np.allclose(
+        ais.star_specific_photons_per_second[0][0, :], new_star_specific_flux
+    )
 
 
 def test_apply_atmosphere_spectral_response_sky(ais):
+    new_sky_specific_flux = np.multiply(sky_specific_flux[0, :], atm_transmitance)
     ais.apply_atmosphere_spectral_response()
-    assert np.allclose(ais.sky_specific_photons_per_second, sky_specific_flux.copy())
+    assert np.allclose(
+        ais.sky_specific_photons_per_second[0][0, :], new_sky_specific_flux
+    )
 
 
 def test_apply_telescope_spectral_response_star(ais):
@@ -305,7 +302,7 @@ def test_create_artificial_image_phot():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("..", "FITS"))
+    ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("FITS"))
     ais.apply_sparc4_spectral_response()
     ais.create_artificial_image()
 
@@ -322,7 +319,7 @@ def test_create_artificial_image_pol():
         "image_size": 100,
     }
     ais = Artificial_Image_Simulator(
-        dic, image_dir=os.path.join("..", "FITS"), sparc4_operation_mode="pol"
+        dic, image_dir=os.path.join("FITS"), sparc4_operation_mode="pol"
     )
     ais.apply_sparc4_spectral_response()
     ais.create_artificial_image()
@@ -339,7 +336,7 @@ def test_create_background_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("..", "FITS"))
+    ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("FITS"))
     ais.apply_sparc4_spectral_response()
     ais.create_background_image()
 
@@ -355,7 +352,7 @@ def test_creat_bias_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("..", "FITS"))
+    ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("FITS"))
     ais.apply_sparc4_spectral_response()
     ais.create_bias_image()
 
@@ -371,7 +368,7 @@ def test_creat_dark_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("..", "FITS"))
+    ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("FITS"))
     ais.apply_sparc4_spectral_response()
     ais.create_dark_image()
 
@@ -387,7 +384,7 @@ def test_creat_random_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("..", "FITS"))
+    ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("FITS"))
     ais.apply_sparc4_spectral_response()
     ais.create_random_image(n=2)
 
@@ -403,6 +400,6 @@ def test_creat_flat_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("..", "FITS"))
+    ais = Artificial_Image_Simulator(dic, image_dir=os.path.join("FITS"))
     ais.apply_sparc4_spectral_response()
     ais.create_flat_image()

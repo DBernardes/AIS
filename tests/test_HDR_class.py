@@ -37,7 +37,7 @@ def hdr():
     return hdr
 
 
-file = os.path.join("Header", "header.csv")
+file = os.path.join("AIS", "Header", "header.csv")
 ss = pd.read_csv(file)
 keywords = ss["Keyword"]
 comments = ss["Comment"]
