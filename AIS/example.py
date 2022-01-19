@@ -8,7 +8,7 @@ Created on Tue Apr 27 10:23:27 2021
 
 import os
 
-from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
+from Artificial_Image_Simulator import Artificial_Image_Simulator
 
 dic = {
     "em_mode": "Conv",
