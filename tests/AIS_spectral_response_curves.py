@@ -5,8 +5,10 @@ import os
 import numpy as np
 import pandas as pd
 from AIS.Spectrum_Calculation import Spectrum_Calculation
+from numpy import cos, pi, sin
 from scipy.interpolate import splev, splrep
 
+THETA_POL = np.deg2rad(0)
 l_init, l_final, l_step = 400, 1100, 50
 magnitude = 22
 air_mass = 1
@@ -16,8 +18,10 @@ wavelength_interval_len = len(wavelength_interval)
 sc = Spectrum_Calculation(
     wavelength_interval=wavelength_interval, star_temperature=5700
 )
-star_specific_flux = sc.calculate_specific_flux(magnitude)
-sky_specific_flux = sc.calculate_specific_flux(magnitude + 3)
+star_specific_photons_per_second = [sc.calculate_specific_photons_per_second(magnitude)]
+sky_specific_photons_per_second = [
+    sc.calculate_specific_photons_per_second(magnitude + 3)
+]
 
 
 def calculate_spline(transmitance, component_wavelength_interv, wavelength_interval):
@@ -59,37 +63,142 @@ tel_reflectance = splev(wavelength_interval, spl)
 
 # ------------------------------------ Calibration Wheel  ------------------------------------------------------
 
-calibration_wheel = np.loadtxt(
-    open(
-        os.path.join("AIS", "SPARC4_Spectral_Response", "calibration_wheel.csv"), "rb"
-    ),
-    delimiter=",",
+ss = pd.read_csv(
+    os.path.join("AIS", "SPARC4_Spectral_Response", "polarizer.csv"),
+    dtype=np.float64,
+    skiprows=1,
+    decimal=".",
 )
+polarizer_wavelength_interval = ss["(nm)"]
+polarizer_transmitance = ss["(%)"] / 100
+spl = splrep(polarizer_wavelength_interval, polarizer_transmitance)
+polarizer_transmitance = splev(wavelength_interval, spl)
+
+
+ss = pd.read_csv(
+    os.path.join("AIS", "SPARC4_Spectral_Response", "depolarizer.csv"),
+    dtype=np.float64,
+    skiprows=1,
+    decimal=".",
+)
+depolarizer_wavelength_interval = ss["(nm)"]
+depolarizer_transmitance = ss["(%)"] / 100
+spl = splrep(depolarizer_wavelength_interval, depolarizer_transmitance)
+depolarizer_transmitance = splev(wavelength_interval, spl)
+
+
+POLARIZER_MATRIX = 0.5 * np.asarray(
+    [
+        [1, cos(2 * THETA_POL), sin(2 * THETA_POL), 0],
+        [
+            cos(2 * THETA_POL),
+            cos(2 * THETA_POL) ** 2,
+            cos(2 * THETA_POL) * sin(2 * THETA_POL),
+            0,
+        ],
+        [
+            sin(2 * THETA_POL),
+            cos(2 * THETA_POL) * sin(2 * THETA_POL),
+            sin(2 * THETA_POL) ** 2,
+            0,
+        ],
+        [0, 0, 0, 0],
+    ]
+)
+
 
 # ------------------------------------ Retarder  ------------------------------------------------------
 
-retarder = np.loadtxt(
-    open(os.path.join("AIS", "SPARC4_Spectral_Response", "retarder.csv"), "rb"),
-    delimiter=",",
-)
 
+def calculate_retarder_matrix(phase_difference, THETA_POL):
+    phase_difference = np.deg2rad(phase_difference)
+    retarder_matrix = np.asarray(
+        [
+            [1, 0, 0, 0],
+            [
+                0,
+                cos(2 * THETA_POL) ** 2
+                + sin(2 * THETA_POL) ** 2 * cos(phase_difference),
+                cos(2 * THETA_POL) * sin(2 * THETA_POL) * (1 - cos(phase_difference)),
+                -sin(2 * THETA_POL) * sin(phase_difference),
+            ],
+            [
+                0,
+                cos(2 * THETA_POL) + sin(2 * THETA_POL) * (1 - cos(phase_difference)),
+                sin(2 * THETA_POL) ** 2
+                + cos(2 * THETA_POL) ** 2 * cos(phase_difference),
+                cos(2 * THETA_POL) * sin(phase_difference),
+            ],
+            [
+                0,
+                sin(2 * THETA_POL) * sin(phase_difference),
+                -cos(2 * THETA_POL) * sin(phase_difference),
+                cos(phase_difference),
+            ],
+        ],
+    )
+
+    return retarder_matrix
+
+
+ss = pd.read_csv(
+    os.path.join("AIS", "SPARC4_Spectral_Response", "retarder_transmitance.csv"),
+    dtype=np.float64,
+    skiprows=1,
+    decimal=".",
+)
+retarder_wavelength_interval = ss["(nm)"]
+retarder_transmitance = ss["(%)"] / 100
+spl = splrep(retarder_wavelength_interval, retarder_transmitance)
+retarder_transmitance = splev(wavelength_interval, spl)
+
+file = os.path.join(
+    "AIS", "SPARC4_Spectral_Response", "retarder_phase_diff_" + "quarter" + ".csv"
+)
+ss = pd.read_csv(file, dtype=np.float64, skiprows=1, decimal=".")
+retarder_wavelength = ss["(nm)"]
+retardance = ss["(waves)"]
+spl = splrep(retarder_wavelength, retardance)
+retardance = splev(wavelength_interval, spl)
+retardance_quarter = [val * 360 for val in retardance]
+
+file = os.path.join(
+    "AIS", "SPARC4_Spectral_Response", "retarder_phase_diff_" + "half" + ".csv"
+)
+ss = pd.read_csv(file, dtype=np.float64, skiprows=1, decimal=".")
+retarder_wavelength = ss["(nm)"]
+retardance = ss["(waves)"]
+spl = splrep(retarder_wavelength, retardance)
+retardance = splev(wavelength_interval, spl)
+retardance_half = [val * 360 for val in retardance]
 
 # ------------------------------------ Analysers  ------------------------------------------------------
 
-analyser_ordinary_ray = np.loadtxt(
-    open(
-        os.path.join("AIS", "SPARC4_Spectral_Response", "analyser_ordinary.csv"), "rb"
-    ),
-    delimiter=",",
-)
+file = os.path.join("AIS", "SPARC4_Spectral_Response", "analyser.csv")
+ss = pd.read_csv(file, dtype=np.float64, skiprows=1, decimal=".")
+analyser_wavelength = ss["(nm)"]
+analyser_transmitance = ss["(%)"]
+spl = splrep(analyser_wavelength, analyser_transmitance)
+analyser_transmitance = splev(wavelength_interval, spl)
 
-
-analyser_extra_ordinary_ray = np.loadtxt(
-    open(
-        os.path.join("AIS", "SPARC4_Spectral_Response", "analyser_extra_ordinary.csv"),
-        "rb",
-    ),
-    delimiter=",",
+THETA_POL = np.deg2rad(THETA_POL + pi / 2)
+POLARIZER_90_MATRIX = 0.5 * np.asarray(
+    [
+        [1, cos(2 * THETA_POL), sin(2 * THETA_POL), 0],
+        [
+            cos(2 * THETA_POL),
+            cos(2 * THETA_POL) ** 2,
+            cos(2 * THETA_POL) * sin(2 * THETA_POL),
+            0,
+        ],
+        [
+            sin(2 * THETA_POL),
+            cos(2 * THETA_POL) * sin(2 * THETA_POL),
+            sin(2 * THETA_POL) ** 2,
+            0,
+        ],
+        [0, 0, 0, 0],
+    ]
 )
 
 

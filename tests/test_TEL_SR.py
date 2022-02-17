@@ -17,7 +17,7 @@ from scipy.interpolate import splev, splrep
 
 from .AIS_spectral_response_curves import (
     photometric_extinction_coef,
-    star_specific_flux,
+    star_specific_photons_per_second,
     tel_reflectance,
     tel_reflectance_spreadsheet,
     tel_wavelength_interval,

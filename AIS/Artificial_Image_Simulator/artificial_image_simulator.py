@@ -98,7 +98,7 @@ class Artificial_Image_Simulator:
     seeing: 1.5, optional
         Seeing disc of the observatory.
 
-    sparc4_operation_mode: dictinary
+    sparc4_operation_mode: dictionary
         A python dictionary with the SPARC4 operation mode. The allowed keywords for the
         dictionary are:
 

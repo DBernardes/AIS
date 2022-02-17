@@ -51,7 +51,7 @@ class Spectrum_Calculation:
         Returns
         -------
 
-        star_specific_flux: array-like
+        star_specific_photons_per_second: array-like
             Star specific flux.
         """
 
@@ -60,7 +60,7 @@ class Spectrum_Calculation:
         self.star_radius = star_radius * self._SOLAR_RADIUS
         self.star_dist = star_dist * self._SOLAR_DISTANCE
 
-    def calculate_specific_flux(self, magnitude):
+    def calculate_specific_photons_per_second(self, magnitude):
         """Calculate the star specific flux."""
         h = self._H
         c = self._C
@@ -75,12 +75,12 @@ class Spectrum_Calculation:
             )
             temp.append(photons_number)
 
-        specific_flux = np.zeros((4, len(self.wavelength_interval)))
-        specific_flux[0, :] = temp
+        specific_photons_per_second = np.zeros((4, len(self.wavelength_interval)))
+        specific_photons_per_second[0, :] = temp
 
-        return specific_flux
+        return specific_photons_per_second
 
-    # def calculate_star_specific_flux_1(self):
+    # def calculate_star_specific_photons_per_second_1(self):
     #     """Calculate the star specific flux.
 
     #     This function calculates the star specific flux as a function of the
@@ -98,7 +98,7 @@ class Spectrum_Calculation:
     #     h = self._H
     #     c = self._C
     #     k = self._K
-    #     specific_flux = []
+    #     specific_photons_per_second = []
     #     areas_relation = (
     #         self.star_radius ** 2 * self._TELESCOPE_EFFECTIVE_AREA / self.star_dist ** 2
     #     )
@@ -110,20 +110,20 @@ class Spectrum_Calculation:
     #         black_body = var1 / var2
     #         photon_energy = h * c / Lambda
     #         photons_per_second = black_body * areas_relation / photon_energy
-    #         specific_flux.append(photons_per_second * 1e-25)
+    #         specific_photons_per_second.append(photons_per_second * 1e-25)
 
-    #     self.specific_flux_length = len(specific_flux)
-    #     self.star_specific_flux = np.zeros((4, self.specific_flux_length))
-    #     self.star_specific_flux[0, :] = specific_flux
+    #     self.specific_photons_per_second_length = len(specific_photons_per_second)
+    #     self.star_specific_photons_per_second = np.zeros((4, self.specific_photons_per_second_length))
+    #     self.star_specific_photons_per_second[0, :] = specific_photons_per_second
 
-    #     return self.star_specific_flux
+    #     return self.star_specific_photons_per_second
 
-    # def calculate_sky_specific_flux(self):
+    # def calculate_sky_specific_photons_per_second(self):
     #     """Calculate sky specific flux.
 
     #     This functions calculates the specific flux of the sky.
     #     This flux correspond to 10 % of the star flux.
     #     """
 
-    #     self.sky_specific_flux = self.calculate_star_specific_flux(22) * 0.1
-    #     return self.star_specific_flux * 0.1
+    #     self.sky_specific_photons_per_second = self.calculate_star_specific_photons_per_second(22) * 0.1
+    #     return self.star_specific_photons_per_second * 0.1

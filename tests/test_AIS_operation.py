@@ -26,10 +26,7 @@ from AIS.Spectrum_Calculation import Spectrum_Calculation
 from scipy.interpolate import splev, splrep
 
 from .AIS_spectral_response_curves import (
-    analyser_extra_ordinary_ray,
-    analyser_ordinary_ray,
     atm_transmitance,
-    calibration_wheel,
     camera_c1,
     ccd_transmitance_c1,
     colimator_transmitance,
@@ -37,15 +34,15 @@ from .AIS_spectral_response_curves import (
     l_final,
     l_init,
     l_step,
-    retarder,
-    sky_specific_flux,
-    star_specific_flux,
+    polarizer_transmitance,
+    sky_specific_photons_per_second,
+    star_specific_photons_per_second,
     tel_reflectance,
     wavelength_interval,
     wavelength_interval_len,
 )
 
-star_specific_flux = star_specific_flux.copy()
+star_specific_photons_per_second = star_specific_photons_per_second.copy()
 
 dic = {
     "em_mode": "Conv",
@@ -110,48 +107,68 @@ def test_calculate_read_noise(ais):
 # ----------------------- Apply spectruns ---------------------------
 
 
-def test_calculate_star_specific_flux(ais):
-    ais._calculate_star_specific_flux()
-    assert np.allclose(ais.star_specific_photons_per_second, star_specific_flux)
+def test_calculate_star_specific_photons_per_second(ais):
+    ais._calculate_star_specific_photons_per_second()
+    assert np.allclose(
+        ais.star_specific_photons_per_second, star_specific_photons_per_second
+    )
 
 
-def test_calculate_sky_specific_flux(ais):
-    ais._calculate_sky_specific_flux()
-    assert np.allclose(ais.sky_specific_photons_per_second, sky_specific_flux.copy())
+def test_calculate_sky_specific_photons_per_second(ais):
+    ais._calculate_sky_specific_photons_per_second()
+    assert np.allclose(
+        ais.sky_specific_photons_per_second, sky_specific_photons_per_second.copy()
+    )
 
 
 def test_apply_atmosphere_spectral_response_star(ais):
-    new_star_specific_flux = np.multiply(star_specific_flux[0, :], atm_transmitance)
+    new_star_specific_photons_per_second = np.multiply(
+        star_specific_photons_per_second[0, :], atm_transmitance
+    )
     ais.apply_atmosphere_spectral_response()
     assert np.allclose(
-        ais.star_specific_photons_per_second[0][0, :], new_star_specific_flux
+        ais.star_specific_photons_per_second[0][0, :],
+        new_star_specific_photons_per_second,
     )
 
 
 def test_apply_atmosphere_spectral_response_sky(ais):
-    new_sky_specific_flux = np.multiply(sky_specific_flux[0, :], atm_transmitance)
+    new_sky_specific_photons_per_second = np.multiply(
+        sky_specific_photons_per_second[0, :], atm_transmitance
+    )
     ais.apply_atmosphere_spectral_response()
     assert np.allclose(
-        ais.sky_specific_photons_per_second[0][0, :], new_sky_specific_flux
+        ais.sky_specific_photons_per_second[0][0, :],
+        new_sky_specific_photons_per_second,
     )
 
 
 def test_apply_telescope_spectral_response_star(ais):
     ais.apply_telescope_spectral_response()
-    new_star_specific_flux = np.multiply(star_specific_flux, tel_reflectance)
-    assert np.allclose(ais.star_specific_photons_per_second, new_star_specific_flux)
+    new_star_specific_photons_per_second = np.multiply(
+        star_specific_photons_per_second, tel_reflectance
+    )
+    assert np.allclose(
+        ais.star_specific_photons_per_second, new_star_specific_photons_per_second
+    )
 
 
 def test_apply_telescope_spectral_response_sky(ais):
-    new_sky_specific_flux = np.multiply(sky_specific_flux.copy(), tel_reflectance)
+    new_sky_specific_photons_per_second = np.multiply(
+        sky_specific_photons_per_second.copy(), tel_reflectance
+    )
     ais.apply_telescope_spectral_response()
-    assert np.allclose(ais.sky_specific_photons_per_second, new_sky_specific_flux)
+    assert np.allclose(
+        ais.sky_specific_photons_per_second, new_sky_specific_photons_per_second
+    )
 
 
 def test_apply_sparc4_spectral_response_star(ais):
 
     ais.apply_sparc4_spectral_response()
-    specific_flux = multiply_matrices(calibration_wheel, star_specific_flux.copy())
+    specific_flux = multiply_matrices(
+        calibration_wheel, star_specific_photons_per_second.copy()
+    )
     specific_flux = multiply_matrices(retarder, specific_flux)
     new_ordinary_ray = multiply_matrices(analyser_ordinary_ray, specific_flux.copy())
     new_extra_ordinary_ray = multiply_matrices(
@@ -170,14 +187,18 @@ def test_apply_sparc4_spectral_response_star(ais):
 def test_apply_sparc4_spectral_response_sky(ais):
     ais.apply_sparc4_spectral_response()
 
-    new_sky_specific_flux = multiply_matrices(calibration_wheel, sky_specific_flux)
-    new_sky_specific_flux = multiply_matrices(retarder, new_sky_specific_flux)
+    new_sky_specific_photons_per_second = multiply_matrices(
+        calibration_wheel, sky_specific_photons_per_second
+    )
+    new_sky_specific_photons_per_second = multiply_matrices(
+        retarder, new_sky_specific_photons_per_second
+    )
     new_ordinary_ray = multiply_matrices(
-        analyser_ordinary_ray, new_sky_specific_flux.copy()
+        analyser_ordinary_ray, new_sky_specific_photons_per_second.copy()
     )
 
     new_extra_ordinary_ray = multiply_matrices(
-        analyser_extra_ordinary_ray, new_sky_specific_flux
+        analyser_extra_ordinary_ray, new_sky_specific_photons_per_second
     )
     new_ordinary_ray = np.multiply(colimator_transmitance, new_ordinary_ray)
     new_extra_ordinary_ray = np.multiply(colimator_transmitance, new_extra_ordinary_ray)
@@ -196,9 +217,9 @@ def test_apply_sparc4_spectral_response_sky(ais):
 
 
 def test_integrate_fluxes(ais):
-    photons_per_second = np.trapz(star_specific_flux[0, :])
-    ais.star_specific_photons_per_second = [star_specific_flux]
-    ais.sky_specific_photons_per_second = [star_specific_flux]
+    photons_per_second = np.trapz(star_specific_photons_per_second[0, :])
+    ais.star_specific_photons_per_second = [star_specific_photons_per_second]
+    ais.sky_specific_photons_per_second = [star_specific_photons_per_second]
     ais._integrate_specific_fluxes()
     assert ais.star_ordinary_ray == photons_per_second
     assert ais.sky_photons_per_second == photons_per_second

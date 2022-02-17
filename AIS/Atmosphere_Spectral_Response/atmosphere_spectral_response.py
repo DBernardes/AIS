@@ -79,7 +79,6 @@ class Atmosphere_Spectral_Response:
         self.star_specific_flux = star_specific_flux
         self._read_spreadsheet()
         transmitance = self._calculate_atmosphere_transmitance(wavelength_interval)
-        print(transmitance)
         new_specific_flux = np.multiply(star_specific_flux[0, :], transmitance)
         self.star_specific_flux[0, :] = new_specific_flux
 

@@ -20,11 +20,11 @@ from .AIS_spectral_response_curves import (
     good_extinction_coef,
     photometric_extinction_coef,
     regular_extinction_coef,
-    star_specific_flux,
+    star_specific_photons_per_second,
     wavelength_interval,
 )
 
-star_specific_flux = star_specific_flux.copy()
+star_specific_photons_per_second = star_specific_photons_per_second.copy()
 
 air_mass = 1
 sky_condition = "photometric"
@@ -69,12 +69,14 @@ def test_calculate_spline(atm_sr):
 
 def test_apply_atmosphere_spectral_response(atm_sr):
     atm_specific_flux = atm_sr.apply_atmosphere_spectral_response(
-        star_specific_flux, wavelength_interval
+        star_specific_photons_per_second, wavelength_interval
     )
 
     transmitance = [10 ** (-0.4 * k * air_mass) for k in photometric_extinction_coef]
     spl = splrep(atm_wavelength_interval, transmitance)
     transmitance = splev(wavelength_interval, spl)
-    star_specific_flux[0, :] = np.multiply(star_specific_flux[0, :], transmitance)
+    star_specific_photons_per_second[0, :] = np.multiply(
+        star_specific_photons_per_second[0, :], transmitance
+    )
 
-    assert np.allclose(atm_specific_flux, star_specific_flux)
+    assert np.allclose(atm_specific_flux, star_specific_photons_per_second)
