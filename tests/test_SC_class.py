@@ -51,6 +51,10 @@ def test_l_init(sc):
 
 
 # --------------------------------------------------------------------------------------------------------------
-def test_calculate_specific_flux(sc):
-    star_specific_flux = sc.calculate_specific_flux(magnitude)
-    assert np.allclose(star_specific_flux, star_specific_flux)
+def test_calculate_specific_photons_per_second(sc):
+    star_specific_photons_per_second = sc.calculate_specific_photons_per_second(
+        magnitude
+    )
+    assert np.allclose(
+        star_specific_photons_per_second, star_specific_photons_per_second
+    )

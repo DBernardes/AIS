@@ -54,7 +54,7 @@ class Atmosphere_Spectral_Response:
 
     def apply_atmosphere_spectral_response(
         self,
-        star_specific_flux,
+        specific_photons_per_second,
         wavelength_interval,
     ):
         """Apply the atmosphere spectral response.
@@ -64,22 +64,23 @@ class Atmosphere_Spectral_Response:
 
         Parameters
         ----------
-        star_specific_flux : array like
-            Specific flux of the star
+        specific_photons_per_second : array like
+            Photons per second per wavelength of the star
 
         wavelength_interval: array like
             Array with the wavelengths of the spectrum of the star.
 
         Returns
         -------
-        star_specific_flux : array like
-            Specific flux of the star after the application atmosphere
+        specific_photons_per_second : array like
+            Photons per second per wavelength of the star after the application atmosphere
             spectral response.
         """
-        self.star_specific_flux = star_specific_flux
+        self.specific_photons_per_second = specific_photons_per_second
         self._read_spreadsheet()
         transmitance = self._calculate_atmosphere_transmitance(wavelength_interval)
-        new_specific_flux = np.multiply(star_specific_flux[0, :], transmitance)
-        self.star_specific_flux[0, :] = new_specific_flux
+        self.specific_photons_per_second[0][0, :] = np.multiply(
+            specific_photons_per_second[0][0, :], transmitance
+        )
 
-        return self.star_specific_flux
+        return self.specific_photons_per_second

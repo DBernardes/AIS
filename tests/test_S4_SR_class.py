@@ -36,7 +36,7 @@ from .AIS_spectral_response_curves import (
     ccd_transmitance_c2,
     ccd_transmitance_c3,
     ccd_transmitance_c4,
-    colimator_transmitance,
+    collimator_transmitance,
     depolarizer_transmitance,
     dichroic_c0,
     dichroic_c1,

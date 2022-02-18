@@ -8,10 +8,12 @@ from AIS.Spectrum_Calculation import Spectrum_Calculation
 from numpy import cos, pi, sin
 from scipy.interpolate import splev, splrep
 
+star_temperature = 5700
 THETA_POL = np.deg2rad(0)
 l_init, l_final, l_step = 400, 1100, 50
 magnitude = 22
 air_mass = 1
+ccd_temp = -70
 sky_condition = "photometric"
 wavelength_interval = range(l_init, l_final + l_step, l_step)
 wavelength_interval_len = len(wavelength_interval)
@@ -22,6 +24,28 @@ star_specific_photons_per_second = [sc.calculate_specific_photons_per_second(mag
 sky_specific_photons_per_second = [
     sc.calculate_specific_photons_per_second(magnitude + 3)
 ]
+ccd_operation_mode = {
+    "em_mode": "Conv",
+    "em_gain": 1,
+    "preamp": 1,
+    "hss": 1,
+    "binn": 1,
+    "t_exp": 1,
+    "ccd_temp": -70,
+    "image_size": 1024,
+}
+
+
+sparc4_operation_mode = {"acquisition_mode": "photometric"}
+
+
+def multiply_matrices(matrix, specific_photons_per_second):
+    temp = []
+    for array in specific_photons_per_second:
+        for idx, value in enumerate(array[0]):
+            array[:, idx] = np.dot(matrix, array[:, idx])
+        temp.append(array)
+    return temp
 
 
 def calculate_spline(transmitance, component_wavelength_interv, wavelength_interval):
@@ -177,7 +201,7 @@ retardance_half = [val * 360 for val in retardance]
 file = os.path.join("AIS", "SPARC4_Spectral_Response", "analyser.csv")
 ss = pd.read_csv(file, dtype=np.float64, skiprows=1, decimal=".")
 analyser_wavelength = ss["(nm)"]
-analyser_transmitance = ss["(%)"]
+analyser_transmitance = ss["(%)"] / 100
 spl = splrep(analyser_wavelength, analyser_transmitance)
 analyser_transmitance = splev(wavelength_interval, spl)
 
@@ -205,17 +229,17 @@ POLARIZER_90_MATRIX = 0.5 * np.asarray(
 # ------------------------------------ Collimator ------------------------------------------------------
 
 
-colimator_transmitance = pd.read_csv(
+ss = pd.read_csv(
     os.path.join("AIS", "SPARC4_Spectral_Response", "collimator.csv"),
     dtype=np.float64,
     skiprows=1,
     decimal=".",
 )
 
-colimator_transmitance = (
+collimator_transmitance = (
     calculate_spline(
-        colimator_transmitance["(%)"],
-        colimator_transmitance["(nm)"],
+        ss["(%)"],
+        ss["(nm)"],
         wavelength_interval,
     )
     / 100

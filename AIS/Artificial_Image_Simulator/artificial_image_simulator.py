@@ -110,7 +110,7 @@ class Artificial_Image_Simulator:
 
             The position of the calibration wheel.
 
-        * waveplate: {"half", "quarter"}
+        * retarder: {"half", "quarter"}
 
             The waveplate for polarimetric measurements.
 
@@ -146,7 +146,7 @@ class Artificial_Image_Simulator:
         channel=1,
         star_coordinates=(100, 100),
         bias_level=500,
-        sparc4_operation_mode="phot",
+        sparc4_operation_mode={"acquisition_mode": "photometric"},
         image_dir="",
         wavelength_interval=(400, 1100, 50),
         star_temperature=5700,
@@ -170,6 +170,7 @@ class Artificial_Image_Simulator:
         self.sky_condition = sky_condition
 
         self._verify_ccd_operation_mode()
+        self._verify_sparc4_operation_mode()
         self._verify_class_parameters()
 
         l_init, l_final, l_step = (
@@ -184,8 +185,8 @@ class Artificial_Image_Simulator:
         self._configure_gain()
         self._configure_image_name()
         self._initialize_subclasses()
-        self._calculate_sky_specific_flux()
-        self._calculate_star_specific_flux()
+        self._calculate_sky_specific_photons_per_second()
+        self._calculate_star_specific_photons_per_second()
 
     def _verify_class_parameters(self):
         if self.channel not in [1, 2, 3, 4]:
@@ -209,17 +210,6 @@ class Artificial_Image_Simulator:
             raise ValueError(f"The bias level must be an integer: {self.bias_level}")
         elif self.bias_level <= 0:
             raise ValueError(f"The bias level must be positive: {self.bias_level}")
-
-        if not isinstance(self.sparc4_operation_mode, str):
-            raise ValueError(
-                r"The SPARC4 operation mode must be a string: "
-                + f"{self.sparc4_operation_mode}"
-            )
-        elif self.sparc4_operation_mode not in ["phot", "pol"]:
-            raise ValueError(
-                'The SPARC4 operation mode must be "phot" '
-                + f'or "pol": {self.sparc4_operation_mode}'
-            )
 
         if not isinstance(self.image_dir, str):
             raise ValueError(f"The directory path must be a string: {self.image_dir}")
@@ -341,6 +331,53 @@ class Artificial_Image_Simulator:
         if ccd_temp < -80 or ccd_temp > 20:
             raise ValueError(f"CCD temperature out of range [-80, 20]: {ccd_temp}")
 
+    def _verify_sparc4_operation_mode(self):
+        s4_op_mode = self.sparc4_operation_mode
+        keywords = list(s4_op_mode.keys())
+
+        if "acquisition_mode" not in keywords:
+            raise ValueError("Key word 'acquisition_mode' was not found.")
+
+        if s4_op_mode["acquisition_mode"] == "photometric":
+            if len(keywords) > 1:
+                raise ValueError(
+                    f"Unnecessary parameter(s) was/were provided for the SPARC4 operation mode: {keywords}"
+                )
+        elif s4_op_mode["acquisition_mode"] == "polarimetric":
+            polarimetric_keywords = [
+                "acquisition_mode",
+                "calibration_wheel",
+                "retarder",
+            ]
+
+            for word in keywords:
+                if word not in polarimetric_keywords:
+                    raise ValueError(
+                        f"The provided parameter is not a parameter of the SPARC4 operation mode: {word}"
+                    )
+            if sorted(keywords) != polarimetric_keywords:
+                raise ValueError("A parameter of the SPARC4 operation mode is missing.")
+            if s4_op_mode["calibration_wheel"] not in [
+                "polarizer",
+                "depolarizer",
+                "empty",
+            ]:
+                raise ValueError(
+                    f"Wrong value for the calibration wheel: {s4_op_mode['calibration_wheel']}."
+                )
+
+            if s4_op_mode["retarder"] not in [
+                "half",
+                "quarter",
+            ]:
+                raise ValueError(
+                    f"Wrong value for the retarder: {s4_op_mode['calibration_wheel']}."
+                )
+        else:
+            raise ValueError(
+                f"The SPARC4 acquisition mode should be 'photometric' or 'polarimetric': {s4_op_mode['acquisition_mode']}."
+            )
+
     def _initialize_subclasses(self):
         self.sc = Spectrum_Calculation(
             star_temperature=self.star_temperature,
@@ -397,14 +434,14 @@ class Artificial_Image_Simulator:
     def _calculate_read_noise(self, ccd_operation_mode):
         self.read_noise = self.chc.calculate_read_noise(ccd_operation_mode)
 
-    def _calculate_star_specific_flux(self):
+    def _calculate_star_specific_photons_per_second(self):
         self.star_specific_photons_per_second = [
-            self.sc.calculate_specific_flux(self.star_magnitude)
+            self.sc.calculate_specific_photons_per_second(self.star_magnitude)
         ]
 
-    def _calculate_sky_specific_flux(self):
+    def _calculate_sky_specific_photons_per_second(self):
         self.sky_specific_photons_per_second = [
-            self.sc.calculate_specific_flux(self.star_magnitude + 3)
+            self.sc.calculate_specific_photons_per_second(self.star_magnitude + 3)
         ]
 
     def apply_atmosphere_spectral_response(self):
@@ -418,14 +455,14 @@ class Artificial_Image_Simulator:
 
         self.star_specific_photons_per_second = [
             self.asr.apply_atmosphere_spectral_response(
-                self.star_specific_photons_per_second[0],
+                self.star_specific_photons_per_second,
                 wavelength_interval=self.wavelength_interval,
             )
         ]
 
         self.sky_specific_photons_per_second = [
             self.asr.apply_atmosphere_spectral_response(
-                self.sky_specific_photons_per_second[0],
+                self.sky_specific_photons_per_second,
                 wavelength_interval=self.wavelength_interval,
             )
         ]
@@ -441,14 +478,14 @@ class Artificial_Image_Simulator:
 
         self.star_specific_photons_per_second = [
             self.tsr.apply_telescope_spectral_response(
-                self.star_specific_photons_per_second[0],
+                self.star_specific_photons_per_second,
                 wavelength_interval=self.wavelength_interval,
             )
         ]
 
         self.sky_specific_photons_per_second = [
             self.tsr.apply_telescope_spectral_response(
-                self.sky_specific_photons_per_second[0],
+                self.sky_specific_photons_per_second,
                 wavelength_interval=self.wavelength_interval,
             )
         ]
@@ -460,14 +497,15 @@ class Artificial_Image_Simulator:
         This functions applies the SPARC4 spectral response on the
         calculated star and sky specific flux.
         """
+
         self.star_specific_photons_per_second = self.chc.apply_sparc4_spectral_response(
-            self.star_specific_photons_per_second[0]
+            self.star_specific_photons_per_second
         )
         self.sky_specific_photons_per_second = self.chc.apply_sparc4_spectral_response(
-            self.sky_specific_photons_per_second[0]
+            self.sky_specific_photons_per_second
         )
 
-    def _integrate_specific_fluxes(self):
+    def _integrate_specific_photons_per_second(self):
         """Integrate the star and the sky specific fluxes."""
         self.sky_photons_per_second = 0
         for array in self.sky_specific_photons_per_second:
@@ -550,7 +588,7 @@ class Artificial_Image_Simulator:
         Star Image:
             A FITS file with the calculated artificial image
         """
-        self._integrate_specific_fluxes()
+        self._integrate_specific_photons_per_second()
         background = self.bgi.create_background_image(self.sky_photons_per_second)
         star_psf = self.psf.create_star_psf(
             self.star_coordinates,
@@ -581,7 +619,7 @@ class Artificial_Image_Simulator:
         Background Image:
             A FITS file with the calculated background image
         """
-        self._integrate_specific_fluxes()
+        self._integrate_specific_photons_per_second()
         background = self.bgi.create_background_image(self.sky_photons_per_second)
         header = self.hdr.create_header()
 
@@ -664,7 +702,7 @@ class Artificial_Image_Simulator:
             A FITS file with the calculated random artificial image.
         """
 
-        self._integrate_specific_fluxes()
+        self._integrate_specific_photons_per_second()
         random_image = self.bgi.create_background_image(self.sky_photons_per_second)
         for i in range(n):
             image_size = self.image_size

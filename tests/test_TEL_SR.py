@@ -70,13 +70,16 @@ def test_apply_telescope_spectral_response(tel_sr):
     )
     tel_wavelength_interval = ss["(nm)"]
     reflectance = ss["(%)"] / 100
-    specific_flux = np.ones((4, wavelength_interval_len))
 
     spl = splrep(tel_wavelength_interval, reflectance)
     reflectance = splev(wavelength_interval, spl)
-    specific_flux = np.multiply(specific_flux, reflectance)
-
-    new_specific_flux = tel_sr.apply_telescope_spectral_response(
-        specific_flux, wavelength_interval
+    new_star_specific_photons_per_second = np.multiply(
+        star_specific_photons_per_second, reflectance
     )
-    assert np.allclose(specific_flux, new_specific_flux)
+
+    new_star_specific_photons_per_second = tel_sr.apply_telescope_spectral_response(
+        star_specific_photons_per_second, wavelength_interval
+    )
+    assert np.allclose(
+        star_specific_photons_per_second, new_star_specific_photons_per_second
+    )

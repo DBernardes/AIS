@@ -11,8 +11,8 @@ This script presents the tests of the AIS initialization. These tests are:
     image directory should be a string.
 
     - Operation Mode of the CCD: the parameters of the operation mode of the
-    CCD are provided as a python dictionary. It is tested if the keyword values
-    of the provided dictionary are correct; it is tested if the values of the
+    CCD are provided as a python ccd_operation_modetionary. It is tested if the keyword values
+    of the provided ccd_operation_modetionary are correct; it is tested if the values of the
     parameters are in agreement with the manufacture manual.
 
     - Channel ID: each SPARC4 channel is represented as a python class, and it
@@ -31,36 +31,29 @@ Created on Fri Apr 16 09:10:51 2021
 import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
-from .AIS_spectral_response_curves import l_final, l_init, l_step
-
-dic = {
-    "em_mode": "Conv",
-    "em_gain": 1,
-    "preamp": 1,
-    "hss": 1,
-    "binn": 1,
-    "t_exp": 1,
-    "ccd_temp": -70,
-    "image_size": 200,
-}
-
+from .AIS_spectral_response_curves import (
+    air_mass,
+    ccd_operation_mode,
+    l_final,
+    l_init,
+    l_step,
+    magnitude,
+    sky_condition,
+    sparc4_operation_mode,
+    star_temperature,
+)
 
 channel = 1
 star_coordinates = (100, 100)
-sparc4_operation_mode = "phot"
 image_dir = "a"
-star_temperature = 5700
-star_magnitude = 22
 bias_level = 500
 seeing = 1.5
-air_mass = 1
-sky_condition = "photometric"
 
 
 @pytest.fixture
 def ais():
     return Artificial_Image_Simulator(
-        ccd_operation_mode=dic,
+        ccd_operation_mode=ccd_operation_mode,
         channel=channel,
         star_coordinates=star_coordinates,
         bias_level=bias_level,
@@ -68,7 +61,7 @@ def ais():
         image_dir=image_dir,
         wavelength_interval=(l_init, l_final, l_step),
         star_temperature=star_temperature,
-        star_magnitude=star_magnitude,
+        star_magnitude=magnitude,
         seeing=seeing,
         air_mass=air_mass,
         sky_condition=sky_condition,
@@ -90,10 +83,6 @@ def test_bias_level(ais):
     assert ais.bias_level == bias_level
 
 
-def test_sparc4_operation_mode(ais):
-    assert ais.sparc4_operation_mode == sparc4_operation_mode
-
-
 def test_image_dir(ais):
     assert ais.image_dir == image_dir
 
@@ -107,7 +96,7 @@ def test_star_temperature(ais):
 
 
 def test_star_magnitude(ais):
-    assert ais.star_magnitude == star_magnitude
+    assert ais.star_magnitude == magnitude
 
 
 def test_seeing(ais):
@@ -155,47 +144,42 @@ def test_ASR(ais):
 
 def test_star_coordinates_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, star_coordinates=("a", 10))
+        Artificial_Image_Simulator(ccd_operation_mode, star_coordinates=("a", 10))
 
 
 def test_bias_level_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, bias_level="a")
-
-
-def test_sparc4_operation_mode_isnot_string():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, sparc4_operation_mode=1)
+        Artificial_Image_Simulator(ccd_operation_mode, bias_level="a")
 
 
 def test_image_dir_isnot_string():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, image_dir=1)
+        Artificial_Image_Simulator(ccd_operation_mode, image_dir=1)
 
 
 def test_wavelength_interval_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, wavelength_interval="a")
+        Artificial_Image_Simulator(ccd_operation_mode, wavelength_interval="a")
 
 
 def test_star_temperature_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, star_temperature="a")
+        Artificial_Image_Simulator(ccd_operation_mode, star_temperature="a")
 
 
 def test_star_magnitude_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, star_magnitude="a")
+        Artificial_Image_Simulator(ccd_operation_mode, star_magnitude="a")
 
 
 def test_seeing_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, seeing="a")
+        Artificial_Image_Simulator(ccd_operation_mode, seeing="a")
 
 
 def test_air_mass_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, air_mass="a")
+        Artificial_Image_Simulator(ccd_operation_mode, air_mass="a")
 
 
 # ------------------provide a negative value to the parameters-----------------
@@ -203,32 +187,34 @@ def test_air_mass_isnot_number():
 
 def test_star_coordinates_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, star_coordinates=(-1, -1))
+        Artificial_Image_Simulator(ccd_operation_mode, star_coordinates=(-1, -1))
 
 
 def test_bias_level_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, bias_level=-1)
+        Artificial_Image_Simulator(ccd_operation_mode, bias_level=-1)
 
 
 def test_wavelength_interval_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, wavelength_interval=(-20, 20, 20))
+        Artificial_Image_Simulator(
+            ccd_operation_mode, wavelength_interval=(-20, 20, 20)
+        )
 
 
 def test_star_magnitude_negative_value():
-    ais = Artificial_Image_Simulator(dic, star_magnitude=-1)
+    ais = Artificial_Image_Simulator(ccd_operation_mode, star_magnitude=-1)
     assert ais.star_magnitude == -1
 
 
 def test_seeing_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, seeing=-1.5)
+        Artificial_Image_Simulator(ccd_operation_mode, seeing=-1.5)
 
 
 def test_air_mass_negative_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, air_mass=-air_mass)
+        Artificial_Image_Simulator(ccd_operation_mode, air_mass=-air_mass)
 
 
 # ----------------provide zero to the parameters----------------------
@@ -236,49 +222,49 @@ def test_air_mass_negative_value():
 
 def test_star_coordinates_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, star_coordinates=(0, 0))
+        Artificial_Image_Simulator(ccd_operation_mode, star_coordinates=(0, 0))
 
 
 def test_bias_level_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, bias_level=0)
+        Artificial_Image_Simulator(ccd_operation_mode, bias_level=0)
 
 
 def test_wavelength_interval_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, wavelength_interval=(0, 20, 20))
+        Artificial_Image_Simulator(ccd_operation_mode, wavelength_interval=(0, 20, 20))
 
 
 def test_star_temperature_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, star_temperature=0)
+        Artificial_Image_Simulator(ccd_operation_mode, star_temperature=0)
 
 
 def test_star_magnitude_zero_value():
-    ais = Artificial_Image_Simulator(dic, star_magnitude=0)
+    ais = Artificial_Image_Simulator(ccd_operation_mode, star_magnitude=0)
     assert ais.star_magnitude == 0
 
 
 def test_seeing_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, seeing=0)
+        Artificial_Image_Simulator(ccd_operation_mode, seeing=0)
 
 
 def test_air_mass_zero_value():
-    ais = Artificial_Image_Simulator(dic, air_mass=0)
+    ais = Artificial_Image_Simulator(ccd_operation_mode, air_mass=0)
     assert ais.air_mass == 0
 
 
 def test_sky_condition_zero_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, sky_condition=0)
+        Artificial_Image_Simulator(ccd_operation_mode, sky_condition=0)
 
 
 # -------  provide a wrong parameter to the CCD operation mode---------------
 
 
 def test_ccd_operation_mode_wrong_keyword_em_mode():
-    dic = {
+    ccd_operation_mode = {
         "em_modee": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -289,11 +275,11 @@ def test_ccd_operation_mode_wrong_keyword_em_mode():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyword_em_gain():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gainn": 1,
         "preamp": 1,
@@ -304,11 +290,11 @@ def test_ccd_operation_mode_wrong_keyword_em_gain():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyword_preamp():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preampp": 1,
@@ -319,11 +305,11 @@ def test_ccd_operation_mode_wrong_keyword_preamp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyword_hss():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -334,11 +320,11 @@ def test_ccd_operation_mode_wrong_keyword_hss():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyword_bin():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -349,11 +335,11 @@ def test_ccd_operation_mode_wrong_keyword_bin():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyword_t_exp():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -364,11 +350,11 @@ def test_ccd_operation_mode_wrong_keyword_t_exp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyword_ccd_temp():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -379,11 +365,11 @@ def test_ccd_operation_mode_wrong_keyword_ccd_temp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyword_image_size():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -394,14 +380,14 @@ def test_ccd_operation_mode_wrong_keyword_image_size():
         "image_sizee": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 # ------------ provide a wrong value to the CCD operation mode-------------
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_mode():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": 2,
         "em_gain": 1,
         "preamp": 1,
@@ -412,11 +398,11 @@ def test_ccd_operation_mode_wrong_keyvalue_em_mode():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_1():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 2,
         "preamp": 1,
@@ -427,11 +413,11 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_1():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_2():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "EM",
         "em_gain": 1,
         "preamp": 1,
@@ -442,11 +428,11 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_2():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_3():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "EM",
         "em_gain": "a",
         "preamp": 1,
@@ -457,11 +443,11 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_3():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_preamp():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 3,
@@ -472,11 +458,11 @@ def test_ccd_operation_mode_wrong_keyvalue_preamp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_hss():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -487,11 +473,11 @@ def test_ccd_operation_mode_wrong_keyvalue_hss():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_bin():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -502,11 +488,11 @@ def test_ccd_operation_mode_wrong_keyvalue_bin():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_exp_1():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -517,11 +503,11 @@ def test_ccd_operation_mode_wrong_keyvalue_t_exp_1():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_exp_2():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -532,11 +518,11 @@ def test_ccd_operation_mode_wrong_keyvalue_t_exp_2():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_ccd_temp_1():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -547,11 +533,11 @@ def test_ccd_operation_mode_wrong_keyvalue_ccd_temp_1():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_ccd_temp_2():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -562,11 +548,11 @@ def test_ccd_operation_mode_wrong_keyvalue_t_ccd_temp_2():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_image_size_1():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -577,11 +563,11 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_1():
         "image_size": -1,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_image_size_2():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -592,11 +578,11 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_2():
         "image_size": 0,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -607,27 +593,183 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
         "image_size": 1.1,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
-# ---------------------------miscelaneous-------------------------------------
+# -----------------------Test SPARC4 operation mode ---------------------------------------
+
+
+def test_dic_without_acquisition_mode():
+    sparc4_operation_mode = {}
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(
+            sparc4_operation_mode=sparc4_operation_mode,
+            ccd_operation_mode=ccd_operation_mode,
+        )
+
+
+def test_wrong_acquisition_mode():
+    dic = {"acquisition_mode": "a"}
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(
+            sparc4_operation_mode=dic, ccd_operation_mode=ccd_operation_mode
+        )
+
+
+def test_acquisition_photometric(ais):
+    assert ais.sparc4_operation_mode["acquisition_mode"] == "photometric"
+
+
+def test_acquisition_polarimetric(ais):
+    sparc4_operation_mode = {
+        "acquisition_mode": "polarimetric",
+        "calibration_wheel": "empty",
+        "retarder": "quarter",
+    }
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
+    )
+    assert ais.sparc4_operation_mode["acquisition_mode"] == "polarimetric"
+
+
+def test_acquisition_photometric_with_unnecessary_keywords(ais):
+    sparc4_operation_mode = {
+        "acquisition_mode": "photometric",
+        "calibration_wheel": "empty",
+        "retarder": "quarter",
+    }
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(
+            ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
+        )
+
+
+def test_acquisition_polarimetric_and_wrong_keyword(ais):
+    sparc4_operation_mode = {
+        "acquisition_mode": "polarimetric",
+        "calibration_wheel": "empty",
+        "retarder": "quarter",
+        "blah": 1,
+    }
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(
+            ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
+        )
+
+
+def test_acquisition_polarimetric_missing_keyword(ais):
+    sparc4_operation_mode = {
+        "acquisition_mode": "polarimetric",
+        "calibration_wheel": "empty",
+    }
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(
+            ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
+        )
+
+
+def test_acquisition_polarimetric_calibration_wheel_polarizer(ais):
+    sparc4_operation_mode = {
+        "acquisition_mode": "polarimetric",
+        "calibration_wheel": "polarizer",
+        "retarder": "half",
+    }
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
+    )
+    assert ais.sparc4_operation_mode["calibration_wheel"] == "polarizer"
+
+
+def test_acquisition_polarimetric_calibration_wheel_depolarizer(ais):
+    sparc4_operation_mode = {
+        "acquisition_mode": "polarimetric",
+        "calibration_wheel": "depolarizer",
+        "retarder": "half",
+    }
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
+    )
+    assert ais.sparc4_operation_mode["calibration_wheel"] == "depolarizer"
+
+
+def test_acquisition_polarimetric_calibration_wheel_empty(ais):
+    sparc4_operation_mode = {
+        "acquisition_mode": "polarimetric",
+        "calibration_wheel": "empty",
+        "retarder": "half",
+    }
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
+    )
+    assert ais.sparc4_operation_mode["calibration_wheel"] == "empty"
+
+
+def test_acquisition_polarimetric_calibration_wheel_wrong_value(ais):
+    sparc4_operation_mode = {
+        "acquisition_mode": "polarimetric",
+        "calibration_wheel": "blah",
+        "retarder": "half",
+    }
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(
+            ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
+        )
+
+
+def test_acquisition_polarimetric_retarder_qaurter(ais):
+    sparc4_operation_mode = {
+        "acquisition_mode": "polarimetric",
+        "calibration_wheel": "polarizer",
+        "retarder": "quarter",
+    }
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
+    )
+    assert ais.sparc4_operation_mode["retarder"] == "quarter"
+
+
+def test_acquisition_polarimetric_retarder_half(ais):
+    sparc4_operation_mode = {
+        "acquisition_mode": "polarimetric",
+        "calibration_wheel": "depolarizer",
+        "retarder": "half",
+    }
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
+    )
+    assert ais.sparc4_operation_mode["retarder"] == "half"
+
+
+def test_acquisition_polarimetric_retarder_wrong_value(ais):
+    sparc4_operation_mode = {
+        "acquisition_mode": "polarimetric",
+        "calibration_wheel": "polarizer",
+        "retarder": "blah",
+    }
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(
+            ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
+        )
+
+
+# ---------------------------miscelaneous--------------------------------------------------
 
 
 def test_channel_wrong_value():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, channel=5)
+        Artificial_Image_Simulator(ccd_operation_mode, channel=5)
 
 
 def test_star_coordinates_greater_than_image_size():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic, star_coordinates=(500, 500))
+        Artificial_Image_Simulator(ccd_operation_mode, star_coordinates=(2000, 2000))
 
 
 # ---------------------------Missing CCD operation mode parameter -------------
 
 
 def test_ccd_operation_mode_missing_parameter_em_mode():
-    dic = {
+    ccd_operation_mode = {
         "em_gain": 1,
         "preamp": 1,
         "hss": 1,
@@ -637,11 +779,11 @@ def test_ccd_operation_mode_missing_parameter_em_mode():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_missing_parameter_em_gain():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "preamp": 1,
         "hss": 1,
@@ -651,11 +793,11 @@ def test_ccd_operation_mode_missing_parameter_em_gain():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_missing_parameter_preamp():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "hss": 1,
@@ -665,11 +807,11 @@ def test_ccd_operation_mode_missing_parameter_preamp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_missing_parameter_hss():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -679,11 +821,11 @@ def test_ccd_operation_mode_missing_parameter_hss():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_missing_parameter_t_exp():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -693,11 +835,11 @@ def test_ccd_operation_mode_missing_parameter_t_exp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_missing_parameter_bin():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -707,11 +849,11 @@ def test_ccd_operation_mode_missing_parameter_bin():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_missing_parameter_ccd_temp():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -721,11 +863,11 @@ def test_ccd_operation_mode_missing_parameter_ccd_temp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 def test_ccd_operation_mode_missing_parameter_image_size():
-    dic = {
+    ccd_operation_mode = {
         "em_mode": "Conv",
         "em_gain": 1,
         "preamp": 1,
@@ -735,27 +877,27 @@ def test_ccd_operation_mode_missing_parameter_image_size():
         "ccd_temp": -70,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(dic)
+        Artificial_Image_Simulator(ccd_operation_mode)
 
 
 # ----------------------- Channels ID --------------------------------
 
 
 def test_Channel_output_1():
-    ais = Artificial_Image_Simulator(dic, channel=1)
+    ais = Artificial_Image_Simulator(ccd_operation_mode, channel=1)
     assert ais.get_channel_id() == "Channel 1"
 
 
 def test_Channel_output_2():
-    ais = Artificial_Image_Simulator(dic, channel=2)
+    ais = Artificial_Image_Simulator(ccd_operation_mode, channel=2)
     assert ais.get_channel_id() == "Channel 2"
 
 
 def test_Channel_output_3():
-    ais = Artificial_Image_Simulator(dic, channel=3)
+    ais = Artificial_Image_Simulator(ccd_operation_mode, channel=3)
     assert ais.get_channel_id() == "Channel 3"
 
 
 def test_Channel_output_4():
-    ais = Artificial_Image_Simulator(dic, channel=4)
+    ais = Artificial_Image_Simulator(ccd_operation_mode, channel=4)
     assert ais.get_channel_id() == "Channel 4"
