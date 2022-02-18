@@ -9,6 +9,7 @@ the AIS models as star flux as a 2D gaussian distribution. Then, the star
 flux is added to an image with a background level given by counts distribution
 of an image of the SPARC4 cameras, as a function of its operation mode.
 """
+import datetime
 import os
 from random import randint
 
@@ -519,27 +520,17 @@ class Artificial_Image_Simulator:
             self.star_extra_ordinary_ray = star_photons_per_second[1]
 
     def _configure_image_name(self):
-        """
-        Create the image name.
+        """Create the image name.
 
-        The image name will be created based on the provided information
+        The image name will be created based on the time that the image is created
 
-        Parameters
-        ----------
-        include_star_flux: bool, optional
-            Indicate if it is needed to include the star flux value in the
-            image name
+
         """
-        dic = self.ccd_operation_mode
-        em_gain = "_G" + str(dic["em_gain"])
-        em_mode = dic["em_mode"].upper()
-        hss = "_HSS" + str(dic["hss"])
-        preamp = "_PA" + str(dic["preamp"])
-        binn = "_B" + str(dic["binn"])
-        t_exp = "_TEXP" + str(dic["t_exp"])
-        self.image_name = em_mode + hss + preamp + binn + t_exp + em_gain
-        if self.sparc4_operation_mode == "pol":
-            self.image_name += "_POL"
+        now = datetime.datetime.now()
+        self.image_name = (
+            f"{now.year}{now.month}{now.day}T{now.hour:0>2}{now.minute:0>2}{now.second:0>2}"
+            + f"{now.microsecond}"[:2]
+        )
 
     def _configure_gain(self):
         """Configure the CCD gain based on its operation mode."""

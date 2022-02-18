@@ -8,7 +8,7 @@ Created on Tue Apr 27 10:23:27 2021
 
 import os
 
-from Artificial_Image_Simulator import Artificial_Image_Simulator
+from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
 dic = {
     "em_mode": "Conv",
@@ -27,8 +27,12 @@ ais = Artificial_Image_Simulator(
     channel=1,
     star_coordinates=[100, 100],
     bias_level=500,
-    sparc4_operation_mode="pol",
-    image_dir=os.path.join("..", "FITS"),
+    sparc4_operation_mode={
+        "acquisition_mode": "polarimetric",
+        "calibration_wheel": "empty",
+        "retarder": "quarter",
+    },
+    image_dir=os.path.join("FITS"),
     wavelength_interval=(400, 1150, 50),
     star_temperature=5700,
     star_magnitude=18,
