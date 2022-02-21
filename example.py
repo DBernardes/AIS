@@ -32,7 +32,7 @@ ais = Artificial_Image_Simulator(
         "calibration_wheel": "empty",
         "retarder": "quarter",
     },
-    image_dir=os.path.join("..\FITS"),
+    image_dir=os.path.join("FITS"),
     wavelength_interval=(400, 1150, 50),
     star_temperature=5700,
     star_magnitude=18,
