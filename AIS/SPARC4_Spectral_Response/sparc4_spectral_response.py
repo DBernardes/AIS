@@ -188,11 +188,11 @@ class Abstract_SPARC4_Spectral_Response:
         This functions applies the spectral response of the two
         dichroics that compose each channel.
         """
-        for i in [1, 2]:
-            file = os.path.join(
-                self._DIR_PATH, f"Channel {self._CHANNEL_ID}", f"dichroic_{i}.csv"
-            )
-            self._apply_optical_component_transmission(file)
+
+        file = os.path.join(
+            self._DIR_PATH, f"Channel {self._CHANNEL_ID}", f"dichroic.csv"
+        )
+        self._apply_optical_component_transmission(file)
 
     def apply_camera(self):
         """Apply the camera spectral response."""

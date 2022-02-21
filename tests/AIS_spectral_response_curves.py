@@ -249,119 +249,64 @@ collimator_transmitance = (
 # ------------------------------------ Dichroics ------------------------------------------------------
 
 
-dichroic_c0_1 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 0", "dichroic_1.csv"),
+dichroic_c0 = pd.read_csv(
+    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 0", "dichroic.csv"),
     dtype=np.float64,
     skiprows=1,
     decimal=".",
 )
 
-dichroic_c0_2 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 0", "dichroic_2.csv"),
+
+spl = splrep(dichroic_c0["(nm)"], dichroic_c0["(%)"])
+dichroic_c0 = splev(wavelength_interval, spl) / 100
+
+
+dichroic_c1 = pd.read_csv(
+    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 1", "dichroic.csv"),
     dtype=np.float64,
     skiprows=1,
     decimal=".",
 )
 
-dichroic_c0_1 = calculate_spline(
-    dichroic_c0_1["(%)"], dichroic_c0_1["(nm)"], wavelength_interval
-)
-dichroic_c0_2 = calculate_spline(
-    dichroic_c0_2["(%)"], dichroic_c0_2["(nm)"], wavelength_interval
-)
-dichroic_c0 = np.multiply(dichroic_c0_1 / 100, dichroic_c0_2 / 100)
+
+spl = splrep(dichroic_c1["(nm)"], dichroic_c1["(%)"])
+dichroic_c1 = splev(wavelength_interval, spl) / 100
 
 
-dichroic_c1_1 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 1", "dichroic_1.csv"),
+dichroic_c2 = pd.read_csv(
+    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 2", "dichroic.csv"),
     dtype=np.float64,
     skiprows=1,
     decimal=".",
 )
 
-dichroic_c1_2 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 1", "dichroic_2.csv"),
+
+spl = splrep(dichroic_c2["(nm)"], dichroic_c2["(%)"])
+dichroic_c2 = splev(wavelength_interval, spl) / 100
+
+
+dichroic_c3 = pd.read_csv(
+    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 3", "dichroic.csv"),
     dtype=np.float64,
     skiprows=1,
     decimal=".",
 )
 
-dichroic_c1_1 = calculate_spline(
-    dichroic_c1_1["(%)"], dichroic_c1_1["(nm)"], wavelength_interval
-)
-dichroic_c1_2 = calculate_spline(
-    dichroic_c1_2["(%)"], dichroic_c1_2["(nm)"], wavelength_interval
-)
-dichroic_c1 = np.multiply(dichroic_c1_1 / 100, dichroic_c1_2 / 100)
 
-dichroic_c2_1 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 2", "dichroic_1.csv"),
+spl = splrep(dichroic_c3["(nm)"], dichroic_c3["(%)"])
+dichroic_c3 = splev(wavelength_interval, spl) / 100
+
+
+dichroic_c4 = pd.read_csv(
+    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 4", "dichroic.csv"),
     dtype=np.float64,
     skiprows=1,
     decimal=".",
 )
 
-dichroic_c2_2 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 2", "dichroic_2.csv"),
-    dtype=np.float64,
-    skiprows=1,
-    decimal=".",
-)
 
-dichroic_c2_1 = calculate_spline(
-    dichroic_c2_1["(%)"], dichroic_c2_1["(nm)"], wavelength_interval
-)
-dichroic_c2_2 = calculate_spline(
-    dichroic_c2_2["(%)"], dichroic_c2_2["(nm)"], wavelength_interval
-)
-dichroic_c2 = np.multiply(dichroic_c2_1 / 100, dichroic_c2_2 / 100)
-
-
-dichroic_c3_1 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 3", "dichroic_1.csv"),
-    dtype=np.float64,
-    skiprows=1,
-    decimal=".",
-)
-
-dichroic_c3_2 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 3", "dichroic_2.csv"),
-    dtype=np.float64,
-    skiprows=1,
-    decimal=".",
-)
-
-dichroic_c3_1 = calculate_spline(
-    dichroic_c3_1["(%)"], dichroic_c3_1["(nm)"], wavelength_interval
-)
-dichroic_c3_2 = calculate_spline(
-    dichroic_c3_2["(%)"], dichroic_c3_2["(nm)"], wavelength_interval
-)
-dichroic_c3 = np.multiply(dichroic_c3_1 / 100, dichroic_c3_2 / 100)
-
-
-dichroic_c4_1 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 4", "dichroic_1.csv"),
-    dtype=np.float64,
-    skiprows=1,
-    decimal=".",
-)
-
-dichroic_c4_2 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 4", "dichroic_2.csv"),
-    dtype=np.float64,
-    skiprows=1,
-    decimal=".",
-)
-
-dichroic_c4_1 = calculate_spline(
-    dichroic_c4_1["(%)"], dichroic_c4_1["(nm)"], wavelength_interval
-)
-dichroic_c4_2 = calculate_spline(
-    dichroic_c4_2["(%)"], dichroic_c4_2["(nm)"], wavelength_interval
-)
-dichroic_c4 = np.multiply(dichroic_c4_1 / 100, dichroic_c4_2 / 100)
-
+spl = splrep(dichroic_c4["(nm)"], dichroic_c4["(%)"])
+dichroic_c4 = splev(wavelength_interval, spl) / 100
 
 # ------------------------------------ Camera ------------------------------------------------------
 

@@ -455,13 +455,8 @@ def test_read_spreadsheet_collimator(abs_s4_sr):
     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_dichroic_1(abs_s4_sr):
-    file = os.path.join(path, "Channel 0", "dichroic_1.csv")
-    abs_s4_sr._read_spreadsheet(file)
-
-
-def test_read_spreadsheet_dichroic_2(abs_s4_sr):
-    file = os.path.join(path, "Channel 0", "dichroic_2.csv")
+def test_read_spreadsheet_dichroic(abs_s4_sr):
+    file = os.path.join(path, "Channel 0", "dichroic.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
@@ -475,13 +470,8 @@ def test_read_spreadsheet_ccd(abs_s4_sr):
     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_dichroic_1_1(abs_s4_sr):
-    file = os.path.join(path, "Channel 1", "dichroic_1.csv")
-    abs_s4_sr._read_spreadsheet(file)
-
-
-def test_read_spreadsheet_dichroic_1_2(abs_s4_sr):
-    file = os.path.join(path, "Channel 1", "dichroic_2.csv")
+def test_read_spreadsheet_dichroic_1(abs_s4_sr):
+    file = os.path.join(path, "Channel 1", "dichroic.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
@@ -495,13 +485,8 @@ def test_read_spreadsheet_ccd_1(abs_s4_sr):
     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_dichroic_2_1(abs_s4_sr):
-    file = os.path.join(path, "Channel 2", "dichroic_1.csv")
-    abs_s4_sr._read_spreadsheet(file)
-
-
-def test_read_spreadsheet_dichroic_2_2(abs_s4_sr):
-    file = os.path.join(path, "Channel 2", "dichroic_2.csv")
+def test_read_spreadsheet_dichroic_2(abs_s4_sr):
+    file = os.path.join(path, "Channel 2", "dichroic.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
@@ -515,13 +500,8 @@ def test_read_spreadsheet_ccd_2(abs_s4_sr):
     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_dichroic_3_1(abs_s4_sr):
-    file = os.path.join(path, "Channel 3", "dichroic_1.csv")
-    abs_s4_sr._read_spreadsheet(file)
-
-
-def test_read_spreadsheet_dichroic_3_2(abs_s4_sr):
-    file = os.path.join(path, "Channel 3", "dichroic_2.csv")
+def test_read_spreadsheet_dichroic_3(abs_s4_sr):
+    file = os.path.join(path, "Channel 3", "dichroic.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
@@ -535,13 +515,8 @@ def test_read_spreadsheet_ccd_3(abs_s4_sr):
     abs_s4_sr._read_spreadsheet(file)
 
 
-def test_read_spreadsheet_dichroic_4_1(abs_s4_sr):
-    file = os.path.join(path, "Channel 4", "dichroic_1.csv")
-    abs_s4_sr._read_spreadsheet(file)
-
-
-def test_read_spreadsheet_dichroic_4_2(abs_s4_sr):
-    file = os.path.join(path, "Channel 4", "dichroic_2.csv")
+def test_read_spreadsheet_dichroic_4(abs_s4_sr):
+    file = os.path.join(path, "Channel 4", "dichroic.csv")
     abs_s4_sr._read_spreadsheet(file)
 
 
