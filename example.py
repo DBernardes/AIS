@@ -25,14 +25,14 @@ dic = {
 ais = Artificial_Image_Simulator(
     ccd_operation_mode=dic,
     channel=1,
-    star_coordinates=[100, 100],
+    star_coordinates=(100, 100),
     bias_level=500,
     sparc4_operation_mode={
         "acquisition_mode": "polarimetric",
         "calibration_wheel": "empty",
         "retarder": "quarter",
     },
-    image_dir=os.path.join("FITS"),
+    image_dir=os.path.join("..\FITS"),
     wavelength_interval=(400, 1150, 50),
     star_temperature=5700,
     star_magnitude=18,

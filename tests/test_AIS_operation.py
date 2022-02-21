@@ -203,50 +203,50 @@ def test_integrate_specific_photons_per_second(ais):
 # -----------------------------test _create_image_name------------------------
 
 
-@pytest.mark.parametrize(
-    "em_mode, em_gain, hss, preamp, binn, t_exp, image_name",
-    [
-        ("Conv", 1, 0.1, 1, 1, 1, "CONV_HSS0.1_PA1_B1_TEXP1_G1"),
-        ("Conv", 1, 0.1, 1, 2, 1, "CONV_HSS0.1_PA1_B2_TEXP1_G1"),
-        ("Conv", 1, 0.1, 2, 1, 1, "CONV_HSS0.1_PA2_B1_TEXP1_G1"),
-        ("Conv", 1, 0.1, 2, 2, 1, "CONV_HSS0.1_PA2_B2_TEXP1_G1"),
-        ("Conv", 1, 1, 1, 1, 1, "CONV_HSS1_PA1_B1_TEXP1_G1"),
-        ("Conv", 1, 1, 1, 2, 1, "CONV_HSS1_PA1_B2_TEXP1_G1"),
-        ("Conv", 1, 1, 2, 1, 1, "CONV_HSS1_PA2_B1_TEXP1_G1"),
-        ("Conv", 1, 1, 2, 2, 1, "CONV_HSS1_PA2_B2_TEXP1_G1"),
-        ("EM", 2, 1, 1, 1, 1, "EM_HSS1_PA1_B1_TEXP1_G2"),
-        ("EM", 2, 1, 1, 2, 1, "EM_HSS1_PA1_B2_TEXP1_G2"),
-        ("EM", 2, 1, 2, 1, 1, "EM_HSS1_PA2_B1_TEXP1_G2"),
-        ("EM", 2, 1, 2, 2, 1, "EM_HSS1_PA2_B2_TEXP1_G2"),
-        ("EM", 2, 10, 1, 1, 1, "EM_HSS10_PA1_B1_TEXP1_G2"),
-        ("EM", 2, 10, 1, 2, 1, "EM_HSS10_PA1_B2_TEXP1_G2"),
-        ("EM", 2, 10, 2, 1, 1, "EM_HSS10_PA2_B1_TEXP1_G2"),
-        ("EM", 2, 10, 2, 2, 1, "EM_HSS10_PA2_B2_TEXP1_G2"),
-        ("EM", 2, 20, 1, 1, 1, "EM_HSS20_PA1_B1_TEXP1_G2"),
-        ("EM", 2, 20, 1, 2, 1, "EM_HSS20_PA1_B2_TEXP1_G2"),
-        ("EM", 2, 20, 2, 1, 1, "EM_HSS20_PA2_B1_TEXP1_G2"),
-        ("EM", 2, 20, 2, 2, 1, "EM_HSS20_PA2_B2_TEXP1_G2"),
-        ("EM", 2, 30, 1, 1, 1, "EM_HSS30_PA1_B1_TEXP1_G2"),
-        ("EM", 2, 30, 1, 2, 1, "EM_HSS30_PA1_B2_TEXP1_G2"),
-        ("EM", 2, 30, 2, 1, 1, "EM_HSS30_PA2_B1_TEXP1_G2"),
-        ("EM", 2, 30, 2, 2, 1, "EM_HSS30_PA2_B2_TEXP1_G2"),
-        ("EM", 2, 30, 2, 2, 2, "EM_HSS30_PA2_B2_TEXP2_G2"),
-    ],
-)
-def test_create_image_name(ais, em_mode, em_gain, hss, preamp, binn, t_exp, image_name):
-    ccd_operation_mode = {
-        "em_mode": em_mode,
-        "em_gain": em_gain,
-        "preamp": preamp,
-        "hss": hss,
-        "binn": binn,
-        "t_exp": t_exp,
-        "ccd_temp": -70,
-        "image_size": 200,
-    }
-    ais = Artificial_Image_Simulator(ccd_operation_mode)
-    ais._configure_image_name()
-    assert ais.image_name == image_name
+# @pytest.mark.parametrize(
+#     "em_mode, em_gain, hss, preamp, binn, t_exp, image_name",
+#     [
+#         ("Conv", 1, 0.1, 1, 1, 1, "CONV_HSS0.1_PA1_B1_TEXP1_G1"),
+#         ("Conv", 1, 0.1, 1, 2, 1, "CONV_HSS0.1_PA1_B2_TEXP1_G1"),
+#         ("Conv", 1, 0.1, 2, 1, 1, "CONV_HSS0.1_PA2_B1_TEXP1_G1"),
+#         ("Conv", 1, 0.1, 2, 2, 1, "CONV_HSS0.1_PA2_B2_TEXP1_G1"),
+#         ("Conv", 1, 1, 1, 1, 1, "CONV_HSS1_PA1_B1_TEXP1_G1"),
+#         ("Conv", 1, 1, 1, 2, 1, "CONV_HSS1_PA1_B2_TEXP1_G1"),
+#         ("Conv", 1, 1, 2, 1, 1, "CONV_HSS1_PA2_B1_TEXP1_G1"),
+#         ("Conv", 1, 1, 2, 2, 1, "CONV_HSS1_PA2_B2_TEXP1_G1"),
+#         ("EM", 2, 1, 1, 1, 1, "EM_HSS1_PA1_B1_TEXP1_G2"),
+#         ("EM", 2, 1, 1, 2, 1, "EM_HSS1_PA1_B2_TEXP1_G2"),
+#         ("EM", 2, 1, 2, 1, 1, "EM_HSS1_PA2_B1_TEXP1_G2"),
+#         ("EM", 2, 1, 2, 2, 1, "EM_HSS1_PA2_B2_TEXP1_G2"),
+#         ("EM", 2, 10, 1, 1, 1, "EM_HSS10_PA1_B1_TEXP1_G2"),
+#         ("EM", 2, 10, 1, 2, 1, "EM_HSS10_PA1_B2_TEXP1_G2"),
+#         ("EM", 2, 10, 2, 1, 1, "EM_HSS10_PA2_B1_TEXP1_G2"),
+#         ("EM", 2, 10, 2, 2, 1, "EM_HSS10_PA2_B2_TEXP1_G2"),
+#         ("EM", 2, 20, 1, 1, 1, "EM_HSS20_PA1_B1_TEXP1_G2"),
+#         ("EM", 2, 20, 1, 2, 1, "EM_HSS20_PA1_B2_TEXP1_G2"),
+#         ("EM", 2, 20, 2, 1, 1, "EM_HSS20_PA2_B1_TEXP1_G2"),
+#         ("EM", 2, 20, 2, 2, 1, "EM_HSS20_PA2_B2_TEXP1_G2"),
+#         ("EM", 2, 30, 1, 1, 1, "EM_HSS30_PA1_B1_TEXP1_G2"),
+#         ("EM", 2, 30, 1, 2, 1, "EM_HSS30_PA1_B2_TEXP1_G2"),
+#         ("EM", 2, 30, 2, 1, 1, "EM_HSS30_PA2_B1_TEXP1_G2"),
+#         ("EM", 2, 30, 2, 2, 1, "EM_HSS30_PA2_B2_TEXP1_G2"),
+#         ("EM", 2, 30, 2, 2, 2, "EM_HSS30_PA2_B2_TEXP2_G2"),
+#     ],
+# )
+# def test_create_image_name(ais, em_mode, em_gain, hss, preamp, binn, t_exp, image_name):
+#     ccd_operation_mode = {
+#         "em_mode": em_mode,
+#         "em_gain": em_gain,
+#         "preamp": preamp,
+#         "hss": hss,
+#         "binn": binn,
+#         "t_exp": t_exp,
+#         "ccd_temp": -70,
+#         "image_size": 200,
+#     }
+#     ais = Artificial_Image_Simulator(ccd_operation_mode)
+#     ais._configure_image_name()
+#     assert ais.image_name == image_name
 
 
 # -----------------------------test _configure_gain------------------------
@@ -298,7 +298,9 @@ def test_create_artificial_image_phot():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, image_dir=os.path.join("..", "FITS")
+    )
     ais.apply_sparc4_spectral_response()
     ais.create_artificial_image()
 
@@ -321,7 +323,7 @@ def test_create_artificial_image_pol():
     }
     ais = Artificial_Image_Simulator(
         ccd_operation_mode,
-        image_dir=os.path.join("FITS"),
+        image_dir=os.path.join("..", "FITS"),
         sparc4_operation_mode=sparc4_operation_mode,
     )
     ais.apply_sparc4_spectral_response()
@@ -339,7 +341,9 @@ def test_create_background_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, image_dir=os.path.join("..", "FITS")
+    )
     ais.apply_sparc4_spectral_response()
     ais.create_background_image()
 
@@ -355,7 +359,9 @@ def test_creat_bias_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, image_dir=os.path.join("..", "FITS")
+    )
     ais.apply_sparc4_spectral_response()
     ais.create_bias_image()
 
@@ -371,7 +377,9 @@ def test_creat_dark_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, image_dir=os.path.join("..", "FITS")
+    )
     ais.apply_sparc4_spectral_response()
     ais.create_dark_image()
 
@@ -387,7 +395,9 @@ def test_creat_random_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, image_dir=os.path.join("..", "FITS")
+    )
     ais.apply_sparc4_spectral_response()
     ais.create_random_image(n=2)
 
@@ -403,6 +413,8 @@ def test_creat_flat_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, image_dir=os.path.join("..", "FITS")
+    )
     ais.apply_sparc4_spectral_response()
     ais.create_flat_image()

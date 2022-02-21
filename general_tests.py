@@ -224,25 +224,25 @@ Created on Tue Apr 27 10:23:27 2021
 # ais.create_artificial_image()
 
 
-import os
+# import os
 
-import matplotlib.pyplot as plt
-import pandas as pd
-from scipy.interpolate import splev, splrep
+# import matplotlib.pyplot as plt
+# import pandas as pd
+# from scipy.interpolate import splev, splrep
 
-from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
-from AIS.Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
-from AIS.Channel_Creator import Concrete_Channel_1
-from AIS.SPARC4_Spectral_Response import (
-    Concrete_SPARC4_Spectral_Response_1,
-    sparc4_spectral_response,
-)
-from tests.AIS_spectral_response_curves import star_specific_flux, wavelength_interval
+# from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
+# from AIS.Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
+# from AIS.Channel_Creator import Concrete_Channel_1
+# from AIS.SPARC4_Spectral_Response import (
+#     Concrete_SPARC4_Spectral_Response_1,
+#     sparc4_spectral_response,
+# )
+# from tests.AIS_spectral_response_curves import star_specific_flux, wavelength_interval
 
-# -------------------------------------------------------------------------------
+# # -------------------------------------------------------------------------------
 
-s4_sr = Concrete_Channel_1("pol", wavelength_interval)
-new_flux = s4_sr.apply_sparc4_spectral_response(star_specific_flux)
+# s4_sr = Concrete_Channel_1("pol", wavelength_interval)
+# new_flux = s4_sr.apply_sparc4_spectral_response(star_specific_flux)
 
 
 # -------------------------------------------------------------------------------
@@ -280,3 +280,9 @@ new_flux = s4_sr.apply_sparc4_spectral_response(star_specific_flux)
 # atm_transmitance = splev(wavelength_interval, spl)
 # plt.plot(wavelength_interval, atm_transmitance)
 # plt.show()
+
+
+_type = int | float
+from types import UnionType
+
+print(type(_type) == UnionType)

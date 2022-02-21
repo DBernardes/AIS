@@ -12,6 +12,7 @@ of an image of the SPARC4 cameras, as a function of its operation mode.
 import datetime
 import os
 from random import randint
+from types import UnionType
 
 import astropy.io.fits as fits
 import numpy as np
@@ -143,18 +144,18 @@ class Artificial_Image_Simulator:
 
     def __init__(
         self,
-        ccd_operation_mode,
-        channel=1,
-        star_coordinates=(100, 100),
-        bias_level=500,
-        sparc4_operation_mode={"acquisition_mode": "photometric"},
-        image_dir="",
-        wavelength_interval=(400, 1100, 50),
-        star_temperature=5700,
-        star_magnitude=22,
-        seeing=1.5,
-        air_mass=1.0,
-        sky_condition="good",
+        ccd_operation_mode: dict[str, int | float | str],
+        channel: int | float = 1,
+        star_coordinates: tuple[int, int] = (100, 100),
+        bias_level: int | float = 500,
+        sparc4_operation_mode: dict[str, str] = {"acquisition_mode": "photometric"},
+        image_dir: str = "",
+        wavelength_interval: tuple[int] = (400, 1100, 50),
+        star_temperature: int | float = 5700,
+        star_magnitude: int | float = 22,
+        seeing: int | float = 1.5,
+        air_mass: int | float = 1.0,
+        sky_condition: str = "good",
     ):
         """Initialize the class."""
         self.ccd_operation_mode = ccd_operation_mode
@@ -190,77 +191,65 @@ class Artificial_Image_Simulator:
         self._calculate_star_specific_photons_per_second()
 
     def _verify_class_parameters(self):
+        self._verify_type(self.channel, "channel", int)
         if self.channel not in [1, 2, 3, 4]:
             raise ValueError(
                 "There is no camera with the provided" + f" channel: {self.channel}"
             )
 
         for coord in self.star_coordinates:
-            if not isinstance(coord, int):
-                raise ValueError(f"The star coordinates must be an integer: {coord}")
-            elif coord <= 0:
-                raise ValueError(
-                    f"The star coordinates must be greater than zero: {coord}"
-                )
-            elif coord > self.ccd_operation_mode["image_size"]:
+            self._verify_type(coord, "star coordinate")
+            self._verify_var_in_interval(coord, "star coordinate")
+            if coord > self.ccd_operation_mode["image_size"]:
                 raise ValueError(
                     f"The star coordinates must be smaller than the image size: {coord}"
                 )
 
-        if not isinstance(self.bias_level, int):
-            raise ValueError(f"The bias level must be an integer: {self.bias_level}")
-        elif self.bias_level <= 0:
-            raise ValueError(f"The bias level must be positive: {self.bias_level}")
-
-        if not isinstance(self.image_dir, str):
-            raise ValueError(f"The directory path must be a string: {self.image_dir}")
+        self._verify_type(self.bias_level, "bias_level", int)
+        self._verify_var_in_interval(self.bias_level, "bias_level")
 
         for wavelength in self.wavelength_interval:
-            if not isinstance(wavelength, int):
-                raise ValueError(
-                    f"The wavelength interval must be an integer: {wavelength}"
-                )
-            elif wavelength <= 0:
-                raise ValueError(
-                    f"The wavelength interval must be positive: {wavelength}"
-                )
+            self._verify_type(wavelength, "wavelength")
+            self._verify_var_in_interval(wavelength, "wavelength")
 
-        if not isinstance(self.star_temperature, (int, float)):
-            raise ValueError(
-                "The star temperature must be" + f"a number: {self.star_temperature}"
-            )
-        elif self.star_temperature <= 0:
-            raise ValueError(
-                r"The star temperature must be greater"
-                + f"than zero: {self.star_temperature}"
-            )
+        self._verify_type(self.star_temperature, "star temperature")
+        self._verify_var_in_interval(self.star_temperature, "star_temperature")
 
-        if not isinstance(self.star_magnitude, (int, float)):
-            raise ValueError(
-                "The star magnitude must be" + f"a number: {self.star_magnitude}"
-            )
+        self._verify_type(self.seeing, "seeing")
+        self._verify_var_in_interval(self.seeing, "seeing")
 
-        if not isinstance(self.seeing, (int, float)):
-            raise ValueError("The seeing must be" + f"a number: {self.seeing}")
-        elif self.seeing <= 0:
-            raise ValueError(
-                r"The seeing must be greater" + f"than zero: {self.seeing}"
-            )
+        self._verify_type(self.air_mass, "air mass")
+        self._verify_var_in_interval(self.air_mass, "air mass", -1e-3)
 
-        if not isinstance(self.air_mass, (int, float)):
-            raise ValueError("The air mass must be" + f"a number: {self.air_mass}")
-        elif self.air_mass < 0:
-            raise ValueError(
-                r"The air mass must be greater or equal to" + f"zero: {self.air_mass}"
-            )
+        self._verify_type(self.star_magnitude, "star magnitude")
 
-        if not isinstance(self.sky_condition, str):
-            raise ValueError(
-                "The sky condition must be" + f"a string: {self.sky_condition}"
-            )
-        elif self.sky_condition not in ["photometric", "regular", "good"]:
+        self._verify_type(self.sky_condition, "sky condiiton", str)
+        if self.sky_condition not in ["photometric", "regular", "good"]:
             raise ValueError(
                 r"The allowed values for the sky condition are 'photometric', 'regular', or 'good'."
+            )
+
+        self._verify_type(self.image_dir, "image directory", str)
+
+    @staticmethod
+    def _verify_type(var, var_name, _type=float | int):
+        if not isinstance(var, _type):
+            if type(_type) == UnionType:
+                raise ValueError(
+                    f"The {var_name} must be an integer or a float: {var}."
+                )
+            elif _type == int:
+                raise ValueError(f"The {var_name} must be an integer: {var}.")
+            elif _type == str:
+                raise ValueError(f"The {var_name} must be a string: {var}.")
+            else:
+                pass
+
+    @staticmethod
+    def _verify_var_in_interval(var, var_name, var_min=0, var_max=2**32):
+        if var <= var_min or var >= var_max:
+            raise ValueError(
+                f"The {var_name} must be in the interval [{var_min},{var_max}]: {var}."
             )
 
     def _verify_ccd_operation_mode(self):
@@ -301,10 +290,8 @@ class Artificial_Image_Simulator:
                     f"The EM Gain must be 1 for the Conventional Mode: {em_gain}"
                 )
         else:
-            if not isinstance(em_gain, (float, int)):
-                raise ValueError(f"The EM gain must be a number: {em_gain}")
-            elif em_gain < 2 or em_gain > 300:
-                raise ValueError(f"EM gain out of range [2, 300]: {em_gain}")
+            self._verify_type(em_gain, "EM gain")
+            self._verify_var_in_interval(em_gain, "EM Gain", 2, 300)
 
         if preamp not in [1, 2]:
             raise ValueError(f"Invalid value for the pre-amplification: {preamp}")
@@ -313,36 +300,31 @@ class Artificial_Image_Simulator:
             raise ValueError(f"Invalid value for the Readout rate: {hss}")
 
         if binn not in [1, 2]:
-            raise ValueError(f"Invalid value for the binning: {bin}")
+            raise ValueError(f"Invalid value for the binning: {binn}")
 
-        if not isinstance(image_size, int):
-            raise ValueError(f"The image size must be an integer: {image_size}")
-        elif image_size <= 0:
-            raise ValueError(f"The image size must be greater than zero: {image_size}")
-        else:
-            self.image_size = image_size
+        self._verify_type(image_size, "image size", int)
+        self._verify_var_in_interval(image_size, "image size", 0, 1025)
+        self.image_size = image_size
 
-        if not isinstance(t_exp, (float, int)):
-            raise ValueError(f"The exposure time must be a number: {t_exp}")
-        elif t_exp < 1e-5:
-            raise ValueError(f"Invalid value for the exposure time: {t_exp}")
+        self._verify_type(t_exp, "exposure time")
+        self._verify_var_in_interval(t_exp, "exposure time", 1e-5, 84600)
+        self.t_exp = t_exp
 
-        if not isinstance(ccd_temp, (float, int)):
-            raise ValueError(f"The CCD temperature must be a number: {ccd_temp}")
-        if ccd_temp < -80 or ccd_temp > 20:
-            raise ValueError(f"CCD temperature out of range [-80, 20]: {ccd_temp}")
+        self._verify_type(ccd_temp, "CCD temperature")
+        self._verify_var_in_interval(ccd_temp, "CCD temperature", -80, 20)
+        self.ccd_temp = ccd_temp
 
     def _verify_sparc4_operation_mode(self):
         s4_op_mode = self.sparc4_operation_mode
         keywords = list(s4_op_mode.keys())
 
         if "acquisition_mode" not in keywords:
-            raise ValueError("Key word 'acquisition_mode' was not found.")
+            raise ValueError("Keyword 'acquisition_mode' was not found.")
 
         if s4_op_mode["acquisition_mode"] == "photometric":
             if len(keywords) > 1:
                 raise ValueError(
-                    f"Unnecessary parameter(s) was/were provided for the SPARC4 operation mode: {keywords}"
+                    f"Unnecessary parameter(s) was(were) provided for the SPARC4 operation mode: {keywords}"
                 )
         elif s4_op_mode["acquisition_mode"] == "polarimetric":
             polarimetric_keywords = [
@@ -528,7 +510,7 @@ class Artificial_Image_Simulator:
         """
         now = datetime.datetime.now()
         self.image_name = (
-            f"{now.year}{now.month}{now.day}T{now.hour:0>2}{now.minute:0>2}{now.second:0>2}"
+            f"{now.year}{now.month:0>2}{now.day:0>2}T{now.hour:0>2}{now.minute:0>2}{now.second:0>2}"
             + f"{now.microsecond}"[:2]
         )
 
