@@ -298,9 +298,7 @@ def test_create_artificial_image_phot():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(
-        ccd_operation_mode, image_dir=os.path.join("..", "FITS")
-    )
+    ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
     ais.apply_sparc4_spectral_response()
     ais.create_artificial_image()
 
@@ -323,7 +321,7 @@ def test_create_artificial_image_pol():
     }
     ais = Artificial_Image_Simulator(
         ccd_operation_mode,
-        image_dir=os.path.join("..", "FITS"),
+        image_dir=os.path.join("FITS"),
         sparc4_operation_mode=sparc4_operation_mode,
     )
     ais.apply_sparc4_spectral_response()
@@ -341,9 +339,7 @@ def test_create_background_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(
-        ccd_operation_mode, image_dir=os.path.join("..", "FITS")
-    )
+    ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
     ais.apply_sparc4_spectral_response()
     ais.create_background_image()
 
@@ -359,9 +355,7 @@ def test_creat_bias_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(
-        ccd_operation_mode, image_dir=os.path.join("..", "FITS")
-    )
+    ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
     ais.apply_sparc4_spectral_response()
     ais.create_bias_image()
 
@@ -377,9 +371,7 @@ def test_creat_dark_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(
-        ccd_operation_mode, image_dir=os.path.join("..", "FITS")
-    )
+    ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
     ais.apply_sparc4_spectral_response()
     ais.create_dark_image()
 
@@ -395,9 +387,7 @@ def test_creat_random_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(
-        ccd_operation_mode, image_dir=os.path.join("..", "FITS")
-    )
+    ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
     ais.apply_sparc4_spectral_response()
     ais.create_random_image(n=2)
 
@@ -413,8 +403,6 @@ def test_creat_flat_image():
         "ccd_temp": -70,
         "image_size": 100,
     }
-    ais = Artificial_Image_Simulator(
-        ccd_operation_mode, image_dir=os.path.join("..", "FITS")
-    )
+    ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
     ais.apply_sparc4_spectral_response()
     ais.create_flat_image()
