@@ -1,4 +1,4 @@
-.. automodule:: Atmosphere_Spectral_Response.atmosphere_spectral_response
+.. automodule:: AIS.Atmosphere_Spectral_Response.atmosphere_spectral_response
    :members:
    :undoc-members:
    :show-inheritance:

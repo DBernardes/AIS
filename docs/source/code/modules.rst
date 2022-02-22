@@ -1,8 +1,10 @@
-code
+Code
 ====
 
-.. toctree::
-   :hidden:
+In this page you will find the documentation of the classes that compound the
+image simulator.
+
+.. toctree::   
 
    Artificial_Image_Simulator
    Atmosphere_Spectral_Response

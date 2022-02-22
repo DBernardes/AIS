@@ -1,4 +1,5 @@
 """
+
 Artificial Images Simulator
 ============================
 
@@ -119,9 +120,9 @@ class Artificial_Image_Simulator:
     sky_condition: {"photometric", "regular", "good"}
         The condition of the sky at the observaiton night. According to the value provided for this variable,
         a different extinction coeficient for the atmosphere will be selected.
-    
+
     moon_condition: {"new", "waxing", "waning", "full"}
-        The condition of the moon. 
+        The condition of the moon.
 
     Yields
     ------

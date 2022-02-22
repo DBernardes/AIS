@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Artificial Image Simulator Package.
 
 This package was developed to create cubes of artificial star images,

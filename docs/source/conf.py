@@ -24,7 +24,7 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../AIS"))
+sys.path.insert(0, os.path.abspath("../.."))
 
 
 # -- Project information -----------------------------------------------------
@@ -44,7 +44,7 @@ release = "1.0"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinxcontrib.napoleon",  # use napoleon to compatibility
+    "sphinx.ext.napoleon",  # use napoleon to compatibility
     "sphinx.ext.intersphinx",
     "sphinx.ext.coverage",
     "sphinx.ext.autosummary",

@@ -22,14 +22,14 @@ References
 ----------
 
 .. [#SPARC4] Claudia V. Rodrigues, Keith Taylor, Francisco J. Jablonski, Marcelo Assafin, Alex Carciofi, Deonisio Cieslinski, Joaquim E. R. Costa, Ruben Dominguez, Tania P. Dominici, Gabriel A. P. Franco, Damien J. Jones, Antonio Kanaan, René Laporte, Antonio M. Magalhaes, André Milone, José A. Neri, Antonio Pereyra, Luiz A. Reitano, Karleyne M. G. Silva, Cesar Strauss, "Concept of SPARC4: a simultaneous polarimeter and rapid camera in 4 bands," Proc. SPIE 8446, Ground-based and Airborne Instrumentation for Astronomy IV, 844626 (24 September 2012); https://doi.org/10.1117/12.924976 
-.. _LICENSE: license
+
 
 
 .. toctree::    
     :hidden:       
     
-    software_description        
-    Code <code/modules>  
+    software_description    
+    Code <code/modules>          
     license
     contact
 

@@ -1,4 +1,4 @@
-.. automodule:: Telescope_Spectral_Response.telescope_spectral_response
+.. automodule:: AIS.Telescope_Spectral_Response.telescope_spectral_response
    :members:
    :undoc-members:
    :show-inheritance:

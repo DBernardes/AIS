@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Channel Creator Package.
 
 This package creates an abstract channel as well as the four concrete channels

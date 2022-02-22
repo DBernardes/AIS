@@ -1,4 +1,4 @@
-.. automodule:: Channel_Creator.channel_creator
+.. automodule:: AIS.Channel_Creator.channel_creator
    :members:
    :undoc-members:
    :show-inheritance:

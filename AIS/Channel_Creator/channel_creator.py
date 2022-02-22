@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 
 Channel Creator
@@ -161,7 +159,7 @@ class Concrete_Channel_1(Abstract_Channel_Creator):
             instrument.
         """
         T = ccd_temp
-        self.dark_current = 24.66 * np.exp(0.0015 * T ** 2 + 0.29 * T)
+        self.dark_current = 24.66 * np.exp(0.0015 * T**2 + 0.29 * T)
         return self.dark_current
 
 
@@ -195,7 +193,7 @@ class Concrete_Channel_2(Abstract_Channel_Creator):
             instrument.
         """
         T = ccd_temp
-        self.dark_current = 35.26 * np.exp(0.0019 * T ** 2 + 0.31 * T)
+        self.dark_current = 35.26 * np.exp(0.0019 * T**2 + 0.31 * T)
         return self.dark_current
 
 
@@ -229,7 +227,7 @@ class Concrete_Channel_3(Abstract_Channel_Creator):
             instrument.
         """
         T = ccd_temp
-        self.dark_current = 9.67 * np.exp(0.0012 * T ** 2 + 0.25 * T)
+        self.dark_current = 9.67 * np.exp(0.0012 * T**2 + 0.25 * T)
         return self.dark_current
 
 
@@ -263,5 +261,5 @@ class Concrete_Channel_4(Abstract_Channel_Creator):
             instrument.
         """
         T = ccd_temp
-        self.dark_current = 5.92 * np.exp(0.0005 * T ** 2 + 0.18 * T)
+        self.dark_current = 5.92 * np.exp(0.0005 * T**2 + 0.18 * T)
         return self.dark_current
