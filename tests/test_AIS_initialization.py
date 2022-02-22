@@ -38,9 +38,9 @@ from .AIS_spectral_response_curves import (
     l_init,
     l_step,
     magnitude,
+    moon_condition,
     sky_condition,
     sparc4_operation_mode,
-    star_temperature,
 )
 
 channel = 1
@@ -60,7 +60,6 @@ def ais():
         sparc4_operation_mode=sparc4_operation_mode,
         image_dir=image_dir,
         wavelength_interval=(l_init, l_final, l_step),
-        star_temperature=star_temperature,
         star_magnitude=magnitude,
         seeing=seeing,
         air_mass=air_mass,
@@ -73,6 +72,10 @@ def ais():
 
 def test_channel_value(ais):
     assert ais.channel == channel
+
+
+def test_ccd_operation_mode(ais):
+    assert ais.ccd_operation_mode == ccd_operation_mode
 
 
 def test_star_coordinates_value(ais):
@@ -91,10 +94,6 @@ def test_wavelength_interval(ais):
     assert ais.wavelength_interval == range(400, 1150, 50)
 
 
-def test_star_temperature(ais):
-    assert ais.star_temperature == star_temperature
-
-
 def test_star_magnitude(ais):
     assert ais.star_magnitude == magnitude
 
@@ -109,6 +108,14 @@ def test_air_mass(ais):
 
 def test_sky_condition(ais):
     assert ais.sky_condition == sky_condition
+
+
+def test_sparc4_operation_mode(ais):
+    assert ais.sparc4_operation_mode == sparc4_operation_mode
+
+
+def test_moon_condition(ais):
+    assert ais.moon_condition == moon_condition
 
 
 def test_CHC(ais):
@@ -139,7 +146,12 @@ def test_ASR(ais):
     assert var == 1
 
 
-# -----------------Provide a string value to the parameters--------------------
+# -----------------Provide a wrong type of the parameter--------------------
+
+
+def test_channel_isnot_number():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(ccd_operation_mode, channel="a")
 
 
 def test_star_coordinates_isnot_number():
@@ -159,12 +171,7 @@ def test_image_dir_isnot_string():
 
 def test_wavelength_interval_isnot_number():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode, wavelength_interval="a")
-
-
-def test_star_temperature_isnot_number():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode, star_temperature="a")
+        Artificial_Image_Simulator(ccd_operation_mode, wavelength_interval=("a", "a"))
 
 
 def test_star_magnitude_isnot_number():
@@ -180,6 +187,16 @@ def test_seeing_isnot_number():
 def test_air_mass_isnot_number():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(ccd_operation_mode, air_mass="a")
+
+
+def test_sky_condition_isnot_number():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(ccd_operation_mode, sky_condition=1)
+
+
+def test_moon_condition_isnot_number():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(ccd_operation_mode, moon_condition=1)
 
 
 # ------------------provide a negative value to the parameters-----------------
@@ -235,11 +252,6 @@ def test_wavelength_interval_zero_value():
         Artificial_Image_Simulator(ccd_operation_mode, wavelength_interval=(0, 20, 20))
 
 
-def test_star_temperature_zero_value():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode, star_temperature=0)
-
-
 def test_star_magnitude_zero_value():
     ais = Artificial_Image_Simulator(ccd_operation_mode, star_magnitude=0)
     assert ais.star_magnitude == 0
@@ -255,9 +267,22 @@ def test_air_mass_zero_value():
     assert ais.air_mass == 0
 
 
-def test_sky_condition_zero_value():
+# ---------------- Test values that are not in the list ----------------------
+
+
+def test_channel_value_not_in_list():
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode, sky_condition=0)
+        Artificial_Image_Simulator(ccd_operation_mode, channel=5)
+
+
+def test_sky_value_not_in_list():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(ccd_operation_mode, sky_condition="a")
+
+
+def test_moon_value_not_in_list():
+    with pytest.raises(ValueError):
+        Artificial_Image_Simulator(ccd_operation_mode, moon_condition="a")
 
 
 # -------  provide a wrong parameter to the CCD operation mode---------------

@@ -91,9 +91,6 @@ class Artificial_Image_Simulator:
     wavelength_interval: (400, 1100, 50), optional
         Wavelength interval of the star for the calculation of the specific flux.
 
-    star_temperature: 5700, optional
-        Temperature of the star in Kelvin.
-
     star_magnitude: 22, optional
         Magnitude of the star.
 
@@ -122,6 +119,9 @@ class Artificial_Image_Simulator:
     sky_condition: {"photometric", "regular", "good"}
         The condition of the sky at the observaiton night. According to the value provided for this variable,
         a different extinction coeficient for the atmosphere will be selected.
+    
+    moon_condition: {"new", "waxing", "waning", "full"}
+        The condition of the moon. 
 
     Yields
     ------
@@ -151,11 +151,11 @@ class Artificial_Image_Simulator:
         sparc4_operation_mode: dict[str, str] = {"acquisition_mode": "photometric"},
         image_dir: str = "",
         wavelength_interval: tuple[int] = (400, 1100, 50),
-        star_temperature: int | float = 5700,
         star_magnitude: int | float = 22,
         seeing: int | float = 1.5,
         air_mass: int | float = 1.0,
         sky_condition: str = "good",
+        moon_condition: str = "new",
     ):
         """Initialize the class."""
         self.ccd_operation_mode = ccd_operation_mode
@@ -165,11 +165,11 @@ class Artificial_Image_Simulator:
         self.sparc4_operation_mode = sparc4_operation_mode
         self.image_dir = image_dir
         self.wavelength_interval = wavelength_interval
-        self.star_temperature = star_temperature
         self.star_magnitude = star_magnitude
         self.seeing = seeing
         self.air_mass = air_mass
         self.sky_condition = sky_condition
+        self.moon_condition = moon_condition
 
         self._verify_ccd_operation_mode()
         self._verify_sparc4_operation_mode()
@@ -192,10 +192,7 @@ class Artificial_Image_Simulator:
 
     def _verify_class_parameters(self):
         self._verify_type(self.channel, "channel", int)
-        if self.channel not in [1, 2, 3, 4]:
-            raise ValueError(
-                "There is no camera with the provided" + f" channel: {self.channel}"
-            )
+        self._check_var_in_a_list(self.channel, "channel", [1, 2, 3, 4])
 
         for coord in self.star_coordinates:
             self._verify_type(coord, "star coordinate")
@@ -212,9 +209,6 @@ class Artificial_Image_Simulator:
             self._verify_type(wavelength, "wavelength")
             self._verify_var_in_interval(wavelength, "wavelength")
 
-        self._verify_type(self.star_temperature, "star temperature")
-        self._verify_var_in_interval(self.star_temperature, "star_temperature")
-
         self._verify_type(self.seeing, "seeing")
         self._verify_var_in_interval(self.seeing, "seeing")
 
@@ -223,13 +217,17 @@ class Artificial_Image_Simulator:
 
         self._verify_type(self.star_magnitude, "star magnitude")
 
-        self._verify_type(self.sky_condition, "sky condiiton", str)
-        if self.sky_condition not in ["photometric", "regular", "good"]:
-            raise ValueError(
-                r"The allowed values for the sky condition are 'photometric', 'regular', or 'good'."
-            )
+        self._verify_type(self.sky_condition, "sky condition", str)
+        self._check_var_in_a_list(
+            self.sky_condition, "sky condition", ["photometric", "regular", "good"]
+        )
 
         self._verify_type(self.image_dir, "image directory", str)
+
+        self._verify_type(self.moon_condition, "moon condition", str)
+        self._check_var_in_a_list(
+            self.moon_condition, "moon condition", ["new", "waxing", "waning", "full"]
+        )
 
     @staticmethod
     def _verify_type(var, var_name, _type=float | int):
@@ -251,6 +249,11 @@ class Artificial_Image_Simulator:
             raise ValueError(
                 f"The {var_name} must be in the interval [{var_min},{var_max}]: {var}."
             )
+
+    @staticmethod
+    def _check_var_in_a_list(var, var_name, _list):
+        if var not in _list:
+            raise ValueError(f"The allowed values for the {var_name} are: {_list}")
 
     def _verify_ccd_operation_mode(self):
         """Verify if the provided CCD operation mode is correct."""
@@ -282,8 +285,7 @@ class Artificial_Image_Simulator:
         ccd_temp = self.ccd_operation_mode["ccd_temp"]
         image_size = self.ccd_operation_mode["image_size"]
 
-        if em_mode not in ["Conv", "EM"]:
-            raise ValueError(f"Invalid value for the EM mode: {em_mode}")
+        self._check_var_in_a_list(em_mode, "EM mode", ["Conv", "EM"])
         if em_mode == "Conv":
             if em_gain != 1:
                 raise ValueError(
@@ -293,14 +295,11 @@ class Artificial_Image_Simulator:
             self._verify_type(em_gain, "EM gain")
             self._verify_var_in_interval(em_gain, "EM Gain", 2, 300)
 
-        if preamp not in [1, 2]:
-            raise ValueError(f"Invalid value for the pre-amplification: {preamp}")
+        self._check_var_in_a_list(hss, "readout rate", [0.1, 1, 10, 20, 30])
 
-        if hss not in [0.1, 1, 10, 20, 30]:
-            raise ValueError(f"Invalid value for the Readout rate: {hss}")
+        self._check_var_in_a_list(preamp, "pre-amplification", [1, 2])
 
-        if binn not in [1, 2]:
-            raise ValueError(f"Invalid value for the binning: {binn}")
+        self._check_var_in_a_list(binn, "binning", [1, 2])
 
         self._verify_type(image_size, "image size", int)
         self._verify_var_in_interval(image_size, "image size", 0, 1025)
@@ -336,26 +335,26 @@ class Artificial_Image_Simulator:
             for word in keywords:
                 if word not in polarimetric_keywords:
                     raise ValueError(
-                        f"The provided parameter is not a parameter of the SPARC4 operation mode: {word}"
+                        f"The provided keyword is not a parameter of the SPARC4 operation mode: {word}"
                     )
             if sorted(keywords) != polarimetric_keywords:
                 raise ValueError("A parameter of the SPARC4 operation mode is missing.")
-            if s4_op_mode["calibration_wheel"] not in [
-                "polarizer",
-                "depolarizer",
-                "empty",
-            ]:
-                raise ValueError(
-                    f"Wrong value for the calibration wheel: {s4_op_mode['calibration_wheel']}."
-                )
 
-            if s4_op_mode["retarder"] not in [
-                "half",
-                "quarter",
-            ]:
-                raise ValueError(
-                    f"Wrong value for the retarder: {s4_op_mode['calibration_wheel']}."
-                )
+            self._check_var_in_a_list(
+                s4_op_mode["calibration_wheel"],
+                "calibration wheel",
+                [
+                    "polarizer",
+                    "depolarizer",
+                    "empty",
+                ],
+            )
+
+            self._check_var_in_a_list(
+                s4_op_mode["retarder"],
+                "retarder",
+                ["half", "quarter"],
+            )
         else:
             raise ValueError(
                 f"The SPARC4 acquisition mode should be 'photometric' or 'polarimetric': {s4_op_mode['acquisition_mode']}."
@@ -363,13 +362,10 @@ class Artificial_Image_Simulator:
 
     def _initialize_subclasses(self):
         self.sc = Spectrum_Calculation(
-            star_temperature=self.star_temperature,
             wavelength_interval=self.wavelength_interval,
         )
         self.tsr = Telescope_Spectral_Response()
         self.asr = Atmosphere_Spectral_Response(self.air_mass, self.sky_condition)
-
-        # -------------------------------------------------------------------------------------------
 
         chc = 0
         if self.channel == 1:
@@ -419,12 +415,12 @@ class Artificial_Image_Simulator:
 
     def _calculate_star_specific_photons_per_second(self):
         self.star_specific_photons_per_second = [
-            self.sc.calculate_specific_photons_per_second(self.star_magnitude)
+            self.sc.calculate_star_specific_photons_per_second(self.star_magnitude)
         ]
 
     def _calculate_sky_specific_photons_per_second(self):
         self.sky_specific_photons_per_second = [
-            self.sc.calculate_specific_photons_per_second(self.star_magnitude + 3)
+            self.sc.calculate_sky_specific_photons_per_second(self.moon_condition)
         ]
 
     def apply_atmosphere_spectral_response(self):

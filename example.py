@@ -24,7 +24,7 @@ dic = {
 
 ais = Artificial_Image_Simulator(
     ccd_operation_mode=dic,
-    channel=1,
+    channel=3,
     star_coordinates=(100, 100),
     bias_level=500,
     sparc4_operation_mode={
@@ -34,9 +34,11 @@ ais = Artificial_Image_Simulator(
     },
     image_dir=os.path.join("FITS"),
     wavelength_interval=(400, 1150, 50),
-    star_temperature=5700,
     star_magnitude=18,
     seeing=1.5,
+    air_mass=1,
+    sky_condition="photometric",
+    moon_condition="new",
 )
 
 # ais.apply_atmosphere_spectral_response()

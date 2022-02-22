@@ -22,15 +22,15 @@ class Atmosphere_Spectral_Response:
         "AIS", "Atmosphere_Spectral_Response", "atmosphere_spectral_response.csv"
     )
 
-    def __init__(self, air_mass, sky_condition):
+    def __init__(self, air_mass: int | float, sky_condition: str):
         """Initialize the class.
 
         Parameters
         ----------
-        air_mass: float
+        air_mass: int | float
             The air mass in the light path.
 
-        sky_condition: {photometric, regular, good}
+        sky_condition: [photometric, regular, good]
             The condition of the sky at the observation night.
         """
 
@@ -38,13 +38,9 @@ class Atmosphere_Spectral_Response:
         self.sky_condition = sky_condition
 
     def _read_spreadsheet(self):
-        spreasheet = pd.read_csv(self._SPECTRAL_RESPONSE_FILE)
-        self.atm_wavelength_interval = [
-            float(value) for value in spreasheet["Wavelength"][1:]
-        ]
-        self.extinction_coefs = [
-            float(value) / 100 for value in spreasheet[self.sky_condition][1:]
-        ]
+        spreasheet = pd.read_csv(self._SPECTRAL_RESPONSE_FILE, dtype=np.float64)
+        self.atm_wavelength_interval = spreasheet["wavelength"]
+        self.extinction_coefs = spreasheet[self.sky_condition] / 100
 
     def _calculate_atmosphere_transmitance(self, wavelength_interval):
         transmitance = [10 ** (-0.4 * k * self.air_mass) for k in self.extinction_coefs]

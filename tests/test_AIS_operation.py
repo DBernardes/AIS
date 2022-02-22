@@ -45,7 +45,6 @@ from .AIS_spectral_response_curves import (
     sky_specific_photons_per_second,
     sparc4_operation_mode,
     star_specific_photons_per_second,
-    star_temperature,
     tel_reflectance,
 )
 
@@ -66,7 +65,6 @@ def ais():
         sparc4_operation_mode=sparc4_operation_mode,
         image_dir=image_dir,
         wavelength_interval=(l_init, l_final, l_step),
-        star_temperature=star_temperature,
         air_mass=air_mass,
         sky_condition=sky_condition,
     )

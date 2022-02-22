@@ -6,7 +6,13 @@ This class calculates the spectrum of an astronomical object as a function of it
 magnitude
 """
 
+import os
+from importlib.util import spec_from_file_location
+from typing import Iterable
+
 import numpy as np
+import pandas as pd
+from scipy.interpolate import splev, splrep
 
 
 class Spectrum_Calculation:
@@ -17,21 +23,18 @@ class Spectrum_Calculation:
     magnitude.
     """
 
-    _H = 6.62607004e-34  # m2 kg / s
-    _C = 3e8  # m/s
-    _K = 1.38064852e-23  # m2 kg s-2 K-1
-    _TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
-    _SOLAR_DISTANCE = 1.4960e11  # m
-    _SOLAR_RADIUS = 6.9551e8  # m
-    _BAND_PASS = 0.2e-6  # m
-    _S_0 = 4e-2  # W/m2/m
+    PLANCK_CONSTANT = 6.62607004e-34  # m2 kg / s
+    LIGHT_SPPED = 3e8  # m/s
+    TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
+    BAND_PASS = 0.2e-6  # m
+    S_0 = 4e-2  # W/m2/m
+    SPREADSHEET_MOON_MAGNITUDE = os.path.join(
+        "AIS", "Spectrum_Calculation", "moon_magnitude.csv"
+    )
 
     def __init__(
         self,
-        wavelength_interval,
-        star_temperature=5700,
-        star_radius=1,
-        star_dist=1,
+        wavelength_interval: Iterable,
     ):
         """
         Initialize the class.
@@ -41,89 +44,85 @@ class Spectrum_Calculation:
 
         wavelength_interval: array like
             Array with the wavelengths of the spectrum of the star.
-        temperature: float, optional
-            Black-body star temperature in Kelvin.
-        star_radius: float, optional
-            Radius of the star in solar unitis.
-        star_dist: float, optional
-            Distance of the star in solar units.
+
+        """
+        self.wavelength_interval = wavelength_interval
+
+    def _read_spreadsheet(self, moon_condition):
+        spreasheet = pd.read_csv(self.SPREADSHEET_MOON_MAGNITUDE, dtype=np.float64)
+        moon_magnitudes = spreasheet[moon_condition]
+        moon_wavelenght = spreasheet["wavelength"]
+
+        return moon_wavelenght, moon_magnitudes
+
+    def _calculate_spline(self, component_wavelength_interv, value):
+        spl = splrep(component_wavelength_interv, value)
+        interpolated_value = splev(self.wavelength_interval, spl)
+        return interpolated_value
+
+    def calculate_sky_specific_photons_per_second(self, moon_condition: str):
+        """Calculate the specific photons per second of the sky.
+
+        Returns
+        -------
+
+        sky_specific_photons_per_second: array-like
+            Specific phontons per second of the sky.
+        """
+        moon_wavelength, moon_magnitudes = self._read_spreadsheet(moon_condition)
+        moon_magnitudes = self._calculate_spline(moon_wavelength, moon_magnitudes)
+
+        temp = []
+        for magnitude, wavelength in zip(moon_magnitudes, self.wavelength_interval):
+            specific_photons_per_second = self._convert_magnitude(wavelength, magnitude)
+            temp.append(specific_photons_per_second)
+
+        sky_specific_photons_per_second = np.zeros((4, len(self.wavelength_interval)))
+        sky_specific_photons_per_second[0, :] = temp
+
+        return sky_specific_photons_per_second
+
+    def _convert_magnitude(self, wavelength, magnitude):
+        """Convert magnitude in photons per second, as a function of the wavelength.
+
+        The calculation of the specific photons per second :math:`P_{\lambda}`
+        is based on the expression
+
+        .. math::
+            P_{\lambda} = \frac{S_0 \times 10^{-mag/2.5} * \lambda * B * tel_{area}}{h * c}
+
+        where :math:`S_0 = 4 \tim 10^{-2}` W/m2/m, :math:`mag` is the magnitude of the object,
+        :math:`\lambda` is the wavelength in nm, :math:`B_P` is the width of the band pass being
+        considered, :math:`tel_{area}` is the telescope effective area, :math:`h` is the Planck
+        constant, and :math:`c` is the light speed.
+        """
+        wavelength *= 1e-9
+        photons_number = (
+            self.S_0
+            * 10 ** (-magnitude / 2.5)
+            * wavelength
+            * self.BAND_PASS
+            * self.TELESCOPE_EFFECTIVE_AREA
+            / (self.PLANCK_CONSTANT * self.LIGHT_SPPED)
+        )
+        return photons_number
+
+    def calculate_star_specific_photons_per_second(self, magnitude: int | float):
+        """Calculate the specific photons per second of the star.
 
         Returns
         -------
 
         star_specific_photons_per_second: array-like
-            Star specific flux.
+            Specific phontons per second of the star.
         """
 
-        self.star_temperature = star_temperature
-        self.wavelength_interval = wavelength_interval
-        self.star_radius = star_radius * self._SOLAR_RADIUS
-        self.star_dist = star_dist * self._SOLAR_DISTANCE
-
-    def calculate_specific_photons_per_second(self, magnitude):
-        """Calculate the star specific flux."""
-        h = self._H
-        c = self._C
-        S_0 = self._S_0
-        B = self._BAND_PASS
-        tel_area = self._TELESCOPE_EFFECTIVE_AREA
         temp = []
-        for Lambda in self.wavelength_interval:
-            Lambda *= 1e-9
-            photons_number = (
-                S_0 * 10 ** (-magnitude / 2.5) * Lambda * B * tel_area / (h * c)
-            )
-            temp.append(photons_number)
+        for wavelength in self.wavelength_interval:
+            specific_photons_per_second = self._convert_magnitude(wavelength, magnitude)
+            temp.append(specific_photons_per_second)
 
-        specific_photons_per_second = np.zeros((4, len(self.wavelength_interval)))
-        specific_photons_per_second[0, :] = temp
+        star_specific_photons_per_second = np.zeros((4, len(self.wavelength_interval)))
+        star_specific_photons_per_second[0, :] = temp
 
-        return specific_photons_per_second
-
-    # def calculate_star_specific_photons_per_second_1(self):
-    #     """Calculate the star specific flux.
-
-    #     This function calculates the star specific flux as a function of the
-    #     provided temperatura. To meet that, it uses the Plank Law:
-
-    #     :math:`B_{\\lambda}(T) = \\frac{2hc^2}{\\lambda^5} \\frac{1}{e^{hc/\\lambda kT} - 1}`
-
-    #     where :math:`B_{\\lambda}` is the intensity, :math:`h` is the Plank constante, :math:`c`
-    #     is the light speed, :math:`\\lambda` is the wavelength, :math:`k` is the Bolztman constant,
-    #     and :math:`T` is the temperature. The used wavelength interval is given by the initial, final,
-    #     and step parameters provided to the function.
-
-    #     """
-    #     T = self.temperature
-    #     h = self._H
-    #     c = self._C
-    #     k = self._K
-    #     specific_photons_per_second = []
-    #     areas_relation = (
-    #         self.star_radius ** 2 * self._TELESCOPE_EFFECTIVE_AREA / self.star_dist ** 2
-    #     )
-    #     num = (self.l_final - self.l_init) / self.l_step
-    #     for Lambda in np.linspace(self.l_init, self.l_final, int(num)):
-    #         Lambda *= 1e-9
-    #         var1 = 2 * h * c ** 2 / Lambda ** 5
-    #         var2 = np.e ** (h * c / (Lambda * k * T)) - 1
-    #         black_body = var1 / var2
-    #         photon_energy = h * c / Lambda
-    #         photons_per_second = black_body * areas_relation / photon_energy
-    #         specific_photons_per_second.append(photons_per_second * 1e-25)
-
-    #     self.specific_photons_per_second_length = len(specific_photons_per_second)
-    #     self.star_specific_photons_per_second = np.zeros((4, self.specific_photons_per_second_length))
-    #     self.star_specific_photons_per_second[0, :] = specific_photons_per_second
-
-    #     return self.star_specific_photons_per_second
-
-    # def calculate_sky_specific_photons_per_second(self):
-    #     """Calculate sky specific flux.
-
-    #     This functions calculates the specific flux of the sky.
-    #     This flux correspond to 10 % of the star flux.
-    #     """
-
-    #     self.sky_specific_photons_per_second = self.calculate_star_specific_photons_per_second(22) * 0.1
-    #     return self.star_specific_photons_per_second * 0.1
+        return star_specific_photons_per_second

@@ -8,21 +8,21 @@ from AIS.Spectrum_Calculation import Spectrum_Calculation
 from numpy import cos, pi, sin
 from scipy.interpolate import splev, splrep
 
-star_temperature = 5700
 THETA_POL = np.deg2rad(0)
 l_init, l_final, l_step = 400, 1100, 50
 magnitude = 22
 air_mass = 1
 ccd_temp = -70
 sky_condition = "photometric"
+moon_condition = "new"
 wavelength_interval = range(l_init, l_final + l_step, l_step)
 wavelength_interval_len = len(wavelength_interval)
-sc = Spectrum_Calculation(
-    wavelength_interval=wavelength_interval, star_temperature=5700
-)
-star_specific_photons_per_second = [sc.calculate_specific_photons_per_second(magnitude)]
+sc = Spectrum_Calculation(wavelength_interval=wavelength_interval)
+star_specific_photons_per_second = [
+    sc.calculate_star_specific_photons_per_second(magnitude)
+]
 sky_specific_photons_per_second = [
-    sc.calculate_specific_photons_per_second(magnitude + 3)
+    sc.calculate_sky_specific_photons_per_second(moon_condition)
 ]
 ccd_operation_mode = {
     "em_mode": "Conv",
@@ -54,17 +54,36 @@ def calculate_spline(transmitance, component_wavelength_interv, wavelength_inter
     return transmitance
 
 
+def convert_magnitude(wavelength, magnitude):
+    _H = 6.62607004e-34  # m2 kg / s
+    _C = 3e8  # m/s
+    _K = 1.38064852e-23  # m2 kg s-2 K-1
+    B = 0.2e-6  # m
+    S_0 = 4e-2  # W/m2/m
+    tel_area = 0.804  # m2
+    specific_photons_per_second = (
+        S_0 * 10 ** (-magnitude / 2.5) * wavelength * 1e-9 * B * tel_area / (_H * _C)
+    )
+    return specific_photons_per_second
+
+
+# ----------------------- importing the moon magnitude ----------------
+spreadsheet_path = os.path.join("AIS", "Spectrum_Calculation", "moon_magnitude.csv")
+spreadsheet = pd.read_csv(spreadsheet_path, dtype=np.float64)
+moon_wavelength_interval = spreadsheet["wavelength"]
+moon_magnitude = spreadsheet[moon_condition]
+# spl = splrep(moon_wavelength_interval, moon_magnitudes)
+# moon_magnitude = splev(moon_wavelength_interval, spl)
+
 # ----------------------- importing the atmosphere spectral response ----------------
 spreadsheet_path = os.path.join(
     "AIS", "Atmosphere_Spectral_Response", "atmosphere_spectral_response.csv"
 )
-spreadsheet = pd.read_csv(spreadsheet_path)
-atm_wavelength_interval = [float(value) for value in spreadsheet["Wavelength"][1:]]
-photometric_extinction_coef = [
-    float(value) / 100 for value in spreadsheet["photometric"][1:]
-]
-regular_extinction_coef = [float(value) / 100 for value in spreadsheet["regular"][1:]]
-good_extinction_coef = [float(value) / 100 for value in spreadsheet["good"][1:]]
+spreadsheet = pd.read_csv(spreadsheet_path, dtype=np.float64)
+atm_wavelength_interval = spreadsheet["wavelength"]
+photometric_extinction_coef = spreadsheet["photometric"] / 100
+regular_extinction_coef = spreadsheet["regular"] / 100
+good_extinction_coef = spreadsheet["good"] / 100
 transmitance = [10 ** (-0.4 * k * air_mass) for k in photometric_extinction_coef]
 spl = splrep(atm_wavelength_interval, transmitance)
 atm_transmitance = splev(wavelength_interval, spl)
