@@ -8,6 +8,7 @@ the AIS.
 """
 
 import os
+from cmath import exp
 
 import astropy.io.fits as fits
 import pandas as pd
@@ -46,27 +47,15 @@ class Header:
 
     _CSV_HEADER_FILE = os.path.join("AIS", "Header", "header.csv")
 
-    def __init__(self, ccd_operation_mode, ccd_gain, serial_number):
+    def __init__(self):
         """Initialize the Header Class."""
-        self.em_mode = ccd_operation_mode["em_mode"]
-        self.NOISE_FACTOR = 1
-        self.em_gain = 1
-        if self.em_mode == 1:
-            self.NOISE_FACTOR = 1.41
-            self.em_gain = ccd_operation_mode["em_gain"]
-        self.preamp = ccd_operation_mode["preamp"]
-        self.hss = ccd_operation_mode["hss"]
-        self.binn = ccd_operation_mode["binn"]
-        self.t_exp = ccd_operation_mode["t_exp"]
-        self.ccd_temp = ccd_operation_mode["ccd_temp"]
-        self.image_size = ccd_operation_mode["image_size"]
-        self.ccd_gain = ccd_gain
-        self.serial_number = serial_number
+        pass
 
     def _read_spreadsheet(self):
         ss = pd.read_csv(self._CSV_HEADER_FILE)
-        self.keywords = ss["Keyword"]
-        self.comments = ss["Comment"]
+        self.keywords = ss["keyword"]
+        self.values = ss["value"]
+        self.comments = ss["comment"]
 
     def create_header(self):
         """Create the image header.
@@ -77,13 +66,23 @@ class Header:
         self._read_spreadsheet()
         n = len(self.keywords)
         self.hdr = fits.Header()
-        self.hdr["SIMPLE"] = "T"
-        self.hdr["BITPIX"] = "16"
-        self.hdr["NAXIS1"] = self.image_size
-        self.hdr["NAXIS2"] = self.image_size
-        for i in range(n):
-            self.hdr[self.keywords[i]] = ("", self.comments[i])
-        self._write_header_values()
+        # self.hdr["SIMPLE"] = "T"
+        # self.hdr["BITPIX"] = "16"
+        # self.hdr["NAXIS1"] = self.image_size
+        # self.hdr["NAXIS2"] = self.image_size
+        for keyword, value, comment in zip(self.keywords, self.values, self.comments):
+            try:
+                try:
+                    value = float(value)
+                except Exception:
+                    pass
+                try:
+                    value = int(value)
+                except Exception:
+                    pass
+            finally:
+                self.hdr[keyword] = (value, comment)
+        # self._write_header_values()
         return self.hdr
 
     def _write_header_values(self):
@@ -105,7 +104,7 @@ class Header:
         self.hdr["EXPTIME"] = self.t_exp
         self.hdr["TEMP"] = self.ccd_temp
         self.hdr["READOUT"] = str(1 / self.hss) + "E-006"
-        self.hdr["VSHIFT"] = "4.33E-06"
+        self.hdr["VSHIFT"] = "0.6E-06"
         self.hdr["GAIN"] = self.ccd_gain
         em_mode = "Conventional"
         if self.em_mode == 1:

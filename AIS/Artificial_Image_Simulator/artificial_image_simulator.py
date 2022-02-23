@@ -398,9 +398,7 @@ class Artificial_Image_Simulator:
             self.read_noise,
             self.bias_level,
         )
-        self.hdr = Header(
-            self.ccd_operation_mode, self.ccd_gain, chc.get_serial_number()
-        )
+        self.hdr = Header()
 
     def get_channel_id(self):
         """Return the ID for the respective SPARC4 channel."""
@@ -490,6 +488,7 @@ class Artificial_Image_Simulator:
         self.sky_photons_per_second = 0
         for array in self.sky_specific_photons_per_second:
             self.sky_photons_per_second += np.trapz(array[0, :])
+        self.sky_photons_per_second = 25  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         star_photons_per_second = []
         for array in self.star_specific_photons_per_second:
             star_photons_per_second.append(np.trapz(array[0, :]))

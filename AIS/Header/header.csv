@@ -1,102 +1,99 @@
-Keyword,Comment
-EXTEND,FITS dataset may contain extensions
-COMMENT,SPARC4 image header
-COMMENT,SPARC4 image header
-FILENAME,File name at acquisition
-OBJECT,Object name
-CHANNEL,Instrument channel
-NEXPSEQ,Total number of exposures in sequence
-READMODE,CCD read mode
-PREAMP,Pre-amplifier gain
-OBSTYPE,"Image type: OBJECT, BIAS, FLAT, ARC, DARK"
-VSHIFT,Vertical Shift Speed
-EMMODE,Output amplifier mode
-VBIN,Vertical binning
-INITLIN,Initial Line
-KSERLEN,Kinetic Series Length
-OPENSHT,Time to open the shutter (ms)
-FINALLIN,Final Line
-DATE,Acquired image date (YY/MM/DD:HH:MM:SS.MM)
-GAINERR,Gain error (e-/ADU)
-OBSERVER,Name of the observer
-NIGHTDIR,Night directory name
-INSTRUME,Instrument
-SEQINDEX,Exposure index in the sequence
-ACQMODE,Acquisition Mode
-READOUT,Readout Rate
-READMOD,"Read out mode: fast, normal, slow"
-TRIGGER,Trigger Mode
-EMGAIN,EM Gain
-HBIN,Horizontal binning
-INITCOL,Initial Column
-SHUTTER,"Shutter Mode (OPEN, CLOSED, or AUTO)"
-CLOSESHT,Time to close the shutter (ms)
-FINALCOL,Final Column
-GAIN,Gain (e-/ADU)
-RDNOISE,Read noise (e-)
-PROGRID,Program ID
-RNOISERR,Read noise error (e-)
-SKYFIBER,Sky fiber: ON or OFF
-CALFIBER,Calibration Fiber: ON or OFF
-UTDATE,UT date at start of exposure
-LOCTIME,LT date at start of exposure
-MJD,Modified Julian Date at start of exposure
-OBSLON,Observatory East Longitude
-OBSLAT,Observatory Latitude
-OBSALT,Observatory elevation above sea level (m)
-EXPTIME,Exposure time (s)
-TELRA,TCS right ascension: HH:MM:SS.SSS
-TELDEC,TCS declination: +-DD:MM:SS.SSS
-RA,Requested right Ascension: HH:MM:SS.SSS
-DEC,Requested Declination: +- DD:MM:SS.SSS
-RA_DEG,Requested Right Ascension (deg)
-DEC_DEG,Requested Declination (deg)
-EPOCH,Epoch for Target coordinates
-HA,Hour Angle (Sexagesimal)
-HAD,Hour Angle (deg)
-AIRMASS,Mean airmass for the observation
-AMSTART,Airmass at start of exposure
-AMEND,Airmass at end of exposure
-XOFFSET,Telescope RA offset in arcsec
-YOFFSET,Telescope DEC offset in arcsec
-PA,Current Rotator Position Angle (degree)
-CAMFOC,Camera focus position (mm)
-TELFOC,Telescope focus position (mm)
-TCSUT,TCS Universal Time
-TCSST,TCS Sideral Time
-MOONDIST,Moon angular distance to object (deg)
-MOONALT,Moon elevation above horizon (deg)
-MOONPHAS,Moon elevation above horizon (deg)
-ADC,Atmospheric Dispersion Corrector: ON or OFF
-ADCSPEED,ADC motor speed (rpm)
-CALMIRR,Calibration mirror position: IN or OUT
-GUIDING,Guider status: ON or OFF
-GUIDTEXP,Guider exposure time (s)
-GUIDFREQ,Guiding frequency (Hz)
-GUIDOBJX,Guiding object x position (pixel)
-GUIDOBJY,Guiding object y position (pixel)
-AVGYCORR,Average correction in RA (arcsec)
-AVGXCORR,Average correction in DEC (arcsec)
-GFOCUS,Guider focus position (mm)
-THARLAMP,Thorium-Argon lamp state: ON or OFF
-HALLAMP,Halogen lamp state: ON or OFF
-AGITATOR,Fiber agitator: ON or OFF
-THARMIRR,Th-Ar mirror position: SPECTROGRAPH or TELESCOP
-DSTATUS,Dome Status: OPEN or CLOSED
-DPOS,Dome position (deg)
-DTEMP,Dome temperature (deg C)
-DHUM,Dome humidity (per cent)
-DLAMP,Dome lamp: ON or OFF
-DFLAT,Dome flat lamp: ON or OFF
-TEMPEXT,External temperature (deg C)
-PRESSURE,Pressure (mbar)
-HUMIDITY,Humidity (per cent)
-WINDDIR,Wind direction: North-eastward (deg)
-WINSPEED,Wind Speed (km/h)
-SHTTTL,Shutter TTL
-COOLER,CCD cooler: ON or OFF
-TEMP,CCD temperature
-TEMPST,Temperature status
-SERN,Serial Number
-IM_DT0,Delay in nsec of the image 1
-OBSTITLE,Observation title
+keyword,value,comment
+FILENAME," ",File name at acquisition
+OBJECT,AB_Crux,Object name
+CHANNEL,1,Instrument channel
+NEXPSEQ,1,Total number of exposures in sequence
+READMODE,Image,CCD read mode
+PREAMP,2,Pre-amplifier gain
+OBSTYPE,OBJECT,"Image type: OBJECT, BIAS, FLAT, ARC, DARK"
+VSHIFT,0.6,Vertical Shift Speed
+EMMODE,Conventional,Output amplifier mode
+VBIN,1,Vertical binning
+INITLIN,1,Initial Line
+KSERLEN,1,Kinetic Series Length
+OPENSHT,50,Time to open the shutter (ms)
+FINALLIN,1024,Final Line
+DATE," ",Acquired image date (YY/MM/DD:HH:MM:SS.MM)
+GAINERR,0.01,Gain error (e-/ADU)
+OBSERVER,Denis,Name of the observer
+NIGHTDIR," ",Night directory name
+INSTRUME,SPARC4,Instrument
+SEQINDEX,1,Exposure index in the sequence
+ACQMODE,Kinetic,Acquisition Mode
+READOUT,1 MHz,Readout Rate
+READMOD,normal,"Read out mode: fast, normal, slow"
+TRIGGER,External,Trigger Mode
+EMGAIN,2,EM Gain
+HBIN,1,Horizontal binning
+INITCOL,1,Initial Column
+SHUTTER,Open,"Shutter Mode (OPEN, CLOSED, or AUTO)"
+CLOSESHT,50,Time to close the shutter (ms)
+FINALCOL,1024,Final Column
+GAIN,5,Gain (e-/ADU)
+RDNOISE,3.6,Read noise (e-)
+PROGRID,1,Program ID
+RNOISERR,0.01,Read noise error (e-)
+SKYFIBER,OFF,Sky fiber: ON or OFF
+CALFIBER,OFF,Calibration Fiber: ON or OFF
+UTDATE,00:00:00,UT date at start of exposure
+LOCTIME,00:00:00,LT date at start of exposure
+MJD,2001.52,Modified Julian Date at start of exposure
+OBSLON,00o00'00'',Observatory East Longitude
+OBSLAT,00o00'00'',Observatory Latitude
+OBSALT,1800,Observatory elevation above sea level (m)
+EXPTIME,1,Exposure time (s)
+TELRA,00:00:00,TCS right ascension: HH:MM:SS.SSS
+TELDEC,00:00:00,TCS declination: +-DD:MM:SS.SSS
+RA,00:00:00,Requested right Ascension: HH:MM:SS.SSS
+DEC,00:00:00,Requested Declination: +- DD:MM:SS.SSS
+RA_DEG,20,Requested Right Ascension (deg)
+DEC_DEG,20,Requested Declination (deg)
+EPOCH,2000,Epoch for Target coordinates
+HA,00:00:00,Hour Angle (Sexagesimal)
+HAD,20,Hour Angle (deg)
+AIRMASS,1,Mean airmass for the observation
+AMSTART,1,Airmass at start of exposure
+AMEND,1,Airmass at end of exposure
+XOFFSET,00:00:00,Telescope RA offset in arcsec
+YOFFSET,00:00:00,Telescope DEC offset in arcsec
+PA,0,Current Rotator Position Angle (degree)
+CAMFOC,200,Camera focus position (mm)
+TELFOC,200,Telescope focus position (mm)
+TCSUT,00:00:00,TCS Universal Time
+TCSST,00:00:00,TCS Sideral Time
+MOONDIST,20,Moon angular distance to object (deg)
+MOONALT,20,Moon elevation above horizon (deg)
+MOONPHAS,New,Phase of the moon
+ADC,OFF,Atmospheric Dispersion Corrector: ON or OFF
+ADCSPEED,30,ADC motor speed (rpm)
+CALMIRR,IN,Calibration mirror position: IN or OUT
+GUIDING,ON,Guider status: ON or OFF
+GUIDTEXP,1,Guider exposure time (s)
+GUIDFREQ,1 Hz,Guiding frequency (Hz)
+GUIDOBJX,10,Guiding object x position (pixel)
+GUIDOBJY,10,Guiding object y position (pixel)
+AVGYCORR,5,Average correction in RA (arcsec)
+AVGXCORR,5,Average correction in DEC (arcsec)
+GFOCUS,56,Guider focus position (mm)
+THARLAMP,OFF,Thorium-Argon lamp state: ON or OFF
+HALLAMP,OFF,Halogen lamp state: ON or OFF
+AGITATOR,OFF,Fiber agitator: ON or OFF
+THARMIRR,TELESCOPE,Th-Ar mirror position: SPECTROGRAPH or TELESCOP
+DSTATUS,Open,Dome Status: OPEN or CLOSED
+DPOS,56,Dome position (deg)
+DTEMP,25,Dome temperature (deg C)
+DHUM,100,Dome humidity (per cent)
+DLAMP,OFF,Dome lamp: ON or OFF
+DFLAT,OFF,Dome flat lamp: ON or OFF
+TEMPEXT,15,External temperature (deg C)
+PRESSURE,700,Pressure (mbar)
+HUMIDITY,100,Humidity (per cent)
+WINDDIR,North,Wind direction: North-eastward (deg)
+WINSPEED,20,Wind Speed (km/h)
+SHTTTL,High,Shutter TTL
+COOLER,ON,CCD cooler: ON or OFF
+TEMP,-70,CCD temperature
+TEMPST,TEMPERATURE_STABILIZED,Temperature status
+SERN,9914,Serial Number
+IM_DT0,0,Delay in nsec of the image 1
+OBSTITLE,Come on SPARC4!,Observation title

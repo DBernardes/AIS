@@ -7,6 +7,7 @@ based on a gaussian 2D distributiopn
 """
 
 
+import matplotlib.pyplot as plt
 import numpy as np
 from astropy.table import Table
 from photutils.datasets import make_gaussian_sources_image
@@ -96,7 +97,7 @@ class Point_Spread_Function:
         y_coord = star_coordinates[1]
         gaussian_std = self.seeing / self._SPARC4_PLATE_SCALE
 
-        gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
+        gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn**2 / ccd_gain
         shape = (image_size, image_size)
         table = Table()
         table["amplitude"] = [gaussian_amplitude]
@@ -108,9 +109,12 @@ class Point_Spread_Function:
 
         self.star_image = make_gaussian_sources_image(shape, table)
 
+        plt.imshow(self.star_image)
+        plt.show(), exit()
+
         if extra_ordinary_ray != 0:
             gaussian_amplitude = (
-                extra_ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
+                extra_ordinary_ray * t_exp * em_gain * binn**2 / ccd_gain
             )
             table["amplitude"] = [gaussian_amplitude]
             table["x_mean"] = [x_coord - self._SPARC4_POL_SEPARATION]

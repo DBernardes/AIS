@@ -281,8 +281,19 @@ Created on Tue Apr 27 10:23:27 2021
 # plt.plot(wavelength_interval, atm_transmitance)
 # plt.show()
 
+from AIS.Header import Header
 
-_type = int | float
-from types import UnionType
+dic = {
+    "em_mode": 1,
+    "em_gain": 2,
+    "preamp": 1,
+    "hss": 1,
+    "binn": 1,
+    "t_exp": 1,
+    "ccd_temp": -70,
+    "image_size": 1024,
+}
 
-print(type(_type) == UnionType)
+hdr = Header(dic, 3.6, 9914)
+header = hdr.create_header()
+print(header)
