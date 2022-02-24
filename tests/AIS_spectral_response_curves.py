@@ -10,7 +10,7 @@ from scipy.interpolate import splev, splrep
 
 THETA_POL = np.deg2rad(0)
 l_init, l_final, l_step = 400, 1100, 50
-magnitude = 22
+magnitude = 18
 air_mass = 1
 ccd_temp = -70
 sky_condition = "photometric"
@@ -32,7 +32,7 @@ ccd_operation_mode = {
     "binn": 1,
     "t_exp": 1,
     "ccd_temp": -70,
-    "image_size": 1024,
+    "image_size": 100,
 }
 
 

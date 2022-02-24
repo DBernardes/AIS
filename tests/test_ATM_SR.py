@@ -16,18 +16,17 @@ from AIS.Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
 from scipy.interpolate import splev, splrep
 
 from .AIS_spectral_response_curves import (
+    air_mass,
     atm_wavelength_interval,
     good_extinction_coef,
     photometric_extinction_coef,
     regular_extinction_coef,
+    sky_condition,
     star_specific_photons_per_second,
     wavelength_interval,
 )
 
-star_specific_photons_per_second = star_specific_photons_per_second.copy()
-
-air_mass = 1
-sky_condition = "photometric"
+star_specific_photons_per_second = star_specific_photons_per_second[0]
 
 
 @pytest.fixture
@@ -75,8 +74,8 @@ def test_apply_atmosphere_spectral_response(atm_sr):
     transmitance = [10 ** (-0.4 * k * air_mass) for k in photometric_extinction_coef]
     spl = splrep(atm_wavelength_interval, transmitance)
     transmitance = splev(wavelength_interval, spl)
-    star_specific_photons_per_second[0][0, :] = np.multiply(
-        star_specific_photons_per_second[0][0, :], transmitance
+    star_specific_photons_per_second[0] = np.multiply(
+        star_specific_photons_per_second[0], transmitance
     )
 
     assert np.allclose(

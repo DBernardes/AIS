@@ -13,7 +13,10 @@ image.
 
 # from sys import exit
 
+import os
+
 import numpy as np
+import pandas as pd
 
 from ..Read_Noise_Calculation import Read_Noise_Calculation
 from ..SPARC4_Spectral_Response import (
@@ -39,10 +42,10 @@ class Abstract_Channel_Creator:
         Operation mode of the SPARC4: photometric or polarimetric
     """
 
-    def __init__(self, sparc4_operation_mode, wavelength_interval):
+    def __init__(self, wavelength_interval, ccd_operation_mode):
         """Initialize the class."""
-        self.sparc4_operation_mode = sparc4_operation_mode
         self.wavelength_interval = wavelength_interval
+        self.ccd_operation_mode = ccd_operation_mode
         self._S4_SR = Abstract_SPARC4_Spectral_Response(wavelength_interval)
         self._CHANNEL_ID = 0
         self._SERIAL_NUMBER = 0
@@ -63,7 +66,7 @@ class Abstract_Channel_Creator:
         """
         return self._SERIAL_NUMBER
 
-    def calculate_dark_current(self, ccd_temp):
+    def calculate_dark_current(self):
         """
         Calculate the cark current.
 
@@ -79,19 +82,56 @@ class Abstract_Channel_Creator:
         dark_current = 0
         return dark_current
 
-    def calculate_read_noise(self, ccd_operation_mode):
+    def calculate_read_noise(self):
         """
         Calculate the read noise the CCD.
 
         The calculation is performed by providing the CCD operation mode to
         the ReadNoiseCalc package
         """
-        RN = Read_Noise_Calculation(ccd_operation_mode, self._CHANNEL_ID)
+        RN = Read_Noise_Calculation(self.ccd_operation_mode, self._CHANNEL_ID)
         self.read_noise = RN.calculate_read_noise()
 
         return self.read_noise
 
-    def apply_sparc4_spectral_response(self, specific_photons_per_second):
+    def get_ccd_gain(self):
+        """Configure the CCD gain based on its operation mode."""
+
+        em_mode = self.ccd_operation_mode["em_mode"]
+        hss = self.ccd_operation_mode["hss"]
+        preamp = self.ccd_operation_mode["preamp"]
+        tab_index = 0
+        if hss == 0.1:
+            tab_index = 21
+        elif hss == 1:
+            tab_index = 17
+            if em_mode == "EM":
+                tab_index = 13
+        elif hss == 10:
+            tab_index = 9
+        elif hss == 20:
+            tab_index = 5
+        elif hss == 30:
+            tab_index = 1
+        else:
+            raise ValueError(f"Unexpected value for the readout rate: {hss}")
+        if preamp == 2:
+            tab_index += 2
+        file_name = os.path.join(
+            "AIS",
+            "Read_Noise_Calculation",
+            "spreadsheet",
+            f"Channel {self._CHANNEL_ID}",
+            "Read_noise_and_gain_values.csv",
+        )
+        spreadsheet = pd.read_csv(file_name)
+        ccd_gain = float(spreadsheet["Gain"][tab_index])
+
+        return ccd_gain
+
+    def apply_sparc4_spectral_response(
+        self, specific_photons_per_second, sparc4_operation_mode
+    ):
         """
         Apply the sparc4 spectral response.
 
@@ -100,8 +140,25 @@ class Abstract_Channel_Creator:
 
         Parameters
         ----------
-        star_specific_photons_per_second : array like
-            Specific flux of the star
+        specific_photons_per_second : array like
+            Specific photons per second (spectral response) of the object
+
+        sparc4_operation_mode: dictionary
+        A python dictionary with the SPARC4 operation mode. The allowed keywords for the
+        dictionary are:
+
+        * acquisition_mode: {"photometry", "polarimetry"}
+
+            The acquisition mode of the sparc4.
+
+        * calibration_wheel: {"polarizer", "depolarizer", "empty"}
+
+            The position of the calibration wheel.
+
+        * retarder: {"half", "quarter"}
+
+            The waveplate for polarimetric measurements.
+
 
         Returns
         -------
@@ -112,11 +169,13 @@ class Abstract_Channel_Creator:
             will contain the ordinary and extraordinary rays.
 
         """
-        s4_op_mode = self.sparc4_operation_mode
+
         self._S4_SR.write_specific_photons_per_second(specific_photons_per_second)
-        if s4_op_mode["acquisition_mode"] == "polarimetric":
-            self._S4_SR.apply_calibration_wheel(s4_op_mode["calibration_wheel"])
-            self._S4_SR.apply_retarder(s4_op_mode["retarder"])
+        if sparc4_operation_mode["acquisition_mode"] == "polarimetric":
+            self._S4_SR.apply_calibration_wheel(
+                sparc4_operation_mode["calibration_wheel"]
+            )
+            self._S4_SR.apply_retarder(sparc4_operation_mode["retarder"])
             self._S4_SR.apply_analyser()
         self._S4_SR.apply_collimator()
         self._S4_SR.apply_dichroic()
@@ -137,14 +196,14 @@ class Concrete_Channel_1(Abstract_Channel_Creator):
     instrumental response of the SPARC4 Channel 1.
     """
 
-    def __init__(self, sparc4_operation_mode, wavelength_interval):
+    def __init__(self, wavelength_interval, ccd_operation_mode):
         """Initialize the Channel 1 Class."""
-        self.sparc4_operation_mode = sparc4_operation_mode
+        super().__init__(wavelength_interval, ccd_operation_mode)
         self._CHANNEL_ID = 1
         self._SERIAL_NUMBER = 9914
         self._S4_SR = Concrete_SPARC4_Spectral_Response_1(wavelength_interval)
 
-    def calculate_dark_current(self, ccd_temp):
+    def calculate_dark_current(self):
         """Calculate the dark current.
 
         This function extends the function of the Abstract Channel Creator
@@ -158,8 +217,8 @@ class Concrete_Channel_1(Abstract_Channel_Creator):
             Dark current in e-/ADU for the CCD of the Channel 1 of the SPARC4
             instrument.
         """
-        T = ccd_temp
-        self.dark_current = 24.66 * np.exp(0.0015 * T**2 + 0.29 * T)
+        T = self.ccd_operation_mode["ccd_temp"]
+        self.dark_current = 24.66 * np.exp(0.0015 * T ** 2 + 0.29 * T)
         return self.dark_current
 
 
@@ -171,14 +230,14 @@ class Concrete_Channel_2(Abstract_Channel_Creator):
     instrumental response of the SPARC4 Channel 2.
     """
 
-    def __init__(self, sparc4_operation_mode, wavelength_interval):
+    def __init__(self, wavelength_interval, ccd_operation_mode):
         """Initialize the Channel 2 Class."""
-        self.sparc4_operation_mode = sparc4_operation_mode
+        super().__init__(wavelength_interval, ccd_operation_mode)
         self._CHANNEL_ID = 2
         self._SERIAL_NUMBER = 9915
         self._S4_SR = Concrete_SPARC4_Spectral_Response_2(wavelength_interval)
 
-    def calculate_dark_current(self, ccd_temp):
+    def calculate_dark_current(self):
         """Calculate the dark current.
 
         This function extends the function of the Abstract Channel Creator
@@ -192,8 +251,8 @@ class Concrete_Channel_2(Abstract_Channel_Creator):
             Dark current in e-/ADU for the CCD of the Channel 1 of the SPARC4
             instrument.
         """
-        T = ccd_temp
-        self.dark_current = 35.26 * np.exp(0.0019 * T**2 + 0.31 * T)
+        T = self.ccd_operation_mode["ccd_temp"]
+        self.dark_current = 35.26 * np.exp(0.0019 * T ** 2 + 0.31 * T)
         return self.dark_current
 
 
@@ -205,14 +264,14 @@ class Concrete_Channel_3(Abstract_Channel_Creator):
     instrumental response of the SPARC4 Channel 3.
     """
 
-    def __init__(self, sparc4_operation_mode, wavelength_interval):
+    def __init__(self, wavelength_interval, ccd_operation_mode):
         """Initialize the Channel 3 Class."""
-        self.sparc4_operation_mode = sparc4_operation_mode
+        super().__init__(wavelength_interval, ccd_operation_mode)
         self._CHANNEL_ID = 3
         self._SERIAL_NUMBER = 9916
         self._S4_SR = Concrete_SPARC4_Spectral_Response_3(wavelength_interval)
 
-    def calculate_dark_current(self, ccd_temp):
+    def calculate_dark_current(self):
         """Calculate the dark current.
 
         This function extends the function of the Abstract Channel Creator
@@ -226,8 +285,8 @@ class Concrete_Channel_3(Abstract_Channel_Creator):
             Dark current in e-/ADU for the CCD of the Channel 1 of the SPARC4
             instrument.
         """
-        T = ccd_temp
-        self.dark_current = 9.67 * np.exp(0.0012 * T**2 + 0.25 * T)
+        T = self.ccd_operation_mode["ccd_temp"]
+        self.dark_current = 9.67 * np.exp(0.0012 * T ** 2 + 0.25 * T)
         return self.dark_current
 
 
@@ -239,14 +298,14 @@ class Concrete_Channel_4(Abstract_Channel_Creator):
     instrumental response of the SPARC4 Channel 4.
     """
 
-    def __init__(self, sparc4_operation_mode, wavelength_interval):
+    def __init__(self, wavelength_interval, ccd_operation_mode):
         """Initialize the Channel 4 Class."""
-        self.sparc4_operation_mode = sparc4_operation_mode
+        super().__init__(wavelength_interval, ccd_operation_mode)
         self._CHANNEL_ID = 4
         self._SERIAL_NUMBER = 9917
         self._S4_SR = Concrete_SPARC4_Spectral_Response_4(wavelength_interval)
 
-    def calculate_dark_current(self, ccd_temp):
+    def calculate_dark_current(self):
         """Calculate the dark current.
 
         This function extends the function of the Abstract Channel Creator
@@ -260,6 +319,6 @@ class Concrete_Channel_4(Abstract_Channel_Creator):
             Dark current in e-/ADU for the CCD of the Channel 1 of the SPARC4
             instrument.
         """
-        T = ccd_temp
-        self.dark_current = 5.92 * np.exp(0.0005 * T**2 + 0.18 * T)
+        T = self.ccd_operation_mode["ccd_temp"]
+        self.dark_current = 5.92 * np.exp(0.0005 * T ** 2 + 0.18 * T)
         return self.dark_current

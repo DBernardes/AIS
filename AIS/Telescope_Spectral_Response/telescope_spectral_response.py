@@ -64,10 +64,8 @@ class Telescope_Spectral_Response:
         self._read_spreadsheet()
         reflectance = self._calculate_spline(wavelength_interval)
         new_star_specific_photons_per_second = np.multiply(
-            star_specific_photons_per_second[0][0], reflectance
+            star_specific_photons_per_second[0], reflectance
         )
-        self.star_specific_photons_per_second[0][
-            0, :
-        ] = new_star_specific_photons_per_second
+        self.star_specific_photons_per_second[0] = new_star_specific_photons_per_second
 
         return star_specific_photons_per_second

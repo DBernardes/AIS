@@ -213,7 +213,7 @@ class Abstract_SPARC4_Spectral_Response:
     def _multiply_matrices(self, matrix):
         temp = []
         for array in self.specific_photons_per_second:
-            for idx, value in enumerate(array[0]):
+            for idx, _ in enumerate(array[0]):
                 array[:, idx] = np.dot(matrix, array[:, idx])
             temp.append(array)
         self.specific_photons_per_second = temp

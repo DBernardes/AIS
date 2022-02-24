@@ -57,13 +57,10 @@ def ais():
         channel=channel,
         star_coordinates=star_coordinates,
         bias_level=bias_level,
-        sparc4_operation_mode=sparc4_operation_mode,
         image_dir=image_dir,
         wavelength_interval=(l_init, l_final, l_step),
         star_magnitude=magnitude,
         seeing=seeing,
-        air_mass=air_mass,
-        sky_condition=sky_condition,
     )
 
 
@@ -102,18 +99,6 @@ def test_seeing(ais):
     assert ais.seeing == seeing
 
 
-def test_air_mass(ais):
-    assert ais.air_mass == air_mass
-
-
-def test_sky_condition(ais):
-    assert ais.sky_condition == sky_condition
-
-
-def test_sparc4_operation_mode(ais):
-    assert ais.sparc4_operation_mode == sparc4_operation_mode
-
-
 def test_moon_condition(ais):
     assert ais.moon_condition == moon_condition
 
@@ -128,20 +113,6 @@ def test_CHC(ais):
 def test_SC(ais):
     var = 0
     if ais.sc:
-        var = 1
-    assert var == 1
-
-
-def test_TSR(ais):
-    var = 0
-    if ais.tsr:
-        var = 1
-    assert var == 1
-
-
-def test_ASR(ais):
-    var = 0
-    if ais.asr:
         var = 1
     assert var == 1
 
@@ -184,16 +155,6 @@ def test_seeing_isnot_number():
         Artificial_Image_Simulator(ccd_operation_mode, seeing="a")
 
 
-def test_air_mass_isnot_number():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode, air_mass="a")
-
-
-def test_sky_condition_isnot_number():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode, sky_condition=1)
-
-
 def test_moon_condition_isnot_number():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(ccd_operation_mode, moon_condition=1)
@@ -229,11 +190,6 @@ def test_seeing_negative_value():
         Artificial_Image_Simulator(ccd_operation_mode, seeing=-1.5)
 
 
-def test_air_mass_negative_value():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode, air_mass=-air_mass)
-
-
 # ----------------provide zero to the parameters----------------------
 
 
@@ -262,22 +218,12 @@ def test_seeing_zero_value():
         Artificial_Image_Simulator(ccd_operation_mode, seeing=0)
 
 
-def test_air_mass_zero_value():
-    ais = Artificial_Image_Simulator(ccd_operation_mode, air_mass=0)
-    assert ais.air_mass == 0
-
-
 # ---------------- Test values that are not in the list ----------------------
 
 
 def test_channel_value_not_in_list():
     with pytest.raises(ValueError):
         Artificial_Image_Simulator(ccd_operation_mode, channel=5)
-
-
-def test_sky_value_not_in_list():
-    with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode, sky_condition="a")
 
 
 def test_moon_value_not_in_list():
@@ -624,37 +570,18 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
 # -----------------------Test SPARC4 operation mode ---------------------------------------
 
 
-def test_dic_without_acquisition_mode():
+def test_dic_without_acquisition_mode(ais):
     sparc4_operation_mode = {}
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(
+        ais.apply_sparc4_spectral_response(
             sparc4_operation_mode=sparc4_operation_mode,
-            ccd_operation_mode=ccd_operation_mode,
         )
 
 
-def test_wrong_acquisition_mode():
+def test_wrong_acquisition_mode(ais):
     dic = {"acquisition_mode": "a"}
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(
-            sparc4_operation_mode=dic, ccd_operation_mode=ccd_operation_mode
-        )
-
-
-def test_acquisition_photometric(ais):
-    assert ais.sparc4_operation_mode["acquisition_mode"] == "photometric"
-
-
-def test_acquisition_polarimetric(ais):
-    sparc4_operation_mode = {
-        "acquisition_mode": "polarimetric",
-        "calibration_wheel": "empty",
-        "retarder": "quarter",
-    }
-    ais = Artificial_Image_Simulator(
-        ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
-    )
-    assert ais.sparc4_operation_mode["acquisition_mode"] == "polarimetric"
+        ais.apply_sparc4_spectral_response(sparc4_operation_mode=dic)
 
 
 def test_acquisition_photometric_with_unnecessary_keywords(ais):
@@ -664,9 +591,7 @@ def test_acquisition_photometric_with_unnecessary_keywords(ais):
         "retarder": "quarter",
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(
-            ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
-        )
+        ais.apply_sparc4_spectral_response(sparc4_operation_mode=sparc4_operation_mode)
 
 
 def test_acquisition_polarimetric_and_wrong_keyword(ais):
@@ -677,9 +602,7 @@ def test_acquisition_polarimetric_and_wrong_keyword(ais):
         "blah": 1,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(
-            ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
-        )
+        ais.apply_sparc4_spectral_response(sparc4_operation_mode=sparc4_operation_mode)
 
 
 def test_acquisition_polarimetric_missing_keyword(ais):
@@ -688,45 +611,7 @@ def test_acquisition_polarimetric_missing_keyword(ais):
         "calibration_wheel": "empty",
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(
-            ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
-        )
-
-
-def test_acquisition_polarimetric_calibration_wheel_polarizer(ais):
-    sparc4_operation_mode = {
-        "acquisition_mode": "polarimetric",
-        "calibration_wheel": "polarizer",
-        "retarder": "half",
-    }
-    ais = Artificial_Image_Simulator(
-        ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
-    )
-    assert ais.sparc4_operation_mode["calibration_wheel"] == "polarizer"
-
-
-def test_acquisition_polarimetric_calibration_wheel_depolarizer(ais):
-    sparc4_operation_mode = {
-        "acquisition_mode": "polarimetric",
-        "calibration_wheel": "depolarizer",
-        "retarder": "half",
-    }
-    ais = Artificial_Image_Simulator(
-        ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
-    )
-    assert ais.sparc4_operation_mode["calibration_wheel"] == "depolarizer"
-
-
-def test_acquisition_polarimetric_calibration_wheel_empty(ais):
-    sparc4_operation_mode = {
-        "acquisition_mode": "polarimetric",
-        "calibration_wheel": "empty",
-        "retarder": "half",
-    }
-    ais = Artificial_Image_Simulator(
-        ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
-    )
-    assert ais.sparc4_operation_mode["calibration_wheel"] == "empty"
+        ais.apply_sparc4_spectral_response(sparc4_operation_mode=sparc4_operation_mode)
 
 
 def test_acquisition_polarimetric_calibration_wheel_wrong_value(ais):
@@ -736,33 +621,7 @@ def test_acquisition_polarimetric_calibration_wheel_wrong_value(ais):
         "retarder": "half",
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(
-            ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
-        )
-
-
-def test_acquisition_polarimetric_retarder_qaurter(ais):
-    sparc4_operation_mode = {
-        "acquisition_mode": "polarimetric",
-        "calibration_wheel": "polarizer",
-        "retarder": "quarter",
-    }
-    ais = Artificial_Image_Simulator(
-        ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
-    )
-    assert ais.sparc4_operation_mode["retarder"] == "quarter"
-
-
-def test_acquisition_polarimetric_retarder_half(ais):
-    sparc4_operation_mode = {
-        "acquisition_mode": "polarimetric",
-        "calibration_wheel": "depolarizer",
-        "retarder": "half",
-    }
-    ais = Artificial_Image_Simulator(
-        ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
-    )
-    assert ais.sparc4_operation_mode["retarder"] == "half"
+        ais.apply_sparc4_spectral_response(sparc4_operation_mode=sparc4_operation_mode)
 
 
 def test_acquisition_polarimetric_retarder_wrong_value(ais):
@@ -772,9 +631,7 @@ def test_acquisition_polarimetric_retarder_wrong_value(ais):
         "retarder": "blah",
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(
-            ccd_operation_mode, sparc4_operation_mode=sparc4_operation_mode
-        )
+        ais.apply_sparc4_spectral_response(sparc4_operation_mode=sparc4_operation_mode)
 
 
 # ---------------------------miscelaneous--------------------------------------------------

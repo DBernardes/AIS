@@ -10,7 +10,7 @@ based on a gaussian 2D distributiopn
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.table import Table
-from photutils.datasets import make_gaussian_sources_image
+from photutils.datasets import make_gaussian_sources_image, make_noise_image
 
 
 class Point_Spread_Function:
@@ -26,10 +26,6 @@ class Point_Spread_Function:
 
     Parameters
     ----------
-    Abstract_Channel_Creator : object
-        A chield object of the Channel Creator class. This object is used
-        to calculated the contribution of the instrument spectral response
-        over the star flux as a function of the instrument channel.
     ccd_operation_mode : dictionary
         Operation mode parameters of the SPARC4 camera
 
@@ -49,9 +45,8 @@ class Point_Spread_Function:
     _SPARC4_POL_SEPARATION = 40  # pix
     _SPARC4_PLATE_SCALE = 0.35  # arcsec/pix
 
-    def __init__(self, Abstract_Channel_Creator, ccd_operation_mode, ccd_gain, seeing):
+    def __init__(self, ccd_operation_mode, ccd_gain, seeing):
         """Initialize the class."""
-        self.chc = Abstract_Channel_Creator
         self.em_gain = ccd_operation_mode["em_gain"]
         self.binn = ccd_operation_mode["binn"]
         self.t_exp = ccd_operation_mode["t_exp"]
@@ -60,6 +55,16 @@ class Point_Spread_Function:
         self.seeing = seeing
 
         self.star_image = []
+
+    @staticmethod
+    def _make_noise_image(shape, table, amplitude):
+        table["amplitude"] = [1]
+        noise_image = (
+            make_noise_image(shape, distribution="poisson", mean=amplitude) - amplitude
+        )
+        noise_image *= make_gaussian_sources_image(shape, table)
+
+        return noise_image
 
     def create_star_psf(
         self,
@@ -88,37 +93,39 @@ class Point_Spread_Function:
         star_image: array like
             The Point Spred Function of the star for the respective CCD operation mode.
         """
-        t_exp = self.t_exp
-        em_gain = self.em_gain
-        ccd_gain = self.ccd_gain
-        binn = self.binn
-        image_size = self.image_size
+
         x_coord = star_coordinates[0]
         y_coord = star_coordinates[1]
         gaussian_std = self.seeing / self._SPARC4_PLATE_SCALE
 
-        gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn**2 / ccd_gain
-        shape = (image_size, image_size)
+        gaussian_amplitude = (
+            ordinary_ray * self.t_exp * self.em_gain * self.binn ** 2 / self.ccd_gain
+        )
+        shape = (self.image_size, self.image_size)
+
         table = Table()
         table["amplitude"] = [gaussian_amplitude]
         table["x_mean"] = [x_coord]
         table["y_mean"] = [y_coord]
-        table["x_stddev"] = [gaussian_std / binn]
-        table["y_stddev"] = [gaussian_std / binn]
+        table["x_stddev"] = [gaussian_std / self.binn]
+        table["y_stddev"] = [gaussian_std / self.binn]
         table["theta"] = np.radians(np.array([0]))
 
-        self.star_image = make_gaussian_sources_image(shape, table)
-
-        plt.imshow(self.star_image)
-        plt.show(), exit()
+        star_image = make_gaussian_sources_image(shape, table)
+        star_image += self._make_noise_image(shape, table, gaussian_amplitude)
 
         if extra_ordinary_ray != 0:
             gaussian_amplitude = (
-                extra_ordinary_ray * t_exp * em_gain * binn**2 / ccd_gain
+                extra_ordinary_ray
+                * self.t_exp
+                * self.em_gain
+                * self.binn ** 2
+                / self.ccd_gain
             )
             table["amplitude"] = [gaussian_amplitude]
             table["x_mean"] = [x_coord - self._SPARC4_POL_SEPARATION]
             table["y_mean"] = [y_coord - self._SPARC4_POL_SEPARATION]
-            self.star_image += make_gaussian_sources_image(shape, table)
+            star_image += make_gaussian_sources_image(shape, table)
+            star_image += self._make_noise_image(shape, table, gaussian_amplitude)
 
-        return self.star_image
+        return star_image

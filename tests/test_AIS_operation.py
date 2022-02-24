@@ -37,6 +37,7 @@ from .AIS_spectral_response_curves import (
     l_final,
     l_init,
     l_step,
+    magnitude,
     multiply_matrices,
     polarizer_transmitance,
     retardance_quarter,
@@ -62,54 +63,22 @@ def ais():
         channel=channel,
         star_coordinates=star_coordinates,
         bias_level=bias_level,
-        sparc4_operation_mode=sparc4_operation_mode,
         image_dir=image_dir,
         wavelength_interval=(l_init, l_final, l_step),
-        air_mass=air_mass,
-        sky_condition=sky_condition,
+        star_magnitude=magnitude,
     )
-
-
-# ----------------------- Calculate dark current  -------------------------
-
-
-def test_calculate_dark_current(ais):
-    ais._calculate_dark_current()
-    assert round(ais.dark_current, 7) == 5.86e-5
-
-
-# -------------------------Calculate Read Noise -------------------------
-
-
-def test_calculate_read_noise(ais):
-    ais._calculate_read_noise(ccd_operation_mode)
-    assert ais.read_noise == 6.67
 
 
 # ----------------------- Apply spectruns ---------------------------
-
-
-def test_calculate_star_specific_photons_per_second(ais):
-    ais._calculate_star_specific_photons_per_second()
-    assert np.allclose(
-        ais.star_specific_photons_per_second, star_specific_photons_per_second.copy()
-    )
-
-
-def test_calculate_sky_specific_photons_per_second(ais):
-    ais._calculate_sky_specific_photons_per_second()
-    assert np.allclose(
-        ais.sky_specific_photons_per_second, sky_specific_photons_per_second.copy()
-    )
 
 
 def test_apply_atmosphere_spectral_response_star(ais):
     new_star_specific_photons_per_second = np.multiply(
         star_specific_photons_per_second[0][0].copy(), atm_transmitance
     )
-    ais.apply_atmosphere_spectral_response()
+    ais.apply_atmosphere_spectral_response(air_mass, sky_condition)
     assert np.allclose(
-        ais.star_specific_photons_per_second[0][0][0],
+        ais.star_specific_photons_per_second[0][0],
         new_star_specific_photons_per_second,
     )
 
@@ -118,9 +87,9 @@ def test_apply_atmosphere_spectral_response_sky(ais):
     new_sky_specific_photons_per_second = np.multiply(
         sky_specific_photons_per_second[0][0].copy(), atm_transmitance
     )
-    ais.apply_atmosphere_spectral_response()
+    ais.apply_atmosphere_spectral_response(air_mass, sky_condition)
     assert np.allclose(
-        ais.sky_specific_photons_per_second[0][0][0].copy(),
+        ais.sky_specific_photons_per_second[0][0].copy(),
         new_sky_specific_photons_per_second,
     )
 
@@ -195,91 +164,7 @@ def test_integrate_specific_photons_per_second(ais):
     ais.sky_specific_photons_per_second = star_specific_photons_per_second
     ais._integrate_specific_photons_per_second()
     assert ais.star_ordinary_ray == photons_per_second
-    assert ais.sky_photons_per_second == photons_per_second
-
-
-# -----------------------------test _create_image_name------------------------
-
-
-# @pytest.mark.parametrize(
-#     "em_mode, em_gain, hss, preamp, binn, t_exp, image_name",
-#     [
-#         ("Conv", 1, 0.1, 1, 1, 1, "CONV_HSS0.1_PA1_B1_TEXP1_G1"),
-#         ("Conv", 1, 0.1, 1, 2, 1, "CONV_HSS0.1_PA1_B2_TEXP1_G1"),
-#         ("Conv", 1, 0.1, 2, 1, 1, "CONV_HSS0.1_PA2_B1_TEXP1_G1"),
-#         ("Conv", 1, 0.1, 2, 2, 1, "CONV_HSS0.1_PA2_B2_TEXP1_G1"),
-#         ("Conv", 1, 1, 1, 1, 1, "CONV_HSS1_PA1_B1_TEXP1_G1"),
-#         ("Conv", 1, 1, 1, 2, 1, "CONV_HSS1_PA1_B2_TEXP1_G1"),
-#         ("Conv", 1, 1, 2, 1, 1, "CONV_HSS1_PA2_B1_TEXP1_G1"),
-#         ("Conv", 1, 1, 2, 2, 1, "CONV_HSS1_PA2_B2_TEXP1_G1"),
-#         ("EM", 2, 1, 1, 1, 1, "EM_HSS1_PA1_B1_TEXP1_G2"),
-#         ("EM", 2, 1, 1, 2, 1, "EM_HSS1_PA1_B2_TEXP1_G2"),
-#         ("EM", 2, 1, 2, 1, 1, "EM_HSS1_PA2_B1_TEXP1_G2"),
-#         ("EM", 2, 1, 2, 2, 1, "EM_HSS1_PA2_B2_TEXP1_G2"),
-#         ("EM", 2, 10, 1, 1, 1, "EM_HSS10_PA1_B1_TEXP1_G2"),
-#         ("EM", 2, 10, 1, 2, 1, "EM_HSS10_PA1_B2_TEXP1_G2"),
-#         ("EM", 2, 10, 2, 1, 1, "EM_HSS10_PA2_B1_TEXP1_G2"),
-#         ("EM", 2, 10, 2, 2, 1, "EM_HSS10_PA2_B2_TEXP1_G2"),
-#         ("EM", 2, 20, 1, 1, 1, "EM_HSS20_PA1_B1_TEXP1_G2"),
-#         ("EM", 2, 20, 1, 2, 1, "EM_HSS20_PA1_B2_TEXP1_G2"),
-#         ("EM", 2, 20, 2, 1, 1, "EM_HSS20_PA2_B1_TEXP1_G2"),
-#         ("EM", 2, 20, 2, 2, 1, "EM_HSS20_PA2_B2_TEXP1_G2"),
-#         ("EM", 2, 30, 1, 1, 1, "EM_HSS30_PA1_B1_TEXP1_G2"),
-#         ("EM", 2, 30, 1, 2, 1, "EM_HSS30_PA1_B2_TEXP1_G2"),
-#         ("EM", 2, 30, 2, 1, 1, "EM_HSS30_PA2_B1_TEXP1_G2"),
-#         ("EM", 2, 30, 2, 2, 1, "EM_HSS30_PA2_B2_TEXP1_G2"),
-#         ("EM", 2, 30, 2, 2, 2, "EM_HSS30_PA2_B2_TEXP2_G2"),
-#     ],
-# )
-# def test_create_image_name(ais, em_mode, em_gain, hss, preamp, binn, t_exp, image_name):
-#     ccd_operation_mode = {
-#         "em_mode": em_mode,
-#         "em_gain": em_gain,
-#         "preamp": preamp,
-#         "hss": hss,
-#         "binn": binn,
-#         "t_exp": t_exp,
-#         "ccd_temp": -70,
-#         "image_size": 200,
-#     }
-#     ais = Artificial_Image_Simulator(ccd_operation_mode)
-#     ais._configure_image_name()
-#     assert ais.image_name == image_name
-
-
-# -----------------------------test _configure_gain------------------------
-
-
-@pytest.mark.parametrize(
-    "em_mode, em_gain, hss, preamp, binn, ccd_gain",
-    [
-        ("Conv", 1, 0.1, 1, 1, 3.35),
-        ("Conv", 1, 0.1, 2, 1, 0.80),
-        ("Conv", 1, 1, 1, 1, 3.37),
-        ("Conv", 1, 1, 2, 1, 0.80),
-        ("EM", 2, 1, 1, 1, 15.90),
-        ("EM", 2, 1, 2, 1, 3.88),
-        ("EM", 2, 10, 1, 1, 16.00),
-        ("EM", 2, 10, 2, 1, 3.96),
-        ("EM", 2, 20, 1, 1, 16.40),
-        ("EM", 2, 20, 2, 1, 4.39),
-        ("EM", 2, 30, 1, 1, 17.20),
-        ("EM", 2, 30, 2, 1, 5.27),
-    ],
-)
-def test_configure_gain(ais, em_mode, em_gain, hss, preamp, binn, ccd_gain):
-    ccd_operation_mode = {
-        "em_mode": em_mode,
-        "em_gain": em_gain,
-        "preamp": preamp,
-        "hss": hss,
-        "binn": binn,
-        "t_exp": 1,
-        "ccd_temp": -70,
-    }
-    ais.ccd_operation_mode = ccd_operation_mode
-    ais._configure_gain()
-    assert ais.ccd_gain == ccd_gain
+    assert ais.sky_photons_per_second == 25
 
 
 # --------------------------- test create artificial image ----------------
@@ -297,7 +182,7 @@ def test_create_artificial_image_phot():
         "image_size": 100,
     }
     ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
-    ais.apply_sparc4_spectral_response()
+    ais.apply_sparc4_spectral_response(sparc4_operation_mode)
     ais.create_artificial_image()
 
 
@@ -320,9 +205,8 @@ def test_create_artificial_image_pol():
     ais = Artificial_Image_Simulator(
         ccd_operation_mode,
         image_dir=os.path.join("FITS"),
-        sparc4_operation_mode=sparc4_operation_mode,
     )
-    ais.apply_sparc4_spectral_response()
+    ais.apply_sparc4_spectral_response(sparc4_operation_mode)
     ais.create_artificial_image()
 
 
@@ -338,7 +222,6 @@ def test_create_background_image():
         "image_size": 100,
     }
     ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
-    ais.apply_sparc4_spectral_response()
     ais.create_background_image()
 
 
@@ -354,7 +237,6 @@ def test_creat_bias_image():
         "image_size": 100,
     }
     ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
-    ais.apply_sparc4_spectral_response()
     ais.create_bias_image()
 
 
@@ -370,7 +252,6 @@ def test_creat_dark_image():
         "image_size": 100,
     }
     ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
-    ais.apply_sparc4_spectral_response()
     ais.create_dark_image()
 
 
@@ -386,7 +267,6 @@ def test_creat_random_image():
         "image_size": 100,
     }
     ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
-    ais.apply_sparc4_spectral_response()
     ais.create_random_image(n=2)
 
 
@@ -402,5 +282,4 @@ def test_creat_flat_image():
         "image_size": 100,
     }
     ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
-    ais.apply_sparc4_spectral_response()
     ais.create_flat_image()

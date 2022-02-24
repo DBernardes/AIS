@@ -31,6 +31,8 @@ def tel_sr():
     return Telescope_Spectral_Response()
 
 
+star_specific_photons_per_second = star_specific_photons_per_second[0]
+
 # ---------------------------------------------------------------------------------------------------------------------
 
 
@@ -74,12 +76,12 @@ def test_apply_telescope_spectral_response(tel_sr):
     spl = splrep(tel_wavelength_interval, reflectance)
     reflectance = splev(wavelength_interval, spl)
     new_star_specific_photons_per_second = np.multiply(
-        star_specific_photons_per_second, reflectance
+        star_specific_photons_per_second[0], reflectance
     )
 
-    new_star_specific_photons_per_second = tel_sr.apply_telescope_spectral_response(
+    calculated_specific_photons_per_second = tel_sr.apply_telescope_spectral_response(
         star_specific_photons_per_second, wavelength_interval
     )
     assert np.allclose(
-        star_specific_photons_per_second, new_star_specific_photons_per_second
+        calculated_specific_photons_per_second[0], new_star_specific_photons_per_second
     )

@@ -72,11 +72,11 @@ class Atmosphere_Spectral_Response:
             Photons per second per wavelength of the star after the application atmosphere
             spectral response.
         """
-        self.specific_photons_per_second = specific_photons_per_second
+
         self._read_spreadsheet()
         transmitance = self._calculate_atmosphere_transmitance(wavelength_interval)
-        self.specific_photons_per_second[0][0, :] = np.multiply(
-            specific_photons_per_second[0][0, :], transmitance
+        specific_photons_per_second[0] = np.multiply(
+            specific_photons_per_second[0], transmitance
         )
 
-        return self.specific_photons_per_second
+        return specific_photons_per_second

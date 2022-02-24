@@ -6,12 +6,15 @@ Each script is responsable to the one of the classes contained in the AIS.
 """
 
 from . import (
+    test_AIS_initialization,
     test_AIS_operation,
-    test_AIS_structure,
+    test_ATM_SR,
     test_BGI_class,
     test_CHC_class,
     test_HDR_class,
     test_PSF_class,
     test_RNC_class,
     test_S4_SR_class,
+    test_SC_class,
+    test_TEL_SR,
 )
