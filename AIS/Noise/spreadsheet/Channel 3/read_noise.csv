@@ -1,0 +1,10 @@
+EM Mode,HSS,Preamp,Binning,Noise,Error
+,MHz,,,e-,e-
+Convencional,1,1,1,6.67,
+Convencional,1,1,2,6.94,0.22
+Convencional,1,2,1,4.76,
+Convencional,1,2,2,4.79,0.93
+Convencional,0.1,1,1,8.78,
+Convencional,0.1,1,2,8.84,0.22
+Convencional,0.1,2,1,3.46,
+Convencional,0.1,2,2,3.27,0.93

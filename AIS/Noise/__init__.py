@@ -10,4 +10,4 @@ Created on Fri Apr 23 11:19:34 2021
 @author: denis
 """
 
-from .read_noise_calculation import Read_Noise_Calculation
+from .noise import Noise

@@ -18,7 +18,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from ..Read_Noise_Calculation import Read_Noise_Calculation
+from ..Noise import Noise
 from ..SPARC4_Spectral_Response import (
     Abstract_SPARC4_Spectral_Response,
     Concrete_SPARC4_Spectral_Response_1,
@@ -170,7 +170,8 @@ class Abstract_Channel_Creator:
 
         """
 
-        self._S4_SR.write_specific_photons_per_second(specific_photons_per_second)
+        self._S4_SR.write_specific_photons_per_second(
+            specific_photons_per_second)
         if sparc4_operation_mode["acquisition_mode"] == "polarimetric":
             self._S4_SR.apply_calibration_wheel(
                 sparc4_operation_mode["calibration_wheel"]

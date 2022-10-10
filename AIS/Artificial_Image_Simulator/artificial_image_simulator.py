@@ -37,7 +37,7 @@ from ..Telescope_Spectral_Response import Telescope_Spectral_Response
 
 class Artificial_Image_Simulator:
     """
-    Create an image cube with the star flux distribution.
+    Create an artificial image with the star flux distribution.
 
     Parameters
     ----------
@@ -103,8 +103,8 @@ class Artificial_Image_Simulator:
 
     Yields
     ------
-        image cube: array like
-            An image cube in the FITS format with the star flux distribution
+        image: array like
+            An image in the FITS format with the star flux distribution
 
     Notes
     -----
@@ -175,7 +175,8 @@ class Artificial_Image_Simulator:
     @staticmethod
     def _check_var_in_a_list(var, var_name, _list):
         if var not in _list:
-            raise ValueError(f"The allowed values for the {var_name} are: {_list}")
+            raise ValueError(
+                f"The allowed values for the {var_name} are: {_list}")
 
     def _verify_class_parameters(self):
         self._verify_type(self.channel, "channel", int)
@@ -205,7 +206,8 @@ class Artificial_Image_Simulator:
 
         self._verify_type(self.moon_condition, "moon condition", str)
         self._check_var_in_a_list(
-            self.moon_condition, "moon condition", ["new", "waxing", "waning", "full"]
+            self.moon_condition, "moon condition", [
+                "new", "waxing", "waning", "full"]
         )
 
     def _verify_ccd_operation_mode(self):
@@ -222,12 +224,14 @@ class Artificial_Image_Simulator:
         ]
         for key in self.ccd_operation_mode.keys():
             if key not in dic_keywords_list:
-                raise ValueError(f"The name provided is not a CCD parameter: {key}")
+                raise ValueError(
+                    f"The name provided is not a CCD parameter: {key}")
 
         keyvalues = list(self.ccd_operation_mode.keys())
         keyvalues.sort()
         if keyvalues != dic_keywords_list:
-            raise ValueError("There is a missing parameter of the CCD operation mode")
+            raise ValueError(
+                "There is a missing parameter of the CCD operation mode")
 
         em_mode = self.ccd_operation_mode["em_mode"]
         em_gain = self.ccd_operation_mode["em_gain"]
@@ -290,7 +294,8 @@ class Artificial_Image_Simulator:
                         f"The provided keyword is not a parameter of the SPARC4 operation mode: {word}"
                     )
             if sorted(keywords) != polarimetric_keywords:
-                raise ValueError("A parameter of the SPARC4 operation mode is missing.")
+                raise ValueError(
+                    "A parameter of the SPARC4 operation mode is missing.")
 
             self._check_var_in_a_list(
                 sparc4_operation_mode["calibration_wheel"],
@@ -314,10 +319,14 @@ class Artificial_Image_Simulator:
 
     def _initialize_subclasses(self):
         channels_list = [
-            Concrete_Channel_1(self.wavelength_interval, self.ccd_operation_mode),
-            Concrete_Channel_2(self.wavelength_interval, self.ccd_operation_mode),
-            Concrete_Channel_3(self.wavelength_interval, self.ccd_operation_mode),
-            Concrete_Channel_4(self.wavelength_interval, self.ccd_operation_mode),
+            Concrete_Channel_1(self.wavelength_interval,
+                               self.ccd_operation_mode),
+            Concrete_Channel_2(self.wavelength_interval,
+                               self.ccd_operation_mode),
+            Concrete_Channel_3(self.wavelength_interval,
+                               self.ccd_operation_mode),
+            Concrete_Channel_4(self.wavelength_interval,
+                               self.ccd_operation_mode),
         ]
         self.chc = channels_list[self.channel - 1]
 
@@ -340,11 +349,13 @@ class Artificial_Image_Simulator:
         self.hdr = Header()
 
         self.star_specific_photons_per_second = [
-            self.sc.calculate_star_specific_photons_per_second(self.star_magnitude)
+            self.sc.calculate_star_specific_photons_per_second(
+                self.star_magnitude)
         ]
 
         self.sky_specific_photons_per_second = [
-            self.sc.calculate_sky_specific_photons_per_second(self.moon_condition)
+            self.sc.calculate_sky_specific_photons_per_second(
+                self.moon_condition)
         ]
 
     def _configure_image_name(self):
@@ -433,7 +444,8 @@ class Artificial_Image_Simulator:
 
     def apply_sparc4_spectral_response(
         self,
-        sparc4_operation_mode: dict[str, str] = {"acquisition_mode": "photometric"},
+        sparc4_operation_mode: dict[str, str] = {
+            "acquisition_mode": "photometric"},
     ):
         """
         Apply the SPARC4 spectral response.
@@ -474,7 +486,7 @@ class Artificial_Image_Simulator:
         self.sky_photons_per_second = 0
         for array in self.sky_specific_photons_per_second:
             self.sky_photons_per_second += np.trapz(array[0, :])
-        self.sky_photons_per_second = 25  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        self.sky_photons_per_second = 25  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         star_photons_per_second = []
         for array in self.star_specific_photons_per_second:
             star_photons_per_second.append(np.trapz(array[0, :]))
@@ -499,7 +511,8 @@ class Artificial_Image_Simulator:
         """
         self._configure_image_name()
         self._integrate_specific_photons_per_second()
-        background = self.bgi.create_background_image(self.sky_photons_per_second)
+        background = self.bgi.create_background_image(
+            self.sky_photons_per_second)
         star_psf = self.psf.create_star_psf(
             self.star_coordinates,
             self.star_ordinary_ray,
@@ -532,7 +545,8 @@ class Artificial_Image_Simulator:
         """
         self._configure_image_name()
         self._integrate_specific_photons_per_second()
-        background = self.bgi.create_background_image(self.sky_photons_per_second)
+        background = self.bgi.create_background_image(
+            self.sky_photons_per_second)
         header = self.hdr.create_header()
 
         image_name = os.path.join(self.image_dir, self.image_name + "_BG.fits")
@@ -560,7 +574,8 @@ class Artificial_Image_Simulator:
         self._configure_image_name()
         dark_image = self.bgi.create_dark_image()
         header = self.hdr.create_header()
-        image_name = os.path.join(self.image_dir, self.image_name + "_DARK.fits")
+        image_name = os.path.join(
+            self.image_dir, self.image_name + "_DARK.fits")
 
         fits.writeto(
             image_name,
@@ -587,7 +602,8 @@ class Artificial_Image_Simulator:
         header = self.hdr.create_header()
         header["EXPOSURE"] = 1e-5
 
-        image_name = os.path.join(self.image_dir, self.image_name + "_BIAS.fits")
+        image_name = os.path.join(
+            self.image_dir, self.image_name + "_BIAS.fits")
 
         fits.writeto(
             image_name,
@@ -617,20 +633,22 @@ class Artificial_Image_Simulator:
         """
         self._configure_image_name()
         self._integrate_specific_photons_per_second()
-        random_image = self.bgi.create_background_image(self.sky_photons_per_second)
+        random_image = self.bgi.create_background_image(
+            self.sky_photons_per_second)
         for i in range(n):
             image_size = self.image_size
             x_coord = randint(0, image_size)
             y_coord = randint(0, image_size)
             ordinary_ray = randint(0, self.star_ordinary_ray // 1)
-            extra_ordinary_ray = 0            
+            extra_ordinary_ray = 0
             random_image += self.psf.create_star_psf(
                 (x_coord, y_coord),
                 ordinary_ray,
                 extra_ordinary_ray,
             )
         header = self.hdr.create_header()
-        image_name = os.path.join(self.image_dir, self.image_name + "_RAND.fits")
+        image_name = os.path.join(
+            self.image_dir, self.image_name + "_RAND.fits")
 
         fits.writeto(
             image_name,
@@ -656,7 +674,8 @@ class Artificial_Image_Simulator:
         flat_image = self.bgi.create_flat_image()
         header = self.hdr.create_header()
 
-        image_name = os.path.join(self.image_dir, self.image_name + "_FLAT.fits")
+        image_name = os.path.join(
+            self.image_dir, self.image_name + "_FLAT.fits")
 
         fits.writeto(
             image_name,

@@ -3,8 +3,7 @@
 Background Image
 ================
 
-This is the Background Image Class used to generate a back ground image like
-a bias image acquired by the SPARC4 cameras.
+This is the Background Image Class used to generate a background image.
 """
 
 
@@ -110,10 +109,12 @@ class Background_Image:
         image_size = self.image_size
 
         shape = (image_size, image_size)
-        background_level = bias + (dc + sky) * t_exp * em_gain * binn ** 2 / ccd_gain
+        background_level = bias + (dc + sky) * \
+            t_exp * em_gain * binn ** 2 / ccd_gain
 
         noise = (
-            np.sqrt(rn ** 2 + (sky + dc) * t_exp * nf ** 2 * em_gain ** 2 * binn ** 2)
+            np.sqrt(rn ** 2 + (sky + dc) * t_exp *
+                    nf ** 2 * em_gain ** 2 * binn ** 2)
             / ccd_gain
         )
         self.background_image = make_noise_image(
@@ -152,7 +153,8 @@ class Background_Image:
         dark_level = bias + (dc) * t_exp * em_gain * binn ** 2 / ccd_gain
 
         noise = (
-            np.sqrt(rn ** 2 + (dc) * t_exp * nf ** 2 * em_gain ** 2 * binn ** 2)
+            np.sqrt(rn ** 2 + (dc) * t_exp * nf **
+                    2 * em_gain ** 2 * binn ** 2)
             / ccd_gain
         )
 
