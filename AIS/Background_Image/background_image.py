@@ -8,7 +8,10 @@ This is the Background Image Class used to generate a background image.
 
 
 import numpy as np
+from ..Noise import Noise
 from photutils.datasets import make_noise_image
+import os
+import pandas as pd
 
 
 class Background_Image:
@@ -21,218 +24,200 @@ class Background_Image:
         A python dictionary with the CCD operation mode.
         The allowed keywords values for the dictionary are
 
-        em_mode : [0, 1]
-            Electron Multiplying mode of the CCD.
+        em_mode : ['EM', 'Conv']
+            Electron Multiplying mode of the camera.
         em_gain : float
-            CCD Electron Multiplying gain
-        hss : [0.1, 1, 10, 20, 30]
-            Horizontal Shift Speed of the pixels
+            EM gain of the camera.
+        readout : [0.1, 1, 10, 20, 30]
+            Readout rate of the pixels in MHz.
         preamp : [1, 2]
-            Pre-amplifier gain
+            Pre-amplifier gain.
         binn : [1, 2]
-            Binning of the pixels
+            Binning of the pixels.
         t_exp : float
-            Exposure time in seconds
+            Exposure time in seconds.
         image_size : int
-            Image size in pixels
-
-    ccd_gain : float
-        CCD gain in e-/ADU.
-    dark_current : float
-        Dark current in e-/s of the CCD
-    read_noise :
-        Read noise in electrons of the CCD
-    bias_level : integer
-        The bias level of the image in ADU
+            Image size in pixels.  
+        temp: float
+            The camera temperature in celsius degree.  
+    channel: integer
+        The channel related to the camera.
+    bias_level : integer (optional)
+        The bias level of the image in ADU.
     """
 
     _PIXEL_SENSIBILITY = 0.03
+    _SPREADSHEET_PATH = os.path.join(
+        'AIS', 'Background_Image', 'preamp_gains.csv')
 
     def __init__(
         self,
-        ccd_operation_mode,
-        ccd_gain,
-        dark_current,
-        read_noise,
-        bias_level,
+        ccd_operation_mode: dict,
+        channel: int,
+        bias_level: int = 500,
     ):
-        """Initialize the Background Image class."""
-        self.ccd_gain = ccd_gain
-        self.dark_current = dark_current
-        self.read_noise = read_noise
+        """Initialize the class."""
         self.bias_level = bias_level
+        self.channel = channel
+        self.ccd_operation_mode = ccd_operation_mode
 
-        self.em_mode = ccd_operation_mode["em_mode"]
-        self.em_gain = ccd_operation_mode["em_gain"]
-        self.binn = ccd_operation_mode["binn"]
-        self.t_exp = ccd_operation_mode["t_exp"]
-        self.preamp = ccd_operation_mode["preamp"]
-        self.hss = ccd_operation_mode["hss"]
-        self.image_size = ccd_operation_mode["image_size"]
-
-        self._NOISE_FACTOR = 1.0
-        if self.em_mode == 1:
+        self._NOISE_FACTOR = 1
+        if ccd_operation_mode['em_mode'] == 'EM':
             self._NOISE_FACTOR = 1.4
 
-    def create_background_image(self, sky_flux):
-        """
-        Create a background image.
+        noise = Noise(channel)
+        self.read_noise = noise.calculate_read_noise(ccd_operation_mode)
+        self.dark_noise = noise.calculate_dark_current(
+            ccd_operation_mode['temp']) * ccd_operation_mode['t_exp']
+        self.get_ccd_gain()
 
-        This functions creates a background image with a background level given
-        by the ccd operation mode, the sky flux, the dc noise, and the bias
-        level. Over this image there is a noise given by a gaussian
-        distribution over the read noise, dc noise, and sky noise. Also, the
-        extra noise of the EM amplification is considered.
+    def get_ccd_gain(self):
+        idx_tab = 0
+        readout = self.ccd_operation_mode['readout']
+        if self.ccd_operation_mode['em_mode'] == 'EM':
+            idx_tab = [30, 20, 10, 1].index(readout) * 2
+        else:
+            idx_tab = [1, 0.1].index(readout) * 2 + 8
+        idx_tab += self.ccd_operation_mode['preamp'] - 1
+        ss = pd.read_csv(self._SPREADSHEET_PATH)
+        self.ccd_gain = ss[f'CH{self.channel}'][idx_tab]
 
-        Parameters
-        ----------
+    def create_bias_background(self):
+        """Create the bias background.
 
-        sky_flux : float
-            Flux in photons/s of the sky
+        This functions creates a bias background with a noise distribution given by a gaussian distribution over the read noise.
 
         Returns
         -------
-        background_image: array like
-            A background image for the respective CCD operation mode, the sky
-            flux, and the dark current noise.
+        bias_background: array like
+            A bias background for the respective CCD operation mode.
 
         """
-        t_exp = self.t_exp
-        em_gain = self.em_gain
-        ccd_gain = self.ccd_gain
-        bias = self.bias_level
-        dc = self.dark_current * t_exp
-        rn = self.read_noise
-        sky = sky_flux
-        nf = self._NOISE_FACTOR
-        binn = self.binn
-        image_size = self.image_size
 
+        image_size = self.ccd_operation_mode['image_size']
         shape = (image_size, image_size)
-        background_level = bias + (dc + sky) * \
-            t_exp * em_gain * binn ** 2 / ccd_gain
-
-        noise = (
-            np.sqrt(rn ** 2 + (sky + dc) * t_exp *
-                    nf ** 2 * em_gain ** 2 * binn ** 2)
-            / ccd_gain
-        )
-        self.background_image = make_noise_image(
-            shape, distribution="gaussian", mean=background_level, stddev=noise
+        noise_adu = self.read_noise / self.ccd_gain
+        bias_background = make_noise_image(
+            shape, distribution="gaussian", mean=self.bias_level, stddev=noise_adu
         )
 
-        return self.background_image
+        return bias_background
 
-    def create_dark_image(self):
+    def create_dark_background(self):
         """
-        Create a dark image.
+        Create a dark background.
 
-        This functions creates a dark image with a background level given
-        by the ccd operation mode, the dc noise, and the bias
-        level. Over this image there is a noise given by a gaussian
+        This functions creates a dark background given by the ccd operation mode, 
+        the dc noise, and the bias level. This background is created woth a noise given by a gaussian
         distribution over the read noise and dc noise. Also, the
         extra noise of the EM amplification is considered.
 
         Returns
         -------
-        dark_image: array like
-            A dark image for the respective CCD operation mode and the dc level
+        dark_background: array like
+            A dark background for the respective CCD operation mode and the dc level
 
         """
-        t_exp = self.t_exp
-        em_gain = self.em_gain
-        ccd_gain = self.ccd_gain
-        bias = self.bias_level
-        dc = self.dark_current * t_exp
-        rn = self.read_noise
-        nf = self._NOISE_FACTOR
-        binn = self.binn
-        image_size = self.image_size
 
+        image_size = self.ccd_operation_mode['image_size']
+        em_gain = self.ccd_operation_mode['em_gain']
+        binn = self.ccd_operation_mode['binn']
         shape = (image_size, image_size)
-        dark_level = bias + (dc) * t_exp * em_gain * binn ** 2 / ccd_gain
+        dark_level = self.bias_level + self.dark_noise * \
+            em_gain * binn ** 2 / self.ccd_gain
 
         noise = (
-            np.sqrt(rn ** 2 + (dc) * t_exp * nf **
+            np.sqrt(self.read_noise ** 2 + self.dark_noise * self._NOISE_FACTOR **
                     2 * em_gain ** 2 * binn ** 2)
-            / ccd_gain
+            / self.ccd_gain
         )
 
-        self.dark_image = make_noise_image(
+        dark_background = make_noise_image(
             shape, distribution="gaussian", mean=dark_level, stddev=noise
         )
 
-        return self.dark_image
+        return dark_background
 
-    def create_bias_image(self):
+    def create_flat_background(self):
         """
-        Create the bias image.
+        Create a flat background.
 
-        This functions creates a bias image with the provided bias level given
-        as a function of the ccd operation mode. Over this image there is a
-        noise given by a gaussian distribution over the read noise.
-
+        This functions creates a flat background with a noise distribution given by the contribution of the 
+        the read noise, the Poisson noise, and the pixel sensibility noise.
+        The extra noise related with the EM amplification is also considered.
 
         Returns
         -------
-        bias_image: array like
-            A bias image for the respective CCD operation mode.
-
-        """
-        ccd_gain = self.ccd_gain
-        bias = self.bias_level
-        rn = self.read_noise
-        image_size = self.image_size
-
-        shape = (image_size, image_size)
-        noise = rn / ccd_gain
-        self.bias_image = make_noise_image(
-            shape, distribution="gaussian", mean=bias, stddev=noise
-        )
-
-        return self.bias_image
-
-    def create_flat_image(self):
-        """
-        Create a flat image.
-
-        This functions creates a flat image with a background level of
-        half of the CCD's pixel depth. Over this background, the read noise,
-        the Poisson noise, and the pixel sensibility noise are summed.
-        Also, the extra noise of the EM amplification is considered.
-
-        Returns
-        -------
-        flat_image: array like
-            A flat image with counts distribution around half of the
+        flat_background: array like
+            A flat background with counts distribution around half of the
             pixels depth.
 
         """
-        em_gain = self.em_gain
-        ccd_gain = self.ccd_gain
-        BIAS = 32000  # ADU
-        rn = self.read_noise
-        nf = self._NOISE_FACTOR
-        poisson_noise = BIAS / ccd_gain
-        pixel_sensibility_noise = BIAS / ccd_gain * self._PIXEL_SENSIBILITY
-        binn = self.binn
-        image_size = self.image_size
+        em_gain = self.ccd_operation_mode['em_gain']
+        binn = self.ccd_operation_mode['binn']
+        image_size = self.ccd_operation_mode['image_size']
+        _FLAT_LEVEL = 2**15  # ADU
+        if self.ccd_operation_mode['preamp'] == 1:
+            _FLAT_LEVEL /= 2
 
+        poisson_noise = _FLAT_LEVEL / self.ccd_gain
         shape = (image_size, image_size)
-        background_level = BIAS
+
         noise = (
             np.sqrt(
-                rn ** 2
-                + (poisson_noise + pixel_sensibility_noise)
-                * nf ** 2
+                self.read_noise ** 2
+                + (poisson_noise*(1 + self._PIXEL_SENSIBILITY) + self.dark_noise)
+                * self._NOISE_FACTOR ** 2
                 * em_gain ** 2
                 * binn ** 2
             )
-            / ccd_gain
+            / self.ccd_gain
         )
 
-        self.flat_image = make_noise_image(
-            shape, distribution="gaussian", mean=background_level, stddev=noise
+        flat_background = make_noise_image(
+            shape, distribution="gaussian", mean=_FLAT_LEVEL, stddev=noise
         )
 
-        return self.flat_image
+        return flat_background
+
+    def create_sky_background(self, sky_flux: float):
+        """
+        Create a sky background.
+
+        This functions creates a sky background given
+        by the sky flux, the dark noise, and the bias
+        level. Over this background, there is a noise given by the read noise, dark noise, and sky noise. 
+        The extra noise of the EM amplification is also considered.
+
+        Parameters
+        ----------
+
+        sky_flux : float
+            Photons/s of the sky.
+
+        Returns
+        -------
+        sky_background: array like
+            A sky background for the respective sky flux, and the dark noise.
+
+        """
+        t_exp = self.ccd_operation_mode['t_exp']
+        em_gain = self.ccd_operation_mode['em_gain']
+        binn = self.ccd_operation_mode['binn']
+        image_size = self.ccd_operation_mode['image_size']
+
+        sky_background = self.bias_level + (self.dark_noise + sky_flux) * \
+            t_exp * em_gain * binn ** 2 / self.ccd_gain
+
+        noise = (
+            np.sqrt(self.read_noise ** 2 + (sky_flux * t_exp + self.dark_noise)
+                    * self._NOISE_FACTOR ** 2 * em_gain ** 2 * binn ** 2)
+            / self.ccd_gain
+        )
+
+        shape = (image_size, image_size)
+        sky_background = make_noise_image(
+            shape, distribution="gaussian", mean=sky_background, stddev=noise
+        )
+
+        return sky_background

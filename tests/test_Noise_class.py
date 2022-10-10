@@ -101,24 +101,24 @@ def test_calc_read_noise(noise, em_mode, em_gain, readout, preamp, binn, read_no
     assert round(rn, 2) == read_noise
 
 
-def test_calculate_dark_noise_1(noise):
-    dark_noise = noise.calculate_dark_noise(-70)
+def test_calculate_dark_current_1(noise):
+    dark_noise = noise.calculate_dark_current(-70)
     assert dark_noise == 5.8597559895090484e-05
 
 
-def test_calculate_dark_noise_2():
+def test_calculate_dark_current_2():
     noise = Noise(2)
-    dark_noise = noise.calculate_dark_noise(-70)
+    dark_noise = noise.calculate_dark_current(-70)
     assert dark_noise == 0.0001466809375420809
 
 
-def test_calculate_dark_noise_3():
+def test_calculate_dark_current_3():
     noise = Noise(3)
-    dark_noise = noise.calculate_dark_noise(-70)
+    dark_noise = noise.calculate_dark_current(-70)
     assert dark_noise == 8.688095666213275e-05
 
 
-def test_calculate_dark_noise_4():
+def test_calculate_dark_current_4():
     noise = Noise(4)
-    dark_noise = noise.calculate_dark_noise(-70)
+    dark_noise = noise.calculate_dark_current(-70)
     assert dark_noise == 0.00023133040352019222

@@ -109,7 +109,7 @@ class Noise:
 
         self.read_noise = float(read_noise)
 
-    def calculate_dark_noise(self, temp: float) -> float:
+    def calculate_dark_current(self, temp: float) -> float:
         """Calculate the dark noise.
 
         Parameters
@@ -120,8 +120,8 @@ class Noise:
 
         Returns
         -------
-        dark_noise: float
-            Dark noise, in e-, for the respective SPARC4 channel;
+        dark_current: float
+            Dark current, in e-/pix/s, for the respective SPARC4 channel;
         """
         if self.channel == 1:
             dark_current = 24.66 * np.exp(0.0015 * temp ** 2 + 0.29 * temp)
