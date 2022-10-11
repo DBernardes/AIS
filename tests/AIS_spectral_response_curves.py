@@ -28,7 +28,7 @@ ccd_operation_mode = {
     "em_mode": "Conv",
     "em_gain": 1,
     "preamp": 1,
-    "hss": 1,
+    "readout": 1,
     "binn": 1,
     "t_exp": 1,
     "ccd_temp": -70,
@@ -62,13 +62,15 @@ def convert_magnitude(wavelength, magnitude):
     S_0 = 4e-2  # W/m2/m
     tel_area = 0.804  # m2
     specific_photons_per_second = (
-        S_0 * 10 ** (-magnitude / 2.5) * wavelength * 1e-9 * B * tel_area / (_H * _C)
+        S_0 * 10 ** (-magnitude / 2.5) * wavelength *
+        1e-9 * B * tel_area / (_H * _C)
     )
     return specific_photons_per_second
 
 
 # ----------------------- importing the moon magnitude ----------------
-spreadsheet_path = os.path.join("AIS", "Spectrum_Calculation", "moon_magnitude.csv")
+spreadsheet_path = os.path.join(
+    "AIS", "Spectrum_Calculation", "moon_magnitude.csv")
 spreadsheet = pd.read_csv(spreadsheet_path, dtype=np.float64)
 moon_wavelength_interval = spreadsheet["wavelength"]
 moon_magnitude = spreadsheet[moon_condition]
@@ -84,7 +86,8 @@ atm_wavelength_interval = spreadsheet["wavelength"]
 photometric_extinction_coef = spreadsheet["photometric"] / 100
 regular_extinction_coef = spreadsheet["regular"] / 100
 good_extinction_coef = spreadsheet["good"] / 100
-transmitance = [10 ** (-0.4 * k * air_mass) for k in photometric_extinction_coef]
+transmitance = [10 ** (-0.4 * k * air_mass)
+                for k in photometric_extinction_coef]
 spl = splrep(atm_wavelength_interval, transmitance)
 atm_transmitance = splev(wavelength_interval, spl)
 
@@ -162,12 +165,14 @@ def calculate_retarder_matrix(phase_difference, THETA_POL):
                 0,
                 cos(2 * THETA_POL) ** 2
                 + sin(2 * THETA_POL) ** 2 * cos(phase_difference),
-                cos(2 * THETA_POL) * sin(2 * THETA_POL) * (1 - cos(phase_difference)),
+                cos(2 * THETA_POL) * sin(2 * THETA_POL) *
+                (1 - cos(phase_difference)),
                 -sin(2 * THETA_POL) * sin(phase_difference),
             ],
             [
                 0,
-                cos(2 * THETA_POL) + sin(2 * THETA_POL) * (1 - cos(phase_difference)),
+                cos(2 * THETA_POL) + sin(2 * THETA_POL) *
+                (1 - cos(phase_difference)),
                 sin(2 * THETA_POL) ** 2
                 + cos(2 * THETA_POL) ** 2 * cos(phase_difference),
                 cos(2 * THETA_POL) * sin(phase_difference),
@@ -185,7 +190,8 @@ def calculate_retarder_matrix(phase_difference, THETA_POL):
 
 
 ss = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "retarder_transmitance.csv"),
+    os.path.join("AIS", "SPARC4_Spectral_Response",
+                 "retarder_transmitance.csv"),
     dtype=np.float64,
     skiprows=1,
     decimal=".",
@@ -269,7 +275,8 @@ collimator_transmitance = (
 
 
 dichroic_c0 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 0", "dichroic.csv"),
+    os.path.join("AIS", "SPARC4_Spectral_Response",
+                 "Channel 0", "dichroic.csv"),
     dtype=np.float64,
     skiprows=1,
     decimal=".",
@@ -281,7 +288,8 @@ dichroic_c0 = splev(wavelength_interval, spl) / 100
 
 
 dichroic_c1 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 1", "dichroic.csv"),
+    os.path.join("AIS", "SPARC4_Spectral_Response",
+                 "Channel 1", "dichroic.csv"),
     dtype=np.float64,
     skiprows=1,
     decimal=".",
@@ -293,7 +301,8 @@ dichroic_c1 = splev(wavelength_interval, spl) / 100
 
 
 dichroic_c2 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 2", "dichroic.csv"),
+    os.path.join("AIS", "SPARC4_Spectral_Response",
+                 "Channel 2", "dichroic.csv"),
     dtype=np.float64,
     skiprows=1,
     decimal=".",
@@ -305,7 +314,8 @@ dichroic_c2 = splev(wavelength_interval, spl) / 100
 
 
 dichroic_c3 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 3", "dichroic.csv"),
+    os.path.join("AIS", "SPARC4_Spectral_Response",
+                 "Channel 3", "dichroic.csv"),
     dtype=np.float64,
     skiprows=1,
     decimal=".",
@@ -317,7 +327,8 @@ dichroic_c3 = splev(wavelength_interval, spl) / 100
 
 
 dichroic_c4 = pd.read_csv(
-    os.path.join("AIS", "SPARC4_Spectral_Response", "Channel 4", "dichroic.csv"),
+    os.path.join("AIS", "SPARC4_Spectral_Response",
+                 "Channel 4", "dichroic.csv"),
     dtype=np.float64,
     skiprows=1,
     decimal=".",
@@ -336,7 +347,8 @@ camera_c0 = pd.read_csv(
     decimal=".",
 )
 camera_c0 = (
-    calculate_spline(camera_c0["(%)"], camera_c0["(nm)"], wavelength_interval) / 100
+    calculate_spline(camera_c0["(%)"],
+                     camera_c0["(nm)"], wavelength_interval) / 100
 )
 
 camera_c1 = pd.read_csv(
@@ -346,7 +358,8 @@ camera_c1 = pd.read_csv(
     decimal=".",
 )
 camera_c1 = (
-    calculate_spline(camera_c1["(%)"], camera_c1["(nm)"], wavelength_interval) / 100
+    calculate_spline(camera_c1["(%)"],
+                     camera_c1["(nm)"], wavelength_interval) / 100
 )
 
 camera_c2 = pd.read_csv(
@@ -356,7 +369,8 @@ camera_c2 = pd.read_csv(
     decimal=".",
 )
 camera_c2 = (
-    calculate_spline(camera_c2["(%)"], camera_c2["(nm)"], wavelength_interval) / 100
+    calculate_spline(camera_c2["(%)"],
+                     camera_c2["(nm)"], wavelength_interval) / 100
 )
 
 
@@ -367,7 +381,8 @@ camera_c3 = pd.read_csv(
     decimal=".",
 )
 camera_c3 = (
-    calculate_spline(camera_c3["(%)"], camera_c3["(nm)"], wavelength_interval) / 100
+    calculate_spline(camera_c3["(%)"],
+                     camera_c3["(nm)"], wavelength_interval) / 100
 )
 
 
@@ -378,7 +393,8 @@ camera_c4 = pd.read_csv(
     decimal=".",
 )
 camera_c4 = (
-    calculate_spline(camera_c4["(%)"], camera_c4["(nm)"], wavelength_interval) / 100
+    calculate_spline(camera_c4["(%)"],
+                     camera_c4["(nm)"], wavelength_interval) / 100
 )
 
 
