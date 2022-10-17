@@ -68,7 +68,7 @@ class Header:
             idx_tab = [1, 0.1].index(readout) * 2 + 8
         idx_tab += self.ccd_operation_mode['preamp'] - 1
         ss = pd.read_csv(self._CSV_GAINS_FILE)
-        self.ccd_gain = ss[f'CH{self.channel}'][idx_tab]
+        self.ccd_gain = float(ss[f'{9913 + self.channel}'][idx_tab])
 
     @staticmethod
     def _read_spreadsheet(file):
@@ -91,7 +91,7 @@ class Header:
         self.header["TEMP"] = self.ccd_temp
         self.header["READOUT"] = str(1 / dic['readout']) + "E-006"
         self.header["VSHIFT"] = "0.6E-06"
-        #self.header["GAIN"] = self.ccd_gain
+        self.header["GAIN"] = self.ccd_gain
         self.header["EMMODE"] = dic['em_mode']
         self.header["EMGAIN"] = dic['em_gain']
         self.header["PREAMP"] = str(dic['preamp']) + "x"

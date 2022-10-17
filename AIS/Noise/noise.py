@@ -30,6 +30,9 @@ class Noise:
     def __init__(self, channel: int):
         """Initialize the class.
 
+        Parameters
+        ----------
+
         channel: integer
             The channel related to the camera.   
         """

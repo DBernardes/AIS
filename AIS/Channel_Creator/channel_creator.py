@@ -32,7 +32,7 @@ class Abstract_Channel_Creator:
     """
     Abstract Channel Creator Class.
 
-    This is an abstracty class that represents the SPARC4 channels. It is
+    This is an abstract class that represents the SPARC4 channels. It is
     responsible to calculate the star or the sky flux as a function of the
     properly instrumental response of the SPARC4 channel.
 

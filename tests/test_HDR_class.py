@@ -28,6 +28,7 @@ def hdr():
 
 file = os.path.join("AIS", "Header", "header.csv")
 ss = pd.read_csv(file)
+ccd_gain = 3.37
 
 
 # ----------------------- Initilization -----------------------------
@@ -53,7 +54,7 @@ def test_read_spreadsheet(hdr):
 
 def test_get_ccd_gain(hdr):
 
-    assert hdr.ccd_gain == 3.37
+    assert hdr.ccd_gain == ccd_gain
 
 
 # -----------------------------test_create_image_header---------------------
@@ -72,7 +73,7 @@ header["EXPTIME"] = dic['t_exp']
 header["TEMP"] = ccd_temp
 header["READOUT"] = str(1 / dic['readout']) + "E-006"
 header["VSHIFT"] = "0.6E-06"
-#self.header["GAIN"] = self.ccd_gain
+header["GAIN"] = ccd_gain
 header["EMMODE"] = dic['em_mode']
 header["EMGAIN"] = dic['em_gain']
 header["PREAMP"] = str(dic['preamp']) + "x"
