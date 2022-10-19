@@ -16,6 +16,6 @@ from . import (
     test_PSF_class,
     test_S4_SR_class,
     test_SC_class,
-    test_TEL_SR,
-    test_Spectral_Response
+    test_Spectral_Response,
+    test_Telescope
 )
