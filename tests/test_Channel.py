@@ -14,7 +14,7 @@ from scipy.interpolate import splev, splrep
 
 from tests.AIS_spectral_response_curves import wavelength_interval as obj_wavelength
 
-CHANNEL = 0
+CHANNEL = 1
 BASE_PATH = os.path.join("AIS", "Spectral_Response", "channel")
 CSV_DICT_NAMES = {
     "polarizer": "polarizer.csv",
@@ -30,7 +30,7 @@ CSV_DICT_NAMES = {
 
 @pytest.fixture
 def channel():
-    return Channel()
+    return Channel(channel=CHANNEL)
 
 
 def test_csv_file_name(channel):
@@ -46,7 +46,7 @@ def test_base_path(channel):
 polarizer_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["polarizer"])
 ss = pd.read_csv(polarizer_path)
 wv_polarizer = ss["Wavelength (nm)"]
-sr_polarizer = ss["Transmitance (%)"]
+sr_polarizer = ss["Transmitance (%)"] / 100
 
 
 def test_read_csv_file_polarizer(channel):
@@ -58,7 +58,7 @@ def test_read_csv_file_polarizer(channel):
 depolarizer_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["depolarizer"])
 ss = pd.read_csv(depolarizer_path)
 wv_depolarizer = ss["Wavelength (nm)"]
-sr_depolarizer = ss["Transmitance (%)"]
+sr_depolarizer = ss["Transmitance (%)"] / 100
 
 
 def test_read_csv_file_depolarizer(channel):
@@ -70,7 +70,7 @@ def test_read_csv_file_depolarizer(channel):
 retarder_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["retarder"])
 ss = pd.read_csv(retarder_path)
 wv_retarder = ss["Wavelength (nm)"]
-sr_retarder = ss["Transmitance (%)"]
+sr_retarder = ss["Transmitance (%)"] / 100
 
 
 def test_read_csv_file_retarder(channel):
@@ -82,7 +82,7 @@ def test_read_csv_file_retarder(channel):
 analyser_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["analyser"])
 ss = pd.read_csv(analyser_path)
 wv_analyser = ss["Wavelength (nm)"]
-sr_analyser = ss["Transmitance (%)"]
+sr_analyser = ss["Transmitance (%)"] / 100
 
 
 def test_read_csv_file_analyser(channel):
@@ -94,7 +94,7 @@ def test_read_csv_file_analyser(channel):
 collimator_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["collimator"])
 ss = pd.read_csv(collimator_path)
 wv_collimator = ss["Wavelength (nm)"]
-sr_collimator = ss["Transmitance (%)"]
+sr_collimator = ss["Transmitance (%)"] / 100
 
 
 def test_read_csv_file_collimator(channel):
@@ -108,7 +108,7 @@ dichroic_path = os.path.join(
 )
 ss = pd.read_csv(dichroic_path)
 wv_dichroic = ss["Wavelength (nm)"]
-sr_dichroic = ss["Transmitance (%)"]
+sr_dichroic = ss["Transmitance (%)"] / 100
 
 
 def test_read_csv_file_dichroic(channel):
@@ -120,7 +120,7 @@ def test_read_csv_file_dichroic(channel):
 camera_path = os.path.join(BASE_PATH, f"Channel {CHANNEL}", CSV_DICT_NAMES["camera"])
 ss = pd.read_csv(camera_path)
 wv_camera = ss["Wavelength (nm)"]
-sr_camera = ss["Transmitance (%)"]
+sr_camera = ss["Transmitance (%)"] / 100
 
 
 def test_read_csv_file_camera(channel):
@@ -132,7 +132,7 @@ def test_read_csv_file_camera(channel):
 ccd_path = os.path.join(BASE_PATH, f"Channel {CHANNEL}", CSV_DICT_NAMES["ccd"])
 ss = pd.read_csv(ccd_path)
 wv_ccd = ss["Wavelength (nm)"]
-sr_ccd = ss["Transmitance (%)"]
+sr_ccd = ss["Transmitance (%)"] / 100
 
 
 def test_read_csv_file_ccd(channel):
@@ -144,7 +144,7 @@ def test_read_csv_file_ccd(channel):
 # --------------------------------------------------------------------------------------------
 
 
-spl = splrep(wv_dichroic, sr_dichroic)
+spl = splrep(wv_collimator, sr_collimator)
 new_spectral_response = splev(obj_wavelength, spl)
 
 
@@ -155,15 +155,30 @@ def test_interpolate_spectral_response(channel):
     assert np.allclose(class_spectral_response, new_spectral_response)
 
 
-# def test_get_spectral_response(sr):
-#     class_spectral_response = sr.get_spectral_response(obj_wavelength)
-#     assert np.allclose(class_spectral_response, new_spectral_response)
+def test_get_spectral_response(channel):
+    class_spectral_response = channel.get_spectral_response(
+        obj_wavelength, CSV_DICT_NAMES["collimator"]
+    )
+    assert np.allclose(class_spectral_response, new_spectral_response, rtol=0.005)
 
 
-# esd = np.ones(len(obj_wavelength))
-# reduced_esd = np.multiply(new_spectral_response, esd)
+n = len(obj_wavelength)
+esd = range(100, 360, n)
+# spl = splrep(wv_collimator, sr_collimator)
+# new_spectral_response = splev(obj_wavelength, spl)
+# reduced_esd = np.multiply(esd, new_spectral_response)
+# spl = splrep(wv_dichroic, sr_dichroic)
+# new_spectral_response = splev(obj_wavelength, spl)
+# reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+# spl = splrep(wv_camera, sr_camera)
+# new_spectral_response = splev(obj_wavelength, spl)
+# reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+# spl = splrep(wv_ccd, sr_ccd)
+# new_spectral_response = splev(obj_wavelength, spl)
+# reduced_esd = np.multiply(reduced_esd, new_spectral_response)
 
 
-# def test_apply_spectral_response(sr):
-#     class_reduced_esd = sr.apply_spectral_response(esd, obj_wavelength)
-#     assert np.allclose(class_reduced_esd, reduced_esd)
+def test_apply_spectral_response(channel):
+    print(esd)
+    # class_reduced_esd = channel.apply_spectral_response(esd, obj_wavelength)
+    # assert np.allclose(class_reduced_esd, reduced_esd)

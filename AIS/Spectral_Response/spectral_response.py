@@ -38,7 +38,7 @@ class Spectral_Response:
     @staticmethod
     def _read_csv_file(csv_file_name):
         ss = pd.read_csv(csv_file_name)
-        return np.array(ss["Wavelength (nm)"]), np.array(ss["Transmitance (%)"])
+        return np.array(ss["Wavelength (nm)"]), np.array(ss["Transmitance (%)"]) / 100
 
     @staticmethod
     def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
@@ -213,20 +213,70 @@ class Channel(Spectral_Response):
             The spectral response of the optical system.
     """
 
-    _CHANNEL = 0
-    _CSV_DICT_NAMES = {
+    _POL_OPTICAL_COMPONENTS = {
         "polarizer": "polarizer.csv",
         "depolarizer": "depolarizer.csv",
         "retarder": "retarder.csv",
-        'analyser': 'analyser.csv',
+        "analyser": "analyser.csv",
+    }
+
+    _PHOT_OPTICAL_COMPONENTS = {
         "collimator": "collimator.csv",
         "dichroic": "dichroic.csv",
         "camera": "camera.csv",
         "ccd": "ccd.csv",
     }
 
-    def __init__(self) -> None:
+    def __init__(self, channel) -> None:
         """Initialize the class."""
         super().__init__()
+        self._channel = channel
         self._BASE_PATH = os.path.join(self._BASE_PATH, "channel")
         return
+
+    def get_spectral_response(
+        self, obj_wavelength: ndarray, csv_file_name: str
+    ) -> ndarray:
+        """Return the spectral response.
+
+        Parameters
+        ----------
+            obj_wavelength: array like
+                The wavelength interval, in nm, of the object.
+
+        Yields
+        ------
+            spectral_response: array like
+                The spectral response of the optical system.
+        """
+        self._CSV_FILE_NAME = csv_file_name
+        return super().get_spectral_response(obj_wavelength)
+
+    def apply_spectral_response(self, esd: ndarray, obj_wavelength: ndarray) -> ndarray:
+        """Apply the spectral response.
+
+        Parameters
+        ----------
+            esd: array like
+                The Energy Spectral Distribution (ESD) of the object.
+            obj_wavelength: array like
+                The wavelength interval, in nm, of the object.
+
+        Yields
+        ------
+            reduced_esd: array like
+                The Energy Spectral Distribution (ESD) of the object subtracted from the loses
+                related to the spectral response of the system.
+        """
+
+        for csv_file in self._PHOT_OPTICAL_COMPONENTS.values():
+            if csv_file != "collimator.csv":
+                csv_file = os.path.join(f"Channel {self._channel}", csv_file)
+            spectral_response = self.get_spectral_response(obj_wavelength, csv_file)
+            esd = np.multiply(spectral_response, esd)
+
+        return esd
+
+
+if __name__ == "__main__":
+    pass
