@@ -28,7 +28,7 @@ def sr():
 
 
 def test_csv_file_name(sr):
-    assert sr.csv_file_name == csv_file_name
+    assert sr._CSV_FILE_NAME == csv_file_name
 
 
 def test_base_path(sr):

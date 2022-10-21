@@ -4,4 +4,4 @@
 
 """
 
-from .spectral_response import Spectral_Response, Telescope
+from .spectral_response import Spectral_Response, Telescope, Atmosphere
