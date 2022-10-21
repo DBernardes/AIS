@@ -1,0 +1,169 @@
+# # -*- coding: utf-8 -*-
+# Tests of the Channel Class
+# Oct 17th 2022
+# @author: denis
+#
+
+import os
+
+import numpy as np
+import pandas as pd
+import pytest
+from AIS.Spectral_Response import Channel
+from scipy.interpolate import splev, splrep
+
+from tests.AIS_spectral_response_curves import wavelength_interval as obj_wavelength
+
+CHANNEL = 0
+BASE_PATH = os.path.join("AIS", "Spectral_Response", "channel")
+CSV_DICT_NAMES = {
+    "polarizer": "polarizer.csv",
+    "depolarizer": "depolarizer.csv",
+    "retarder": "retarder.csv",
+    "analyser": "analyser.csv",
+    "collimator": "collimator.csv",
+    "dichroic": "dichroic.csv",
+    "camera": "camera.csv",
+    "ccd": "ccd.csv",
+}
+
+
+@pytest.fixture
+def channel():
+    return Channel()
+
+
+def test_csv_file_name(channel):
+    assert channel._CSV_DICT_NAMES == CSV_DICT_NAMES
+
+
+def test_base_path(channel):
+    assert channel._BASE_PATH == BASE_PATH
+
+
+# --------------------------------------------------------------------------------------------
+
+polarizer_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["polarizer"])
+ss = pd.read_csv(polarizer_path)
+wv_polarizer = ss["Wavelength (nm)"]
+sr_polarizer = ss["Transmitance (%)"]
+
+
+def test_read_csv_file_polarizer(channel):
+    new_wavelength, new_transmitance = channel._read_csv_file(polarizer_path)
+    assert np.allclose(new_wavelength, wv_polarizer)
+    assert np.allclose(new_transmitance, sr_polarizer)
+
+
+depolarizer_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["depolarizer"])
+ss = pd.read_csv(depolarizer_path)
+wv_depolarizer = ss["Wavelength (nm)"]
+sr_depolarizer = ss["Transmitance (%)"]
+
+
+def test_read_csv_file_depolarizer(channel):
+    new_wavelength, new_transmitance = channel._read_csv_file(depolarizer_path)
+    assert np.allclose(new_wavelength, wv_depolarizer)
+    assert np.allclose(new_transmitance, sr_depolarizer)
+
+
+retarder_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["retarder"])
+ss = pd.read_csv(retarder_path)
+wv_retarder = ss["Wavelength (nm)"]
+sr_retarder = ss["Transmitance (%)"]
+
+
+def test_read_csv_file_retarder(channel):
+    new_wavelength, new_transmitance = channel._read_csv_file(retarder_path)
+    assert np.allclose(new_wavelength, wv_retarder)
+    assert np.allclose(new_transmitance, sr_retarder)
+
+
+analyser_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["analyser"])
+ss = pd.read_csv(analyser_path)
+wv_analyser = ss["Wavelength (nm)"]
+sr_analyser = ss["Transmitance (%)"]
+
+
+def test_read_csv_file_analyser(channel):
+    new_wavelength, new_transmitance = channel._read_csv_file(analyser_path)
+    assert np.allclose(new_wavelength, wv_analyser)
+    assert np.allclose(new_transmitance, sr_analyser)
+
+
+collimator_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["collimator"])
+ss = pd.read_csv(collimator_path)
+wv_collimator = ss["Wavelength (nm)"]
+sr_collimator = ss["Transmitance (%)"]
+
+
+def test_read_csv_file_collimator(channel):
+    new_wavelength, new_transmitance = channel._read_csv_file(collimator_path)
+    assert np.allclose(new_wavelength, wv_collimator)
+    assert np.allclose(new_transmitance, sr_collimator)
+
+
+dichroic_path = os.path.join(
+    BASE_PATH, f"Channel {CHANNEL}", CSV_DICT_NAMES["dichroic"]
+)
+ss = pd.read_csv(dichroic_path)
+wv_dichroic = ss["Wavelength (nm)"]
+sr_dichroic = ss["Transmitance (%)"]
+
+
+def test_read_csv_file_dichroic(channel):
+    new_wavelength, new_transmitance = channel._read_csv_file(dichroic_path)
+    assert np.allclose(new_wavelength, wv_dichroic)
+    assert np.allclose(new_transmitance, sr_dichroic)
+
+
+camera_path = os.path.join(BASE_PATH, f"Channel {CHANNEL}", CSV_DICT_NAMES["camera"])
+ss = pd.read_csv(camera_path)
+wv_camera = ss["Wavelength (nm)"]
+sr_camera = ss["Transmitance (%)"]
+
+
+def test_read_csv_file_camera(channel):
+    new_wavelength, new_transmitance = channel._read_csv_file(camera_path)
+    assert np.allclose(new_wavelength, wv_camera)
+    assert np.allclose(new_transmitance, sr_camera)
+
+
+ccd_path = os.path.join(BASE_PATH, f"Channel {CHANNEL}", CSV_DICT_NAMES["ccd"])
+ss = pd.read_csv(ccd_path)
+wv_ccd = ss["Wavelength (nm)"]
+sr_ccd = ss["Transmitance (%)"]
+
+
+def test_read_csv_file_ccd(channel):
+    new_wavelength, new_transmitance = channel._read_csv_file(ccd_path)
+    assert np.allclose(new_wavelength, wv_ccd)
+    assert np.allclose(new_transmitance, sr_ccd)
+
+
+# --------------------------------------------------------------------------------------------
+
+
+spl = splrep(wv_dichroic, sr_dichroic)
+new_spectral_response = splev(obj_wavelength, spl)
+
+
+def test_interpolate_spectral_response(channel):
+    class_spectral_response = channel._interpolate_spectral_response(
+        wv_dichroic, sr_dichroic, obj_wavelength
+    )
+    assert np.allclose(class_spectral_response, new_spectral_response)
+
+
+# def test_get_spectral_response(sr):
+#     class_spectral_response = sr.get_spectral_response(obj_wavelength)
+#     assert np.allclose(class_spectral_response, new_spectral_response)
+
+
+# esd = np.ones(len(obj_wavelength))
+# reduced_esd = np.multiply(new_spectral_response, esd)
+
+
+# def test_apply_spectral_response(sr):
+#     class_reduced_esd = sr.apply_spectral_response(esd, obj_wavelength)
+#     assert np.allclose(class_reduced_esd, reduced_esd)

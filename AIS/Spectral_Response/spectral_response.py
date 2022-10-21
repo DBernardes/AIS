@@ -9,25 +9,27 @@ Theses systems are the atmosphere, the telescope, and the SPARC4 instrument.
 
 
 import os
-import pandas as pd
-from scipy.interpolate import splev, splrep
+
 import numpy as np
+import pandas as pd
 from numpy import ndarray
+from scipy.interpolate import splev, splrep
 
 
 class Spectral_Response:
     """Spectral Response class
 
-    The Spectral Response is an abstract class that represents the optical systems present in the light path 
-    between the object and a detector on the ground.     
+    The Spectral Response is an abstract class that represents the optical systems present in the light path
+    between the object and a detector on the ground.
 
     Yields
     ------
         spectral_response: array_like
             The spectral response of the optical system.
     """
-    _BASE_PATH = os.path.join('AIS', 'Spectral_Response')
-    _CSV_FILE_NAME = 'csv_file.csv'
+
+    _BASE_PATH = os.path.join("AIS", "Spectral_Response")
+    _CSV_FILE_NAME = "csv_file.csv"
 
     def __init__(self) -> None:
         """Initialize the class."""
@@ -36,7 +38,7 @@ class Spectral_Response:
     @staticmethod
     def _read_csv_file(csv_file_name):
         ss = pd.read_csv(csv_file_name)
-        return np.array(ss['Wavelength (nm)']), np.array(ss['Transmitance (%)'])
+        return np.array(ss["Wavelength (nm)"]), np.array(ss["Transmitance (%)"])
 
     @staticmethod
     def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
@@ -55,13 +57,13 @@ class Spectral_Response:
         Yields
         ------
         spectral_response: array like
-            The spectral response of the optical system.            
+            The spectral response of the optical system.
         """
         csv_file_name = os.path.join(self._BASE_PATH, self._CSV_FILE_NAME)
-        sys_wavelength, spectral_response = self._read_csv_file(
-            csv_file_name)
+        sys_wavelength, spectral_response = self._read_csv_file(csv_file_name)
         spectral_response = self._interpolate_spectral_response(
-            sys_wavelength, spectral_response, obj_wavelength)
+            sys_wavelength, spectral_response, obj_wavelength
+        )
 
         return spectral_response
 
@@ -76,7 +78,7 @@ class Spectral_Response:
                 The wavelength interval, in nm, of the object.
 
         Yields
-        ------        
+        ------
             reduced_esd: array like
                 The Energy Spectral Distribution (ESD) of the object subtracted from the loses
                 related to the spectral response of the system.
@@ -100,7 +102,7 @@ class Telescope(Spectral_Response):
             The spectral response of the optical system.
     """
 
-    _CSV_FILE_NAME = 'telescope.csv'
+    _CSV_FILE_NAME = "telescope.csv"
 
     def __init__(self) -> None:
         """Initialize the class."""
@@ -119,7 +121,7 @@ class Atmosphere(Spectral_Response):
             The spectral response of the optical system.
     """
 
-    _CSV_FILE_NAME = 'atmosphere.csv'
+    _CSV_FILE_NAME = "atmosphere.csv"
 
     def __init__(self) -> None:
         super().__init__()
@@ -128,9 +130,14 @@ class Atmosphere(Spectral_Response):
     @staticmethod
     def _read_csv_file(csv_file_name, sky_condition):
         ss = pd.read_csv(csv_file_name)
-        return np.array(ss['Wavelength (nm)']), np.array(ss[sky_condition])/100
+        return np.array(ss["Wavelength (nm)"]), np.array(ss[sky_condition]) / 100
 
-    def get_spectral_response(self, obj_wavelength: ndarray, air_mass: int | float, sky_condidition='photometric') -> ndarray:
+    def get_spectral_response(
+        self,
+        obj_wavelength: ndarray,
+        air_mass: int | float,
+        sky_condidition="photometric",
+    ) -> ndarray:
         """Return the spectral response.
 
         Parameters
@@ -146,20 +153,27 @@ class Atmosphere(Spectral_Response):
         Yields
         ------
         spectral_response: array like
-            The spectral response of the optical system.     
+            The spectral response of the optical system.
 
         """
         csv_file_name = os.path.join(self._BASE_PATH, self._CSV_FILE_NAME)
         sys_wavelength, extinction_coef = self._read_csv_file(
-            csv_file_name, sky_condidition)
+            csv_file_name, sky_condidition
+        )
         spectral_response = 10 ** (-0.4 * extinction_coef * air_mass)
         spectral_response = self._interpolate_spectral_response(
-            sys_wavelength, spectral_response, obj_wavelength)
+            sys_wavelength, spectral_response, obj_wavelength
+        )
 
         return spectral_response
 
-    def apply_spectral_response(self, esd: ndarray, obj_wavelength: ndarray,
-                                air_mass: int | float, sky_condition='photometric') -> ndarray:
+    def apply_spectral_response(
+        self,
+        esd: ndarray,
+        obj_wavelength: ndarray,
+        air_mass: int | float,
+        sky_condition="photometric",
+    ) -> ndarray:
         """Apply the spectral response.
 
         Parameters
@@ -173,13 +187,14 @@ class Atmosphere(Spectral_Response):
             sky_condition: ['photometric', 'regular', 'good']
 
         Yields
-        ------        
+        ------
             reduced_esd: array like
                 The Energy Spectral Distribution (ESD) of the object subtracted from the loses
                 related to the spectral response of the system.
         """
         spectral_response = self.get_spectral_response(
-            obj_wavelength, air_mass, sky_condition)
+            obj_wavelength, air_mass, sky_condition
+        )
         reduced_esd = np.multiply(spectral_response, esd)
 
         return reduced_esd
@@ -198,6 +213,20 @@ class Channel(Spectral_Response):
             The spectral response of the optical system.
     """
 
+    _CHANNEL = 0
+    _CSV_DICT_NAMES = {
+        "polarizer": "polarizer.csv",
+        "depolarizer": "depolarizer.csv",
+        "retarder": "retarder.csv",
+        'analyser': 'analyser.csv',
+        "collimator": "collimator.csv",
+        "dichroic": "dichroic.csv",
+        "camera": "camera.csv",
+        "ccd": "ccd.csv",
+    }
+
     def __init__(self) -> None:
+        """Initialize the class."""
         super().__init__()
+        self._BASE_PATH = os.path.join(self._BASE_PATH, "channel")
         return
