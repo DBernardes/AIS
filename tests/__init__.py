@@ -12,5 +12,7 @@ from . import (
     test_Noise_class,
     test_PSF_class,
     test_Spectral_Response,
-    test_Telescope
+    test_Telescope,
+    test_Spectral_Energy_Distribution,
+    test_Source
 )

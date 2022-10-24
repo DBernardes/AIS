@@ -5,7 +5,6 @@
 #
 
 import os
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -16,11 +15,14 @@ from tests.AIS_spectral_response_curves import wavelength_interval as obj_wavele
 
 CHANNEL = 1
 BASE_PATH = os.path.join("AIS", "Spectral_Response", "channel")
-CSV_DICT_NAMES = {
+_POL_OPTICAL_COMPONENTS = {
     "polarizer": "polarizer.csv",
     "depolarizer": "depolarizer.csv",
     "retarder": "retarder.csv",
     "analyser": "analyser.csv",
+}
+
+_PHOT_OPTICAL_COMPONENTS = {
     "collimator": "collimator.csv",
     "dichroic": "dichroic.csv",
     "camera": "camera.csv",
@@ -30,11 +32,15 @@ CSV_DICT_NAMES = {
 
 @pytest.fixture
 def channel():
-    return Channel(channel=CHANNEL)
+    return Channel(CHANNEL, 'photometric')
 
 
-def test_csv_file_name(channel):
-    assert channel._CSV_DICT_NAMES == CSV_DICT_NAMES
+def test_csv_file_name_pol(channel):
+    assert channel._POL_OPTICAL_COMPONENTS == _POL_OPTICAL_COMPONENTS
+
+
+def test_csv_file_name_phot(channel):
+    assert channel._PHOT_OPTICAL_COMPONENTS == _PHOT_OPTICAL_COMPONENTS
 
 
 def test_base_path(channel):
@@ -43,7 +49,7 @@ def test_base_path(channel):
 
 # --------------------------------------------------------------------------------------------
 
-polarizer_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["polarizer"])
+polarizer_path = os.path.join(BASE_PATH, _POL_OPTICAL_COMPONENTS["polarizer"])
 ss = pd.read_csv(polarizer_path)
 wv_polarizer = ss["Wavelength (nm)"]
 sr_polarizer = ss["Transmitance (%)"] / 100
@@ -55,7 +61,8 @@ def test_read_csv_file_polarizer(channel):
     assert np.allclose(new_transmitance, sr_polarizer)
 
 
-depolarizer_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["depolarizer"])
+depolarizer_path = os.path.join(
+    BASE_PATH, _POL_OPTICAL_COMPONENTS["depolarizer"])
 ss = pd.read_csv(depolarizer_path)
 wv_depolarizer = ss["Wavelength (nm)"]
 sr_depolarizer = ss["Transmitance (%)"] / 100
@@ -67,7 +74,7 @@ def test_read_csv_file_depolarizer(channel):
     assert np.allclose(new_transmitance, sr_depolarizer)
 
 
-retarder_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["retarder"])
+retarder_path = os.path.join(BASE_PATH, _POL_OPTICAL_COMPONENTS["retarder"])
 ss = pd.read_csv(retarder_path)
 wv_retarder = ss["Wavelength (nm)"]
 sr_retarder = ss["Transmitance (%)"] / 100
@@ -79,7 +86,7 @@ def test_read_csv_file_retarder(channel):
     assert np.allclose(new_transmitance, sr_retarder)
 
 
-analyser_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["analyser"])
+analyser_path = os.path.join(BASE_PATH, _POL_OPTICAL_COMPONENTS["analyser"])
 ss = pd.read_csv(analyser_path)
 wv_analyser = ss["Wavelength (nm)"]
 sr_analyser = ss["Transmitance (%)"] / 100
@@ -91,7 +98,8 @@ def test_read_csv_file_analyser(channel):
     assert np.allclose(new_transmitance, sr_analyser)
 
 
-collimator_path = os.path.join(BASE_PATH, CSV_DICT_NAMES["collimator"])
+collimator_path = os.path.join(
+    BASE_PATH, _PHOT_OPTICAL_COMPONENTS["collimator"])
 ss = pd.read_csv(collimator_path)
 wv_collimator = ss["Wavelength (nm)"]
 sr_collimator = ss["Transmitance (%)"] / 100
@@ -104,7 +112,7 @@ def test_read_csv_file_collimator(channel):
 
 
 dichroic_path = os.path.join(
-    BASE_PATH, f"Channel {CHANNEL}", CSV_DICT_NAMES["dichroic"]
+    BASE_PATH, f"Channel {CHANNEL}", _PHOT_OPTICAL_COMPONENTS["dichroic"]
 )
 ss = pd.read_csv(dichroic_path)
 wv_dichroic = ss["Wavelength (nm)"]
@@ -117,7 +125,8 @@ def test_read_csv_file_dichroic(channel):
     assert np.allclose(new_transmitance, sr_dichroic)
 
 
-camera_path = os.path.join(BASE_PATH, f"Channel {CHANNEL}", CSV_DICT_NAMES["camera"])
+camera_path = os.path.join(
+    BASE_PATH, f"Channel {CHANNEL}", _PHOT_OPTICAL_COMPONENTS["camera"])
 ss = pd.read_csv(camera_path)
 wv_camera = ss["Wavelength (nm)"]
 sr_camera = ss["Transmitance (%)"] / 100
@@ -129,7 +138,8 @@ def test_read_csv_file_camera(channel):
     assert np.allclose(new_transmitance, sr_camera)
 
 
-ccd_path = os.path.join(BASE_PATH, f"Channel {CHANNEL}", CSV_DICT_NAMES["ccd"])
+ccd_path = os.path.join(
+    BASE_PATH, f"Channel {CHANNEL}", _PHOT_OPTICAL_COMPONENTS["ccd"])
 ss = pd.read_csv(ccd_path)
 wv_ccd = ss["Wavelength (nm)"]
 sr_ccd = ss["Transmitance (%)"] / 100
@@ -150,35 +160,113 @@ new_spectral_response = splev(obj_wavelength, spl)
 
 def test_interpolate_spectral_response(channel):
     class_spectral_response = channel._interpolate_spectral_response(
-        wv_dichroic, sr_dichroic, obj_wavelength
+        wv_collimator, sr_collimator, obj_wavelength
     )
     assert np.allclose(class_spectral_response, new_spectral_response)
 
 
 def test_get_spectral_response(channel):
     class_spectral_response = channel.get_spectral_response(
-        obj_wavelength, CSV_DICT_NAMES["collimator"]
+        obj_wavelength, _PHOT_OPTICAL_COMPONENTS["collimator"]
     )
-    assert np.allclose(class_spectral_response, new_spectral_response, rtol=0.005)
+    assert np.allclose(class_spectral_response,
+                       new_spectral_response, rtol=0.005)
 
 
-n = len(obj_wavelength)
-esd = range(100, 360, n)
-# spl = splrep(wv_collimator, sr_collimator)
-# new_spectral_response = splev(obj_wavelength, spl)
-# reduced_esd = np.multiply(esd, new_spectral_response)
-# spl = splrep(wv_dichroic, sr_dichroic)
-# new_spectral_response = splev(obj_wavelength, spl)
-# reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-# spl = splrep(wv_camera, sr_camera)
-# new_spectral_response = splev(obj_wavelength, spl)
-# reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-# spl = splrep(wv_ccd, sr_ccd)
-# new_spectral_response = splev(obj_wavelength, spl)
-# reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+def test_apply_phot_spectral_response(channel):
+    n = len(obj_wavelength)
+    esd = np.linspace(100, 360, n)
+    spl = splrep(wv_collimator, sr_collimator)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(esd, new_spectral_response)
+    spl = splrep(wv_dichroic, sr_dichroic)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    spl = splrep(wv_camera, sr_camera)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    spl = splrep(wv_ccd, sr_ccd)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    class_reduced_esd = channel._apply_photometric_spectral_response(
+        esd, obj_wavelength)
+    assert np.allclose(class_reduced_esd, reduced_esd)
+
+
+def test_apply_pol_spectral_response_1(channel):
+    n = len(obj_wavelength)
+    esd = np.linspace(100, 360, n)
+    spl = splrep(wv_depolarizer, sr_depolarizer)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(esd, new_spectral_response)
+    spl = splrep(wv_retarder, sr_retarder)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    spl = splrep(wv_analyser, sr_analyser)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    channel.polarimetric_config['calibration_wheel'] = 'depolarizer'
+    class_reduced_esd = channel._apply_polarimetric_spectral_response(
+        esd, obj_wavelength)
+    assert np.allclose(class_reduced_esd, reduced_esd)
+
+
+def test_apply_pol_spectral_response_2(channel):
+    n = len(obj_wavelength)
+    esd = np.linspace(100, 360, n)
+    spl = splrep(wv_polarizer, sr_polarizer)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(esd, new_spectral_response)
+    spl = splrep(wv_retarder, sr_retarder)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    spl = splrep(wv_analyser, sr_analyser)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    channel.polarimetric_config['calibration_wheel'] = 'polarizer'
+    class_reduced_esd = channel._apply_polarimetric_spectral_response(
+        esd, obj_wavelength)
+    assert np.allclose(class_reduced_esd, reduced_esd)
+
+
+def test_apply_pol_spectral_response_3(channel):
+    n = len(obj_wavelength)
+    esd = np.linspace(100, 360, n)
+    spl = splrep(wv_retarder, sr_retarder)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(esd, new_spectral_response)
+    spl = splrep(wv_analyser, sr_analyser)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    channel.polarimetric_config['calibration_wheel'] = 'empty'
+    class_reduced_esd = channel._apply_polarimetric_spectral_response(
+        esd, obj_wavelength)
+    assert np.allclose(class_reduced_esd, reduced_esd)
 
 
 def test_apply_spectral_response(channel):
-    print(esd)
-    # class_reduced_esd = channel.apply_spectral_response(esd, obj_wavelength)
-    # assert np.allclose(class_reduced_esd, reduced_esd)
+    n = len(obj_wavelength)
+    esd = np.linspace(100, 360, n)
+    spl = splrep(wv_retarder, sr_retarder)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(esd, new_spectral_response)
+    spl = splrep(wv_analyser, sr_analyser)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    spl = splrep(wv_collimator, sr_collimator)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    spl = splrep(wv_dichroic, sr_dichroic)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    spl = splrep(wv_camera, sr_camera)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    spl = splrep(wv_ccd, sr_ccd)
+    new_spectral_response = splev(obj_wavelength, spl)
+    reduced_esd = np.multiply(reduced_esd, new_spectral_response)
+    channel.polarimetric_config['calibration_wheel'] = 'empty'
+    channel.acquisition_mode = 'polarimetric'
+    class_reduced_esd = channel.apply_spectral_response(
+        esd, obj_wavelength)
+    assert np.allclose(class_reduced_esd, reduced_esd)

@@ -9,6 +9,7 @@ This is a script for the development of general tests
 """
 
 # -----------------------------------------------------------------------------------------
+# Test the PSF in hte polarimetric mode
 # from AIS.Point_Spread_Function import Point_Spread_Function
 # from tests.AIS_spectral_response_curves import ccd_operation_mode
 # import matplotlib.pyplot as plt
@@ -17,9 +18,19 @@ This is a script for the development of general tests
 # plt.imshow(image)
 # plt.show()
 # -----------------------------------------------------------------------------------------
-from AIS.Header import Header
-from tests.AIS_spectral_response_curves import ccd_operation_mode
-hdr = Header(ccd_operation_mode)
-header = hdr.create_header()
-print(repr(header))
+# from AIS.Header import Header
+# Pint the header
+# from tests.AIS_spectral_response_curves import ccd_operation_mode
+# hdr = Header(ccd_operation_mode)
+# header = hdr.create_header()
+# print(repr(header))
 # -----------------------------------------------------------------------------------------
+# Test the blackbody profile
+# from AIS.Spectral_Energy_Distribution import Source
+# import matplotlib.pyplot as plt
+# import numpy as np
+# source = Source()
+# sed = source.calculate_sed(
+#     'blackbody', (350, 1100, 100), 1, 1, temperature=5700)
+# plt.plot(np.linspace(350, 1100, 100), sed)
+# plt.show()

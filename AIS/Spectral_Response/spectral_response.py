@@ -227,10 +227,37 @@ class Channel(Spectral_Response):
         "ccd": "ccd.csv",
     }
 
-    def __init__(self, channel) -> None:
-        """Initialize the class."""
+    def __init__(self, channel, acquisition_mode: str, polarimetric_config: dict[str, str] = {}) -> None:
+        """Initialize the class.
+
+        Parameters
+        ----------
+
+        channel: str
+            The channel number.
+
+        acquisition_mode: ['polarimetric', 'photometric']
+            The acquisition mode of the channel. If the acquisition mode is polarimetric,
+            the polarimetric configuration must be provided.
+
+        polarimetric_config: dictionary
+        A python dictionary with the polarimetric configuration. The allowed keywords for the
+        dictionary are:
+
+        * calibration_wheel: {"polarizer", "depolarizer", "empty"}
+
+            The position of the calibration wheel.
+
+        * retarder: {"half", "quarter"}
+
+            The waveplate for polarimetric measurements.
+
+        """
+
         super().__init__()
         self._channel = channel
+        self.acquisition_mode = acquisition_mode
+        self.polarimetric_config = polarimetric_config
         self._BASE_PATH = os.path.join(self._BASE_PATH, "channel")
         return
 
@@ -269,10 +296,34 @@ class Channel(Spectral_Response):
                 related to the spectral response of the system.
         """
 
+        if self.acquisition_mode == "polarimetric":
+            esd = self._apply_polarimetric_spectral_response(
+                esd, obj_wavelength)
+        reduced_esd = self._apply_photometric_spectral_response(
+            esd, obj_wavelength)
+
+        return reduced_esd
+
+    def _apply_photometric_spectral_response(self, esd: ndarray, obj_wavelength: ndarray) -> ndarray:
         for csv_file in self._PHOT_OPTICAL_COMPONENTS.values():
             if csv_file != "collimator.csv":
                 csv_file = os.path.join(f"Channel {self._channel}", csv_file)
-            spectral_response = self.get_spectral_response(obj_wavelength, csv_file)
+            spectral_response = self.get_spectral_response(
+                obj_wavelength, csv_file)
+            esd = np.multiply(spectral_response, esd)
+
+        return esd
+
+    def _apply_polarimetric_spectral_response(self, esd: ndarray, obj_wavelength: ndarray) -> ndarray:
+        _dict = {}
+        cal_wheel = self.polarimetric_config["calibration_wheel"]
+        if cal_wheel != "empty":
+            _dict[cal_wheel] = self._POL_OPTICAL_COMPONENTS[cal_wheel]
+        _dict['retarder'] = self._POL_OPTICAL_COMPONENTS['retarder']
+        _dict['analyser'] = self._POL_OPTICAL_COMPONENTS['analyser']
+        for csv_file in _dict.values():
+            spectral_response = self.get_spectral_response(
+                obj_wavelength, csv_file)
             esd = np.multiply(spectral_response, esd)
 
         return esd
