@@ -14,5 +14,6 @@ from . import (
     test_Spectral_Response,
     test_Telescope,
     test_Spectral_Energy_Distribution,
-    test_Source
+    test_Source,
+    test_Sky_class
 )
