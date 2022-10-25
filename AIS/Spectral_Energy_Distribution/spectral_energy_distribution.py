@@ -5,12 +5,13 @@ Spectral Energy Distribution Class
 
 The Spectral Energy Distribtution is an abstract class that represents the sky and the source classes.
 """
-from os import setgid
+
 from numpy import ndarray
 import numpy as np
 from scipy.interpolate import splev, splrep
 import pandas as pd
 from scipy.constants import c, h, k
+from sbpy.calib import vega_fluxd
 
 
 class Spectral_Energy_Distribution:
@@ -20,6 +21,8 @@ class Spectral_Energy_Distribution:
     """
 
     def __init__(self):
+        """Initialize the Spectral Energy Distribution Class."""
+        self.sed = np.linspace(100, 1000, 100)
         return
 
     def get_sed(self) -> ndarray:
@@ -42,23 +45,28 @@ class Spectral_Energy_Distribution:
         """
         return np.linspace(100, 1000, 100)
 
+    @staticmethod
+    def _interpolate_spectral_distribution(wavelength, spectral_distribution, obj_wavelength):
+        spl = splrep(wavelength, spectral_distribution)
+        interpolated_spectral_distribution = splev(obj_wavelength, spl)
+        return interpolated_spectral_distribution
+
 
 class Source(Spectral_Energy_Distribution):
     """Source Class
 
     This class inherits from the Spectral_Energy_Distribution class, and it represents the astronomical object.
     """
-
+    EFFECT_WAVELENGTH = 550e-9
     TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
-    S_0 = 4e-2  # W/m2/m #duvida!
+    S_0 = vega_fluxd.get()["Johnson V"].value*1e7  # W/(m.m2)
 
     def calculate_sed(self,
                       calculation_method: str,
-                      wavelength_interval: tuple,
                       magnitude: int | float,
-                      effect_wavelength: int | float,
+                      wavelength_interval: tuple = (),
                       temperature: int | float = 0,
-                      spectral_class: str = '') -> ndarray:
+                      spectral_type: str = '') -> ndarray:
         """Get the Spectral Energy Distribution of the astronomical object.
 
         Parameters
@@ -71,43 +79,47 @@ class Source(Spectral_Energy_Distribution):
 
             Explain the blackbody and spectral standard methods...
 
-        wavelength_interval : tuple
-            The wavelength interval, in nm, of the astronomical object.
-            This parameter must be a tuple with three elements, where the first element is the initial wavelength,
-            the second element is the final wavelength and the third element is the number of elements in the array
 
         magnitude : int | float
-            The magnitude of the astronomical object in one of the BVRI bands.
+            The magnitude of the astronomical object in the V band.
+            The magnitude is used to calculate the effective flux of the astronomical object.
 
-        effect_wavelength : int | float
-            The effective wavelength, in nm, of the band of the provided magnitude.
-
+        wavelength_interval : tuple, optional
+            The wavelength interval, in nm, of the astronomical object.
+            This parameter must be a tuple with three elements, where the first element is the initial wavelength,
+            the second element is the final wavelength and the third element is the number of elements in the array.
+            This parameter is used only if the calculation_method is 'blackbody'.
 
         temperature : int | float, optional
             The blackbody temperature of the astronomical object in Kelvin.
+            This parameter is used only if the calculation_method is 'blackbody'.
 
-        spectral_class : str, optional
-            The spectral class of the star that will be used to calculate the SED.
+        spectral_type : ['O', 'B', 'A', 'F', 'G', 'K', 'M'], optional
+            The spectral type of the star that will be used to calculate the SED.
+            This parameter is used only if the calculation_method is 'spectral_standard'.
 
         Returns
         -------
-            esd : ndarray
+            sed : ndarray
                 The SED of the astronomical object in photons/s/m.
         """
-        wavelength = np.linspace(
-            wavelength_interval[0], wavelength_interval[1], wavelength_interval[2]) * 1e-9
 
+        wv = wavelength_interval
         if calculation_method == 'blackbody':
+            wavelength = np.linspace(wv[0], wv[1], wv[2]) * 1e-9
             sed = self._calculate_sed_blackbody(wavelength, temperature)
         elif calculation_method == 'spectral_standard':  # duvida!
-            sed = []
+            wavelength = np.linspace(350, 1100, 100)
+            sed = np.linspace(100, 1000, 100)
         else:
             raise ValueError(
-                "The calculation_method must be 'user', 'blackbody' or 'spectral_standard'.")
+                "The calculation_method must be 'blackbody' or 'spectral_standard'.")
 
+        normalization_flux = self._interpolate_spectral_distribution(
+            wavelength, sed, self.EFFECT_WAVELENGTH)
         effective_flux = self._calculate_effective_flux(
-            magnitude, effect_wavelength)
-        sed = sed * effective_flux / max(sed)  # duvida!
+            magnitude)
+        sed = sed * effective_flux / normalization_flux
         return sed
 
     @staticmethod
@@ -115,8 +127,8 @@ class Source(Spectral_Energy_Distribution):
         # corrigir
         return 2 * h * c ** 2 / wavelength ** 5 * 1 / (np.exp(h * c / (wavelength * k * temperature)) - 1)
 
-    def _calculate_effective_flux(self, magnitude, effective_wavelength):
-        return self.S_0*10**(-magnitude/2.5)*self.TELESCOPE_EFFECTIVE_AREA*effective_wavelength*1e-9/h*c
+    def _calculate_effective_flux(self, magnitude):
+        return self.S_0*10**(-magnitude/2.5)*self.TELESCOPE_EFFECTIVE_AREA*self.EFFECT_WAVELENGTH/h*c
 
 
 class Sky(Spectral_Energy_Distribution):
@@ -132,9 +144,3 @@ class Sky(Spectral_Energy_Distribution):
         value = ss[value_name]
 
         return wavelenght, value
-
-    @staticmethod
-    def _interpolate_spectral_distribution(wavelength, spectral_distribution, obj_wavelength):
-        spl = splrep(wavelength, spectral_distribution)
-        interpolated_spectral_distribution = splev(obj_wavelength, spl)
-        return interpolated_spectral_distribution

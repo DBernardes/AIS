@@ -34,3 +34,7 @@ This is a script for the development of general tests
 #     'blackbody', (350, 1100, 100), 1, 1, temperature=5700)
 # plt.plot(np.linspace(350, 1100, 100), sed)
 # plt.show()
+
+from sbpy.calib import Vega, vega_fluxd
+
+print(vega_fluxd.get()["Johnson V"].value)

@@ -11,7 +11,7 @@ import pytest
 from AIS.Spectral_Energy_Distribution import Source
 from scipy.interpolate import splev, splrep
 from scipy.constants import c, h, k
-
+from sbpy.calib import vega_fluxd
 from tests.AIS_spectral_response_curves import wavelength_interval as obj_wavelength
 
 
@@ -23,34 +23,22 @@ def source():
 sed = np.linspace(100, 1000, 100)
 
 
-calculation_method = 'blackbody'
-
-
 def test_get_sed(source):
     source.write_sed(sed)
     assert np.allclose(source.get_sed(), sed)
 
 
-wv = np.linspace(350, 1100, 100)*1e-9
-temperature = 5700
 magnitude = 10
-effective_wavelength = 550
-wavelength_interval = (350, 1100, 100)
-
-
-def test_calculate_sed_spectral_standard(source):
-    assert np.allclose(source.calculate_sed(
-        'spectral_standard', wavelength_interval, magnitude, effective_wavelength), [])
 
 
 def test_get_sed_error(source):
     with pytest.raises(ValueError):
-        source.calculate_sed('error', wavelength_interval,
-                             magnitude, effective_wavelength)
+        source.calculate_sed('error', magnitude)
+
 
 # ------------------------------------------------------------
-
-
+wv = np.linspace(350, 1100, 100)*1e-9
+temperature = 5700
 sed_blackbody = 2 * h * c ** 2 / wv ** 5 * 1 / \
     (np.exp(h * c / (wv * k * temperature)) - 1)
 
@@ -61,20 +49,26 @@ def test_calculate_sed_blackbody(source):
 
 
 TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
-S_0 = 4e-2  # W/m2/m
+EFFECT_WAVELENGTH = 550e-9  # m
+S_0 = vega_fluxd.get()['Johnson V'].value*1e7  # W/m2/m
 effective_flux = S_0*10**(-magnitude/2.5) * \
-    TELESCOPE_EFFECTIVE_AREA*effective_wavelength*1e-9/h*c
+    TELESCOPE_EFFECTIVE_AREA*EFFECT_WAVELENGTH/h*c
 
 
 def test_calculate_effective_flux(source):
-    assert source._calculate_effective_flux(
-        magnitude, effective_wavelength) == effective_flux
+    assert source._calculate_effective_flux(magnitude) == effective_flux
 
 
 # ------------------------------------------------------------
-new_sed = sed_blackbody * effective_flux / max(sed_blackbody)
+
+wavelength_interval = (350, 1100, 100)
+calculation_method = 'blackbody'
+spl = splrep(wv, sed_blackbody)
+normalization_flux = splev(EFFECT_WAVELENGTH, spl)
+new_sed = sed_blackbody * effective_flux / normalization_flux
 
 
 def test_calculate_sed(source):
-    assert np.allclose(source.calculate_sed(
-        calculation_method, wavelength_interval, magnitude, effective_wavelength, temperature), new_sed)
+    class_sed = source.calculate_sed(
+        calculation_method, magnitude, wavelength_interval, temperature)
+    assert np.allclose(class_sed, new_sed, rtol=0.005)

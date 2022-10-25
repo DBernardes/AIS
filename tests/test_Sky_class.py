@@ -33,13 +33,5 @@ def test_write_sed(sed_obj):
     assert np.allclose(sed_obj.sed, sed)
 
 
-def test_interpolate(sed_obj):
-    spl = splrep(wv, sed)
-    interpolated_sed = splev(obj_wavelength, spl)
-    class_interpolated_sed = sed_obj._interpolate_spectral_distribution(
-        wv, sed, obj_wavelength)
-    assert np.allclose(class_interpolated_sed, interpolated_sed)
-
-
 def test_calc_sed(sed_obj):
     assert np.allclose(sed_obj.calculate_sed(), sed)
