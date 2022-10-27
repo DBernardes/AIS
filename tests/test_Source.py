@@ -20,10 +20,16 @@ def source():
     return Source()
 
 
-sed = np.linspace(100, 1000, 100)
+SPECTRAL_LIB_PATH = os.path.join(
+    'AIS', 'Spectral_Energy_Distribution', 'Spectral_Library')
+
+
+def test_spectral_lib_path(source):
+    assert source.SPECTRAL_LIB_PATH == SPECTRAL_LIB_PATH
 
 
 def test_get_sed(source):
+    sed = np.linspace(100, 1000, 100)
     source.write_sed(sed)
     assert np.allclose(source.get_sed(), sed)
 
@@ -37,15 +43,16 @@ def test_get_sed_error(source):
 
 
 # ------------------------------------------------------------
-wv = np.linspace(350, 1100, 100)*1e-9
+wv = np.linspace(350, 1100, 100)
 temperature = 5700
-sed_blackbody = 2 * h * c ** 2 / wv ** 5 * 1 / \
-    (np.exp(h * c / (wv * k * temperature)) - 1)
+sed_blackbody = 2 * h * c ** 2 / (wv * 1e-9) ** 5 * 1 / \
+    (np.exp(h * c / (wv * 1e-9 * k * temperature)) - 1)
 
 
 def test_calculate_sed_blackbody(source):
-    assert np.allclose(source._calculate_sed_blackbody(
-        wv, temperature), sed_blackbody)
+    class_sed = source._calculate_sed_blackbody(
+        wv, temperature)
+    assert np.allclose(class_sed, sed_blackbody)
 
 
 TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
@@ -69,6 +76,32 @@ new_sed = sed_blackbody * effective_flux / normalization_flux
 
 
 def test_calculate_sed(source):
-    class_sed = source.calculate_sed(
+    class_wv, class_sed = source.calculate_sed(
         calculation_method, magnitude, wavelength_interval, temperature)
-    assert np.allclose(class_sed, new_sed, rtol=0.005)
+    assert np.allclose(class_sed, new_sed)
+    assert np.allclose(class_wv, wv*1e9)
+
+
+SPECTRAL_LIB_PATH = os.path.join(
+    'AIS', 'Spectral_Energy_Distribution', 'Spectral_Library')
+NAME_SED_SPECTRAL_TYPE = {'O': 'uko5v.dat', 'B': 'ukb0i.dat', 'A': 'uka0i.dat',
+                          'F': 'ukf0i.dat', 'G': 'ukg0i.dat', 'K': 'ukk0iii.dat', 'M': 'ukm0iii.dat'}
+
+
+def test_read_spectral_library(source):
+    for key, val in NAME_SED_SPECTRAL_TYPE.items():
+        wv, sed = source._read_spectral_library(key)
+        path = os.path.join(SPECTRAL_LIB_PATH, val)
+        file_data = np.loadtxt(path)
+        assert np.allclose(wv, file_data[:, 0]/1e10)
+        assert np.allclose(sed, file_data[:, 1])
+
+
+def test_get_calculate_sed_spectral_lib(source):
+    for key, val in NAME_SED_SPECTRAL_TYPE.items():
+        wv, sed = source.calculate_sed(
+            'spectral_library', magnitude, spectral_type=key)
+        path = os.path.join(SPECTRAL_LIB_PATH, val)
+        file_data = np.loadtxt(path)
+        assert np.allclose(wv, file_data[:, 0]/10, rtol=0.005)
+        assert np.allclose(sed, file_data[:, 1]*effective_flux, rtol=0.005)

@@ -34,7 +34,16 @@ This is a script for the development of general tests
 #     'blackbody', (350, 1100, 100), 1, 1, temperature=5700)
 # plt.plot(np.linspace(350, 1100, 100), sed)
 # plt.show()
+# -----------------------------------------------------------------------------------------
+# Test the sbpy package
+# from sbpy.calib import Vega, vega_fluxd
 
-from sbpy.calib import Vega, vega_fluxd
-
-print(vega_fluxd.get()["Johnson V"].value)
+# print(vega_fluxd.get()["Johnson V"].value)
+# -----------------------------------------------------------------------------------------
+# Test the _read_spectral_library function
+from AIS.Spectral_Energy_Distribution import Source
+from matplotlib import pyplot as plt
+source = Source()
+sed = source.calculate_sed('spectral_library', 10, spectral_type='A')
+plt.plot(sed)
+plt.show()

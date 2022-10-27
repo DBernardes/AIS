@@ -12,6 +12,8 @@ from scipy.interpolate import splev, splrep
 import pandas as pd
 from scipy.constants import c, h, k
 from sbpy.calib import vega_fluxd
+from math import pi
+import os
 
 
 class Spectral_Energy_Distribution:
@@ -19,6 +21,9 @@ class Spectral_Energy_Distribution:
 
     The Spectral Energy Distribtution is an abstract class that represents the sky and the source classes.
     """
+
+    BASE_PATH = os.path.join(
+        'AIS', 'Spectral_Energy_Distribution')
 
     def __init__(self):
         """Initialize the Spectral Energy Distribution Class."""
@@ -57,9 +62,16 @@ class Source(Spectral_Energy_Distribution):
 
     This class inherits from the Spectral_Energy_Distribution class, and it represents the astronomical object.
     """
-    EFFECT_WAVELENGTH = 550e-9
+    EFFECT_WAVELENGTH = 550  # nm
     TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
     S_0 = vega_fluxd.get()["Johnson V"].value*1e7  # W/(m.m2)
+    NAME_SED_SPECTRAL_TYPE = {'O': 'uko5v.dat', 'B': 'ukb0i.dat', 'A': 'uka0i.dat',
+                              'F': 'ukf0i.dat', 'G': 'ukg0i.dat', 'K': 'ukk0iii.dat', 'M': 'ukm0iii.dat'}
+
+    def __init__(self):
+        self.SPECTRAL_LIB_PATH = os.path.join(
+            self.BASE_PATH, 'Spectral_Library')
+        return
 
     def calculate_sed(self,
                       calculation_method: str,
@@ -72,13 +84,19 @@ class Source(Spectral_Energy_Distribution):
         Parameters
         ----------
 
-        calculation_method : ['blackbody', 'spectral_standard']
+        calculation_method : ['blackbody', 'spectral_library']
             The method used to calculate the SED.
             If the user wants to use a blackbody SED, the calculation_method must be 'blackbody'.
-            If the user wants to use a spectral standard SED, the calculation_method must be 'spectral_standard'.
+            If the user wants to use a spectral standard SED, the calculation_method must be 'spectral_library'.
 
-            Explain the blackbody and spectral standard methods...
-
+            In the 'blackbody' case, the spectral response of the object is calculated using the Planck function,
+            given the temperature and the wavelength interval of the object. In the 'spectral_library' case, the
+            spectral response and the wavelength of the object are obtained using a library of spectral types. The
+            spectral types made available are: 'O', 'B', 'A', 'F', 'G', 'K', 'M'.  
+            These spectrums are taken from the Library of Stellar Spectrum of the ESO, and they can be found at:
+            https://www.eso.org/sci/observing/tools/standards/spectra/index.html.
+            The level of the spectral response is adjusted using the effective flux. 
+            The effective flux is calculated using the magnitude of the object in the V band.
 
         magnitude : int | float
             The magnitude of the astronomical object in the V band.
@@ -101,34 +119,41 @@ class Source(Spectral_Energy_Distribution):
         Returns
         -------
             sed : ndarray
-                The SED of the astronomical object in photons/s/m.
+                The SED of the astronomical object in photons/m/s.
         """
 
-        wv = wavelength_interval
         if calculation_method == 'blackbody':
-            wavelength = np.linspace(wv[0], wv[1], wv[2]) * 1e-9
-            sed = self._calculate_sed_blackbody(wavelength, temperature)
-        elif calculation_method == 'spectral_standard':  # duvida!
-            wavelength = np.linspace(350, 1100, 100)
-            sed = np.linspace(100, 1000, 100)
+            wv = wavelength_interval
+            wavelength = np.linspace(wv[0], wv[1], wv[2])
+            sed = self._calculate_sed_blackbody(
+                wavelength, temperature)
+            normalization_flux = self._interpolate_spectral_distribution(
+                wavelength, sed, self.EFFECT_WAVELENGTH)
+            sed /= normalization_flux
+        elif calculation_method == 'spectral_library':
+            wavelength, sed = self._read_spectral_library(spectral_type)
         else:
             raise ValueError(
-                "The calculation_method must be 'blackbody' or 'spectral_standard'.")
+                "The calculation_method must be 'blackbody' or 'spectral_library'.")
 
-        normalization_flux = self._interpolate_spectral_distribution(
-            wavelength, sed, self.EFFECT_WAVELENGTH)
         effective_flux = self._calculate_effective_flux(
             magnitude)
-        sed = sed * effective_flux / normalization_flux
-        return sed
+        sed = sed * effective_flux
+        return wavelength, sed
 
     @staticmethod
     def _calculate_sed_blackbody(wavelength, temperature):
-        # corrigir
-        return 2 * h * c ** 2 / wavelength ** 5 * 1 / (np.exp(h * c / (wavelength * k * temperature)) - 1)
+        wavelength *= 1e-9
+        return 2 * pi * h * c ** 2 / wavelength ** 5 * 1 / (np.exp(h * c / (wavelength * k * temperature)) - 1)
 
     def _calculate_effective_flux(self, magnitude):
-        return self.S_0*10**(-magnitude/2.5)*self.TELESCOPE_EFFECTIVE_AREA*self.EFFECT_WAVELENGTH/h*c
+        return self.S_0*10**(-magnitude/2.5)*self.TELESCOPE_EFFECTIVE_AREA*self.EFFECT_WAVELENGTH*1e-9/h*c
+
+    def _read_spectral_library(self, spectral_type):
+        path = os.path.join(self.SPECTRAL_LIB_PATH,
+                            self.NAME_SED_SPECTRAL_TYPE[spectral_type])
+        sed = np.loadtxt(path)
+        return sed[:, 0]/10, sed[:, 1]
 
 
 class Sky(Spectral_Energy_Distribution):
