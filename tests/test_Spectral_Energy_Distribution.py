@@ -10,6 +10,8 @@ import pandas as pd
 import pytest
 from AIS.Spectral_Energy_Distribution import Spectral_Energy_Distribution
 from scipy.interpolate import splev, splrep
+from sbpy.calib import vega_fluxd
+from scipy.constants import c, h, k
 
 from tests.AIS_spectral_response_curves import wavelength_interval as obj_wavelength
 
@@ -42,3 +44,15 @@ def test_interpolate(sed_obj):
 
 def test_calc_sed(sed_obj):
     assert np.allclose(sed_obj.calculate_sed(), sed)
+
+
+magnitude = 10
+TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
+EFFECT_WAVELENGTH = 550  # nm
+S_0 = vega_fluxd.get()['Johnson V'].value*1e7  # W/m2/m
+effective_flux = S_0*10**(-magnitude/2.5) * \
+    TELESCOPE_EFFECTIVE_AREA*EFFECT_WAVELENGTH*1e-9/h*c
+
+
+def test_calculate_effective_flux(sed_obj):
+    assert sed_obj._calculate_effective_flux(magnitude) == effective_flux

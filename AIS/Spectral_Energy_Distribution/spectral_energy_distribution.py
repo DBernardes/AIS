@@ -14,6 +14,7 @@ from scipy.constants import c, h, k
 from sbpy.calib import vega_fluxd
 from math import pi
 import os
+from sys import exit
 
 
 class Spectral_Energy_Distribution:
@@ -21,7 +22,9 @@ class Spectral_Energy_Distribution:
 
     The Spectral Energy Distribtution is an abstract class that represents the sky and the source classes.
     """
-
+    EFFECT_WAVELENGTH = 550  # nm
+    TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
+    S_0 = vega_fluxd.get()["Johnson V"].value*1e7  # W/(m.m2)
     BASE_PATH = os.path.join(
         'AIS', 'Spectral_Energy_Distribution')
 
@@ -56,15 +59,16 @@ class Spectral_Energy_Distribution:
         interpolated_spectral_distribution = splev(obj_wavelength, spl)
         return interpolated_spectral_distribution
 
+    def _calculate_effective_flux(self, magnitude):
+        return self.S_0*10**(-magnitude/2.5)*self.TELESCOPE_EFFECTIVE_AREA*self.EFFECT_WAVELENGTH*1e-9/h*c
+
 
 class Source(Spectral_Energy_Distribution):
     """Source Class
 
     This class inherits from the Spectral_Energy_Distribution class, and it represents the astronomical object.
     """
-    EFFECT_WAVELENGTH = 550  # nm
-    TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
-    S_0 = vega_fluxd.get()["Johnson V"].value*1e7  # W/(m.m2)
+
     NAME_SED_SPECTRAL_TYPE = {'O': 'uko5v.dat', 'B': 'ukb0i.dat', 'A': 'uka0i.dat',
                               'F': 'ukf0i.dat', 'G': 'ukg0i.dat', 'K': 'ukk0iii.dat', 'M': 'ukm0iii.dat'}
 
@@ -118,6 +122,9 @@ class Source(Spectral_Energy_Distribution):
 
         Returns
         -------
+            wavelength : ndarray
+                The wavelength of the astronomical object in nm.
+
             sed : ndarray
                 The SED of the astronomical object in photons/m/s.
         """
@@ -143,11 +150,7 @@ class Source(Spectral_Energy_Distribution):
 
     @staticmethod
     def _calculate_sed_blackbody(wavelength, temperature):
-        wavelength *= 1e-9
-        return 2 * pi * h * c ** 2 / wavelength ** 5 * 1 / (np.exp(h * c / (wavelength * k * temperature)) - 1)
-
-    def _calculate_effective_flux(self, magnitude):
-        return self.S_0*10**(-magnitude/2.5)*self.TELESCOPE_EFFECTIVE_AREA*self.EFFECT_WAVELENGTH*1e-9/h*c
+        return 2 * pi * h * c ** 2 / (wavelength * 1e-9) ** 5 * 1 / (np.exp(h * c / (wavelength * 1e-9 * k * temperature)) - 1)
 
     def _read_spectral_library(self, spectral_type):
         path = os.path.join(self.SPECTRAL_LIB_PATH,
@@ -161,11 +164,41 @@ class Sky(Spectral_Energy_Distribution):
 
     This class inherits from the Spectral_Energy_Distribution class, and it represents the emission of the sky. 
     """
+    CSV_FILE = 'moon_magnitudes.csv'
 
-    @staticmethod
-    def _read_csv(file_path, value_name):
-        ss = pd.read_csv(file_path)
+    def __init__(self):
+        '''Initialize the Sky class.'''
+        return
+
+    def _read_csv(self, file_name, value_name):
+        file_name = os.path.join(self.BASE_PATH, file_name)
+        ss = pd.read_csv(file_name)
         wavelenght = ss["wavelength"]
         value = ss[value_name]
 
         return wavelenght, value
+
+    def calculate_sed(self, moon_phase: str, object_wavelength: ndarray) -> ndarray:
+        """Get the Spectral Energy Distribution of the sky.
+
+        Parameters
+        ----------
+        moon_phase : ['new', 'waxing', 'waning', 'full']
+            The phase of the moon.
+
+        object_wavelength : ndarray
+            The wavelength interval, in nm, of the astronomical object.
+
+        Returns
+        -------
+            wavelength : ndarray
+                The wavelength of the sky in nm.
+
+            sed : ndarray
+                The SED of the sky in photons/m/s.
+        """
+        wavelength, mags = self._read_csv(self.CSV_FILE, moon_phase)
+        sed = self._calculate_effective_flux(mags)
+        sed = self._interpolate_spectral_distribution(
+            wavelength, sed, object_wavelength)
+        return sed

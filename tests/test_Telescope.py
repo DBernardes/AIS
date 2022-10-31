@@ -21,7 +21,7 @@ BASE_PATH = os.path.join('AIS', 'Spectral_Response')
 spreadsheet_path = os.path.join(BASE_PATH, csv_file_name)
 ss = pd.read_csv(spreadsheet_path)
 wavelength = ss['Wavelength (nm)']
-spectral_response = ss['Transmitance (%)']
+spectral_response = ss['Transmitance (%)']/100
 
 
 @pytest.fixture

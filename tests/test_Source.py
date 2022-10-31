@@ -13,6 +13,7 @@ from scipy.interpolate import splev, splrep
 from scipy.constants import c, h, k
 from sbpy.calib import vega_fluxd
 from tests.AIS_spectral_response_curves import wavelength_interval as obj_wavelength
+from math import pi
 
 
 @pytest.fixture
@@ -45,7 +46,7 @@ def test_get_sed_error(source):
 # ------------------------------------------------------------
 wv = np.linspace(350, 1100, 100)
 temperature = 5700
-sed_blackbody = 2 * h * c ** 2 / (wv * 1e-9) ** 5 * 1 / \
+sed_blackbody = 2 * pi * h * c ** 2 / (wv * 1e-9) ** 5 * 1 / \
     (np.exp(h * c / (wv * 1e-9 * k * temperature)) - 1)
 
 
@@ -55,19 +56,12 @@ def test_calculate_sed_blackbody(source):
     assert np.allclose(class_sed, sed_blackbody)
 
 
+# ------------------------------------------------------------
 TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
-EFFECT_WAVELENGTH = 550e-9  # m
+EFFECT_WAVELENGTH = 550  # nm
 S_0 = vega_fluxd.get()['Johnson V'].value*1e7  # W/m2/m
 effective_flux = S_0*10**(-magnitude/2.5) * \
-    TELESCOPE_EFFECTIVE_AREA*EFFECT_WAVELENGTH/h*c
-
-
-def test_calculate_effective_flux(source):
-    assert source._calculate_effective_flux(magnitude) == effective_flux
-
-
-# ------------------------------------------------------------
-
+    TELESCOPE_EFFECTIVE_AREA*EFFECT_WAVELENGTH*1e-9/h*c
 wavelength_interval = (350, 1100, 100)
 calculation_method = 'blackbody'
 spl = splrep(wv, sed_blackbody)
@@ -78,8 +72,8 @@ new_sed = sed_blackbody * effective_flux / normalization_flux
 def test_calculate_sed(source):
     class_wv, class_sed = source.calculate_sed(
         calculation_method, magnitude, wavelength_interval, temperature)
+    assert np.allclose(class_wv, wv)
     assert np.allclose(class_sed, new_sed)
-    assert np.allclose(class_wv, wv*1e9)
 
 
 SPECTRAL_LIB_PATH = os.path.join(
@@ -93,7 +87,7 @@ def test_read_spectral_library(source):
         wv, sed = source._read_spectral_library(key)
         path = os.path.join(SPECTRAL_LIB_PATH, val)
         file_data = np.loadtxt(path)
-        assert np.allclose(wv, file_data[:, 0]/1e10)
+        assert np.allclose(wv, file_data[:, 0]/10)
         assert np.allclose(sed, file_data[:, 1])
 
 

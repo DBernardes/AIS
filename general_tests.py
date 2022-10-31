@@ -41,9 +41,20 @@ This is a script for the development of general tests
 # print(vega_fluxd.get()["Johnson V"].value)
 # -----------------------------------------------------------------------------------------
 # Test the _read_spectral_library function
-from AIS.Spectral_Energy_Distribution import Source
-from matplotlib import pyplot as plt
-source = Source()
-sed = source.calculate_sed('spectral_library', 10, spectral_type='A')
-plt.plot(sed)
-plt.show()
+# from AIS.Spectral_Energy_Distribution import Source
+# from matplotlib import pyplot as plt
+# source = Source()
+# wv, sed = source.calculate_sed(
+#     'spectral_library', 10, spectral_type='G')
+# plt.plot(wv, sed)
+# plt.show()
+# -----------------------------------------------------------------------------------------
+# Test the Sky Class
+# from AIS.Spectral_Energy_Distribution import Sky
+# import matplotlib.pyplot as plt
+# from tests.AIS_spectral_response_curves import wavelength_interval as obj_wavelength
+# sky = Sky()
+# sed = sky.calculate_sed('new', obj_wavelength)
+# plt.plot(obj_wavelength, sed)
+# plt.show()
+# -----------------------------------------------------------------------------------------

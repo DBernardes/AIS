@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 from astropy.table import Table
 from photutils.datasets import make_gaussian_sources_image, make_noise_image
+from numpy import ndarray
 
 
 class Point_Spread_Function:
@@ -75,13 +76,13 @@ class Point_Spread_Function:
 
     @staticmethod
     def _make_noise_image(table, shape):
+        # normalizar 2pi !
         amplitude = table["amplitude"]
-        table["amplitude"] = [1]
         noise_image = (
             make_noise_image(shape, "poisson", amplitude) - amplitude
         )
+        table["amplitude"] = [1]
         noise_image *= make_gaussian_sources_image(shape, table)
-
         return noise_image
 
     def _create_table(self, star_coordinates, seeing):
@@ -103,7 +104,7 @@ class Point_Spread_Function:
         ordinary_ray: float,
         extra_ordinary_ray: float = 0,
         seeing: float = 1
-    ):
+    ) -> ndarray:
         """Create the star image.
 
         Parameters
@@ -124,7 +125,7 @@ class Point_Spread_Function:
         Returns
         -------
 
-        star_image: array like
+        star_image: ndarray
             The Point Spred Function of the star for the respective CCD operation mode.
         """
         self._create_table(star_coordinates, seeing)

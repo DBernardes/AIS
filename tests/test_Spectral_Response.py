@@ -19,7 +19,7 @@ csv_file_name = 'csv_file.csv'
 BASE_PATH = os.path.join('AIS', 'Spectral_Response')
 ss = pd.read_csv(os.path.join(BASE_PATH, csv_file_name))
 wavelength = ss['Wavelength (nm)']
-spectral_response = ss['Transmitance (%)']
+spectral_response = ss['Transmitance (%)']/100
 
 
 @pytest.fixture

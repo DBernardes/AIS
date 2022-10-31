@@ -12,6 +12,8 @@ Created on Thu Apr 22 13:44:35 2021
 import numpy as np
 import pytest
 from AIS.Background_Image import Background_Image
+from tests.AIS_spectral_response_curves import ccd_operation_mode
+from photutils.datasets import make_noise_image
 
 ccd_operation_mode = {
     "em_mode": 'Conv',
@@ -111,8 +113,8 @@ noise_factor = 1
 _FLAT_LEVEL = 2**14
 poisson_noise = _FLAT_LEVEL / ccd_gain
 _PIXEL_SENSIBILITY = 0.03
-em_gain = ccd_operation_mode['em_gain'] ** 2
-binn = ccd_operation_mode['binn'] ** 2
+em_gain = ccd_operation_mode['em_gain']
+binn = ccd_operation_mode['binn']
 noise = (
     np.sqrt(
         read_noise ** 2
@@ -123,18 +125,18 @@ noise = (
     )
     / ccd_gain
 )
+image_size = ccd_operation_mode['image_size']
+shape = (image_size, image_size)
+flat_background = make_noise_image(
+    shape, distribution="gaussian", mean=_FLAT_LEVEL, stddev=noise)
 
 
 def test_create_flat_image(bgi_conv):
     image = bgi_conv.create_flat_background()
-    bg_level = np.mean(image)
-    new_noise = np.std(image)
-    assert np.allclose(bg_level, _FLAT_LEVEL, rtol=0.005)
-    assert np.allclose(noise, new_noise, rtol=0.005)
+    assert np.allclose(image, flat_background, rtol=5*noise)
+
 
 # -------------------------------------------------------------------------------------------------------
-
-
 sky_flux = 10
 t_exp = ccd_operation_mode['t_exp']
 background_level = bias_level + \
@@ -151,5 +153,5 @@ def test_create_sky_background(bgi_conv):
     image = bgi_conv.create_sky_background(sky_flux)
     bg_level = np.mean(image)
     new_noise = np.std(image)
-    assert np.allclose(bg_level, background_level, rtol=0.005)
+    assert np.allclose(bg_level, background_level, atol=5*noise)
     assert np.allclose(noise, new_noise, rtol=0.005)

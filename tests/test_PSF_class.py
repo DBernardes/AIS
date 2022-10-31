@@ -48,34 +48,42 @@ seeing = 1
 _SPARC4_PLATE_SCALE = 0.35
 image_size = ccd_operation_mode['image_size']
 half_img_size = image_size//2
-shape = (image_size, image_size)
+star_coordinates = (half_img_size, half_img_size)
 gaussian_std = seeing / _SPARC4_PLATE_SCALE
-table = Table()
 binn = ccd_operation_mode['binn']
 x_coord = half_img_size
 y_coord = half_img_size
-table["x_mean"] = [x_coord]
-table["y_mean"] = [y_coord]
-table["x_stddev"] = [gaussian_std / binn]
-table["y_stddev"] = [gaussian_std / binn]
-table["theta"] = np.radians(np.array([0]))
 
 
 def test_create_table(psf):
-    psf._create_table(shape, seeing)
+    table = Table()
+    table["x_mean"] = [x_coord]
+    table["y_mean"] = [y_coord]
+    table["x_stddev"] = [gaussian_std / binn]
+    table["y_stddev"] = [gaussian_std / binn]
+    table["theta"] = np.radians(np.array([0]))
+    psf._create_table(star_coordinates, seeing)
     assert psf.table == table
 
 
 # ---------------------------------------------------------------------------------------------------------
+
+shape = (image_size, image_size)
 ordinary_ray = 100
 t_exp = ccd_operation_mode['t_exp']
 em_gain = ccd_operation_mode['em_gain']
 ccd_gain = 3.37
 gaussian_amplitude = ordinary_ray * t_exp * em_gain * binn ** 2 / ccd_gain
-table["amplitude"] = gaussian_amplitude
 
 
 def test_make_noise_image(psf):
+    table = Table()
+    table["x_mean"] = [x_coord]
+    table["y_mean"] = [y_coord]
+    table["x_stddev"] = [gaussian_std / binn]
+    table["y_stddev"] = [gaussian_std / binn]
+    table["theta"] = np.radians(np.array([0]))
+    table["amplitude"] = gaussian_amplitude
     image_noise = psf._make_noise_image(table, shape)
     new_image = (
         make_noise_image(shape, "poisson", gaussian_amplitude) -
@@ -89,41 +97,51 @@ def test_make_noise_image(psf):
 
 # ---------------------------------------------------------------------------------------------------------
 
-star_coordinates = (half_img_size, half_img_size)
-tmp_image_1 = make_gaussian_sources_image(shape, table)
-amplitude = table["amplitude"]
-table["amplitude"] = [1]
-noise_image = (
-    make_noise_image(shape, "poisson", amplitude) - amplitude
-)
-noise_image *= make_gaussian_sources_image(shape, table)
-tmp_image_1 += noise_image
-
 
 def test_create_image_ordinary_ray(psf):
+    table = Table()
+    table["x_mean"] = [x_coord]
+    table["y_mean"] = [y_coord]
+    table["x_stddev"] = [gaussian_std / binn]
+    table["y_stddev"] = [gaussian_std / binn]
+    table["theta"] = np.radians(np.array([0]))
+    table["amplitude"] = [gaussian_amplitude]
+    star_coordinates = (half_img_size, half_img_size)
+    tmp_image_1 = make_gaussian_sources_image(shape, table)
+    amplitude = table["amplitude"]
+    table["amplitude"] = [1]
+    noise_image = (
+        make_noise_image(shape, "poisson", amplitude) - amplitude
+    )
+    noise_image *= make_gaussian_sources_image(shape, table)
+    tmp_image_1 += noise_image
     psf._create_table(star_coordinates, seeing)
     noise_image = psf._create_image_ordinary_ray(ordinary_ray)
-    assert np.allclose(noise_image, tmp_image_1, atol=5 *
+    assert np.allclose(noise_image, tmp_image_1, rtol=5 *
                        np.sqrt(gaussian_amplitude))
 
-# ---------------------------------------------------------------------------------------------------------
+# # ---------------------------------------------------------------------------------------------------------
 
 
-_SPARC4_POL_SEPARATION = 40  # pix
-table["x_mean"] -= _SPARC4_POL_SEPARATION
-table["y_mean"] -= _SPARC4_POL_SEPARATION
-table["amplitude"] = gaussian_amplitude
-tmp_image_2 = make_gaussian_sources_image(shape, table)
-table["amplitude"] = [1]
-noise_image = (
-    make_noise_image(shape, "poisson", gaussian_amplitude) - gaussian_amplitude
-)
-noise_image *= make_gaussian_sources_image(shape, table)
-tmp_image_2 += noise_image
-star_coordinates = (half_img_size, half_img_size)
+_SPARC4_POL_SEPARATION = 20  # pix
 
 
 def test_create_image_extra_ordinary_ray(psf):
+    table = Table()
+    table["x_stddev"] = [gaussian_std / binn]
+    table["y_stddev"] = [gaussian_std / binn]
+    table["theta"] = np.radians(np.array([0]))
+    table["x_mean"] = [x_coord - _SPARC4_POL_SEPARATION]
+    table["y_mean"] = [y_coord - _SPARC4_POL_SEPARATION]
+    table["amplitude"] = [gaussian_amplitude]
+    tmp_image_2 = make_gaussian_sources_image(shape, table)
+    table["amplitude"] = [1]
+    noise_image = (
+        make_noise_image(shape, "poisson", gaussian_amplitude) -
+        gaussian_amplitude
+    )
+    noise_image *= make_gaussian_sources_image(shape, table)
+    tmp_image_2 += noise_image
     psf._create_table(star_coordinates, seeing)
     noise_image = psf._create_image_extra_ordinary_ray(ordinary_ray)
     assert np.allclose(noise_image, tmp_image_2, atol=5 *
@@ -133,6 +151,34 @@ def test_create_image_extra_ordinary_ray(psf):
 
 
 def test_creat_star_image(psf):
+    table = Table()
+    table["x_mean"] = [x_coord]
+    table["y_mean"] = [y_coord]
+    table["x_stddev"] = [gaussian_std / binn]
+    table["y_stddev"] = [gaussian_std / binn]
+    table["theta"] = np.radians(np.array([0]))
+    table["amplitude"] = [gaussian_amplitude]
+    star_coordinates = (half_img_size, half_img_size)
+    tmp_image_1 = make_gaussian_sources_image(shape, table)
+    amplitude = table["amplitude"]
+    table["amplitude"] = [1]
+    noise_image = (
+        make_noise_image(shape, "poisson", amplitude) - amplitude
+    )
+    noise_image *= make_gaussian_sources_image(shape, table)
+    tmp_image_1 += noise_image
+
+    table["x_mean"] = [x_coord - _SPARC4_POL_SEPARATION]
+    table["y_mean"] = [y_coord - _SPARC4_POL_SEPARATION]
+    table["amplitude"] = [gaussian_amplitude]
+    tmp_image_2 = make_gaussian_sources_image(shape, table)
+    table["amplitude"] = [1]
+    noise_image = (
+        make_noise_image(shape, "poisson", gaussian_amplitude) -
+        gaussian_amplitude
+    )
+    noise_image *= make_gaussian_sources_image(shape, table)
+    tmp_image_2 += noise_image
     star_image = psf.create_star_image(
         star_coordinates, ordinary_ray, ordinary_ray)
     assert np.allclose(star_image, tmp_image_2 + tmp_image_1, atol=5 *

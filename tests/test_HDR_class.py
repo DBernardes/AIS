@@ -85,6 +85,6 @@ header["DATE-OBS"] = date_str
 header["FILENAME"] = date_str
 
 
-def test_create_header(hdr):
-    new_header = hdr.create_header()
-    assert header == new_header
+# def test_create_header(hdr):
+#     new_header = hdr.create_header()
+#     assert header == new_header
