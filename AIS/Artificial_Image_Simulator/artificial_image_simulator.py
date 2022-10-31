@@ -18,26 +18,24 @@ from types import UnionType
 import astropy.io.fits as fits
 import numpy as np
 import pandas as pd
+from numpy import ndarray
 
-from ..Atmosphere_Spectral_Response import Atmosphere_Spectral_Response
+
 from ..Background_Image import Background_Image
-from ..Channel_Creator import (
-    Concrete_Channel_1,
-    Concrete_Channel_2,
-    Concrete_Channel_3,
-    Concrete_Channel_4,
-)
 from ..Header import Header
 from ..Point_Spread_Function import Point_Spread_Function
-from ..Spectrum_Calculation import Spectrum_Calculation
-from ..Telescope_Spectral_Response import Telescope_Spectral_Response
-
-# from sys import exit
+from ..Spectral_Response import Atmosphere, Telescope, Channel
+from ..Spectral_Energy_Distribution import Source, Sky
 
 
 class Artificial_Image_Simulator:
-    """
-    Create an artificial image with the star flux distribution.
+    """Artificial Images Simulator class.
+
+    The Artificial Images Simulator (AIS) class was developed to generate artificial star images, 
+    similar to those images that would be acquired by using the acquisition system of the SPARC4 instrument. 
+    To accomplish this, the AIS models as star flux as a 2D gaussian distribution. 
+    Then, the star flux is added to an image with a background level
+    given by counts distribution of an image of the SPARC4 cameras, as a function of its operation mode.
 
     Parameters
     ----------
@@ -75,35 +73,11 @@ class Artificial_Image_Simulator:
 
         * image_size: int, optional
 
-            Image size in pixels
+            Image size in pixels    
 
-    channel: {1, 2, 3, 4}, optional
-        The SPARC4 channel
-
-    star_coordinates: tuple, optional
-        XY star coordinates in the image
-
-    bias_level: int, optional
-        Bias level, in ADU, of the image
-
-    image_dir: str, optional
-        Directory where the image should be saved
-
-    wavelength_interval: (400, 1100, 50), optional
-        Wavelength interval of the star for the calculation of the specific flux.
-
-    star_magnitude: 22, optional
-        Magnitude of the star.
-
-    seeing: 1.5, optional
-        Seeing disc of the observatory.
-
-    moon_condition: {"new", "waxing", "waning", "full"}
-        The condition of the moon.
-
-    Yields
+    Returns
     ------
-        image: array like
+        image: ndarray
             An image in the FITS format with the star flux distribution
 
     Notes
@@ -121,35 +95,12 @@ class Artificial_Image_Simulator:
     """
 
     def __init__(
-        self,
-        ccd_operation_mode: dict[str, int | float | str],
-        channel: int | float = 1,
-        star_coordinates: tuple[int, int] = (100, 100),
-        bias_level: int | float = 500,
-        image_dir: str = "",
-        wavelength_interval: tuple[int] = (400, 1100, 50),
-        star_magnitude: int | float = 22,
-        seeing: int | float = 1.5,
-        moon_condition: str = "new",
-    ):
+            self,
+            ccd_operation_mode: dict[str, int | float | str]) -> None:
         """Initialize the class."""
         self.ccd_operation_mode = ccd_operation_mode
-        self.channel = channel
-        self.star_coordinates = star_coordinates
-        self.bias_level = bias_level
-        self.image_dir = image_dir
-        self.wavelength_interval = wavelength_interval
-        self.star_magnitude = star_magnitude
-        self.seeing = seeing
-        self.moon_condition = moon_condition
-
-        l_init, l_final, l_step = self.wavelength_interval
-        self.wavelength_interval = range(l_init, l_final + l_step, l_step)
-        self.wavelength_len = len(self.wavelength_interval)
-
         self._verify_ccd_operation_mode()
-        self._verify_class_parameters()
-        self._initialize_subclasses()
+        return
 
     @staticmethod
     def _verify_type(var, var_name, _type=float | int):
@@ -178,7 +129,7 @@ class Artificial_Image_Simulator:
             raise ValueError(
                 f"The allowed values for the {var_name} are: {_list}")
 
-    def _verify_class_parameters(self):
+    def _verify_class_parameters(self) -> None:
         self._verify_type(self.channel, "channel", int)
         self._check_var_in_a_list(self.channel, "channel", [1, 2, 3, 4])
 
@@ -209,17 +160,17 @@ class Artificial_Image_Simulator:
             self.moon_condition, "moon condition", [
                 "new", "waxing", "waning", "full"]
         )
+        return
 
-    def _verify_ccd_operation_mode(self):
-        """Verify if the provided CCD operation mode is correct."""
+    def _verify_ccd_operation_mode(self) -> None:
         dic_keywords_list = [
             "binn",
             "ccd_temp",
             "em_gain",
             "em_mode",
-            "hss",
             "image_size",
             "preamp",
+            "readout",
             "t_exp",
         ]
         for key in self.ccd_operation_mode.keys():
@@ -235,7 +186,7 @@ class Artificial_Image_Simulator:
 
         em_mode = self.ccd_operation_mode["em_mode"]
         em_gain = self.ccd_operation_mode["em_gain"]
-        hss = self.ccd_operation_mode["hss"]
+        hss = self.ccd_operation_mode["readout"]
         preamp = self.ccd_operation_mode["preamp"]
         binn = self.ccd_operation_mode["binn"]
         t_exp = self.ccd_operation_mode["t_exp"]
@@ -269,8 +220,9 @@ class Artificial_Image_Simulator:
         self._verify_type(ccd_temp, "CCD temperature")
         self._verify_var_in_interval(ccd_temp, "CCD temperature", -80, 20)
         self.ccd_temp = ccd_temp
+        return
 
-    def _verify_sparc4_operation_mode(self, sparc4_operation_mode):
+    def _verify_sparc4_operation_mode(self, sparc4_operation_mode) -> None:
         keywords = list(sparc4_operation_mode.keys())
 
         if "acquisition_mode" not in keywords:
@@ -316,49 +268,52 @@ class Artificial_Image_Simulator:
             raise ValueError(
                 f"The SPARC4 acquisition mode should be 'photometric' or 'polarimetric': {sparc4_operation_mode['acquisition_mode']}."
             )
+        return
 
-    def _initialize_subclasses(self):
-        channels_list = [
-            Concrete_Channel_1(self.wavelength_interval,
-                               self.ccd_operation_mode),
-            Concrete_Channel_2(self.wavelength_interval,
-                               self.ccd_operation_mode),
-            Concrete_Channel_3(self.wavelength_interval,
-                               self.ccd_operation_mode),
-            Concrete_Channel_4(self.wavelength_interval,
-                               self.ccd_operation_mode),
-        ]
-        self.chc = channels_list[self.channel - 1]
+    def create_source_sed(self, calculation_method: str,
+                          magnitude: int | float,
+                          wavelength_interval: tuple = (),
+                          temperature: int | float = 0,
+                          spectral_type: str = '') -> ndarray:
+        """Create he Spectral Energy Distribution of the source.
 
-        self.dark_current = self.chc.calculate_dark_current()
-        self.ccd_gain = self.chc.get_ccd_gain()
-        self.read_noise = self.chc.calculate_read_noise()
-        self.sc = Spectrum_Calculation(
-            wavelength_interval=self.wavelength_interval,
-        )
-        self.psf = Point_Spread_Function(
-            self.ccd_operation_mode, self.ccd_gain, self.seeing
-        )
-        self.bgi = Background_Image(
-            self.ccd_operation_mode,
-            self.ccd_gain,
-            self.dark_current,
-            self.read_noise,
-            self.bias_level,
-        )
-        self.hdr = Header()
+        Parameters
+        ----------
 
-        self.star_specific_photons_per_second = [
-            self.sc.calculate_star_specific_photons_per_second(
-                self.star_magnitude)
-        ]
+        calculation_method : ['blackbody', 'spectral_library']
+            The method used to calculate the SED.
 
-        self.sky_specific_photons_per_second = [
-            self.sc.calculate_sky_specific_photons_per_second(
-                self.moon_condition)
-        ]
+        magnitude : int | float
+            The magnitude of the astronomical object in the V band.            
 
-    def _configure_image_name(self):
+        wavelength_interval : tuple, optional
+            The wavelength interval, in nm, of the astronomical object.
+            This parameter must be a tuple with three elements, where the first element is the initial wavelength,
+            the second element is the final wavelength and the third element is the number of elements in the array.
+            This parameter is used only if the calculation_method is 'blackbody'.
+
+        temperature : int | float, optional
+            The blackbody temperature of the astronomical object in Kelvin.
+            This parameter is used only if the calculation_method is 'blackbody'.
+
+        spectral_type : ['O', 'B', 'A', 'F', 'G', 'K', 'M'], optional
+            The spectral type of the star that will be used to calculate the SED.
+            This parameter is used only if the calculation_method is 'spectral_standard'.
+
+        Returns
+        -------
+            wavelength : ndarray
+                The wavelength of the astronomical object in nm.
+
+            sed : ndarray
+                The SED of the astronomical object in photons/m/s.
+        """
+        src = Source()
+        wavelegnth, sed = src.calculate_sed(calculation_method, magnitude,
+                                            wavelength_interval, temperature, spectral_type)
+        return wavelegnth, sed
+
+    def _configure_image_name(self) -> None:
         """Create the image name.
 
         The image name will be created based on the time that the image is created
@@ -370,10 +325,7 @@ class Artificial_Image_Simulator:
             f"{now.year}{now.month:0>2}{now.day:0>2}T{now.hour:0>2}{now.minute:0>2}{now.second:0>2}"
             + f"{now.microsecond}"[:2]
         )
-
-    def get_channel_id(self):
-        """Return the ID for the respective SPARC4 channel."""
-        return self.chc.get_channel_id()
+        return
 
     def apply_atmosphere_spectral_response(
         self, air_mass: int | float = 1.0, sky_condition: str = "good"

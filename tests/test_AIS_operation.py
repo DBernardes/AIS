@@ -1,72 +1,92 @@
-# # -*- coding: utf-8 -*-
-# """AIS operation tests.
+# -*- coding: utf-8 -*-
+"""AIS operation tests.
 
-# This script presents the tests of the AIS operation. These tests are:
+This script presents the tests of the AIS operation. These tests are:
 
-#     - Create Image Name: tess of the function that creates the image name based
-#     on the provided operation mode of the CCD
+    - Create Image Name: tess of the function that creates the image name based
+    on the provided operation mode of the CCD
 
-#     - Configura Gain: tess of the function that sets the CCD gain based
-#     on the provided operation mode of the CCD
-
-
-# Created on Fri Apr 16 09:10:51 2021
-
-# @author: denis
-# """
+    - Configura Gain: tess of the function that sets the CCD gain based
+    on the provided operation mode of the CCD
 
 
-# import os
+Created on Fri Apr 16 09:10:51 2021
 
-# import numpy as np
-# import pytest
-# from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
-
-# from .AIS_spectral_response_curves import (
-#     POLARIZER_90_MATRIX,
-#     POLARIZER_MATRIX,
-#     THETA_POL,
-#     air_mass,
-#     analyser_transmitance,
-#     atm_transmitance,
-#     calculate_retarder_matrix,
-#     camera_c1,
-#     ccd_operation_mode,
-#     ccd_transmitance_c1,
-#     collimator_transmitance,
-#     l_final,
-#     l_init,
-#     l_step,
-#     magnitude,
-#     multiply_matrices,
-#     polarizer_transmitance,
-#     retardance_quarter,
-#     retarder_transmitance,
-#     sky_condition,
-#     sky_specific_photons_per_second,
-#     sparc4_operation_mode,
-#     star_specific_photons_per_second,
-#     tel_reflectance,
-# )
-
-# star_specific_photons_per_second = star_specific_photons_per_second.copy()
-# channel = 1
-# star_coordinates = (100, 100)
-# image_dir = "a"
-# bias_level = 500
+@author: denis
+"""
 
 
-# @pytest.fixture
-# def ais():
-#     return Artificial_Image_Simulator(
-#         ccd_operation_mode=ccd_operation_mode,
-#         channel=channel,
-#         star_coordinates=star_coordinates,
-#         bias_level=bias_level,
-#         image_dir=image_dir,
-#         wavelength_interval=(l_init, l_final, l_step),
-#         star_magnitude=magnitude,
-#     )
+import os
+
+import numpy as np
+import pytest
+from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
+from AIS.Spectral_Energy_Distribution import Source
+
+from .AIS_spectral_response_curves import (
+    POLARIZER_90_MATRIX,
+    POLARIZER_MATRIX,
+    THETA_POL,
+    air_mass,
+    analyser_transmitance,
+    atm_transmitance,
+    calculate_retarder_matrix,
+    camera_c1,
+    ccd_operation_mode,
+    ccd_transmitance_c1,
+    collimator_transmitance,
+    l_final,
+    l_init,
+    l_step,
+    magnitude,
+    multiply_matrices,
+    polarizer_transmitance,
+    retardance_quarter,
+    retarder_transmitance,
+    sky_condition,
+    sky_specific_photons_per_second,
+    sparc4_operation_mode,
+    star_specific_photons_per_second,
+    tel_reflectance,
+)
+
+
+@pytest.fixture
+def ais():
+    return Artificial_Image_Simulator(
+        ccd_operation_mode=ccd_operation_mode)
+
+
+calculation_method = 'blackbody'
+magnitude = 10
+wavelegnth_interval = (350, 1100, 100)
+temperature = 5700
+
+# ------------------------------------------------------------
+
+
+def test_create_source_sed_blackbody(ais):
+    wv, sed = ais.create_source_sed(calculation_method, magnitude,
+                                    wavelegnth_interval, temperature)
+    src = Source()
+    wv2, sed2 = src.calculate_sed(
+        calculation_method, magnitude, wavelegnth_interval, temperature)
+    assert np.allclose(wv, wv2)
+    assert np.allclose(sed, sed2)
+
+
+calculation_method = 'spectral_library'
+spectral_type = 'O'
+
+
+def test_create_source_sed_spectral_lib(ais):
+    wv, sed = ais.create_source_sed(
+        calculation_method, magnitude, spectral_type=spectral_type)
+    src = Source()
+    wv2, sed2 = src.calculate_sed(
+        calculation_method, magnitude, spectral_type=spectral_type)
+    assert np.allclose(wv, wv2)
+    assert np.allclose(sed, sed2)
 
 
 # # ----------------------- Apply spectruns ---------------------------
