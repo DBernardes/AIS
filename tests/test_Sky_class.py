@@ -23,7 +23,7 @@ def sky():
 
 
 BASE_PATH = os.path.join('AIS', 'Spectral_Energy_Distribution')
-csv_file = os.path.join(BASE_PATH, 'moon_magnitudes.csv')
+csv_file = os.path.join(BASE_PATH, 'moon_magnitude.csv')
 ss = pd.read_csv(csv_file)
 
 

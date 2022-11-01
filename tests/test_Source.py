@@ -14,6 +14,7 @@ from scipy.constants import c, h, k
 from sbpy.calib import vega_fluxd
 from tests.AIS_spectral_response_curves import wavelength_interval as obj_wavelength
 from math import pi
+from sys import exit
 
 
 @pytest.fixture
@@ -78,14 +79,16 @@ def test_calculate_sed(source):
 
 SPECTRAL_LIB_PATH = os.path.join(
     'AIS', 'Spectral_Energy_Distribution', 'Spectral_Library')
-NAME_SED_SPECTRAL_TYPE = {'O': 'uko5v.dat', 'B': 'ukb0i.dat', 'A': 'uka0i.dat',
-                          'F': 'ukf0i.dat', 'G': 'ukg0i.dat', 'K': 'ukk0iii.dat', 'M': 'ukm0iii.dat'}
+NAME_SED_SPECTRAL_TYPE = os.listdir(SPECTRAL_LIB_PATH)
 
 
 def test_read_spectral_library(source):
-    for key, val in NAME_SED_SPECTRAL_TYPE.items():
-        wv, sed = source._read_spectral_library(key)
-        path = os.path.join(SPECTRAL_LIB_PATH, val)
+    for name in NAME_SED_SPECTRAL_TYPE:
+        name = name.split('.')[0][2:]
+        if name == '':
+            continue
+        wv, sed = source._read_spectral_library(name)
+        path = os.path.join(SPECTRAL_LIB_PATH, 'uk' + name + '.dat')
         file_data = np.loadtxt(path)
         assert np.allclose(wv, file_data[:, 0]/10)
         assert np.allclose(sed, file_data[:, 1])

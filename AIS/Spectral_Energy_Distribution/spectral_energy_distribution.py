@@ -22,7 +22,7 @@ class Spectral_Energy_Distribution:
 
     The Spectral Energy Distribtution is an abstract class that represents the sky and the source classes.
     """
-    EFFECT_WAVELENGTH = 550  # nm
+    EFFECT_WAVELENGTH = 555.6  # nm
     TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
     S_0 = vega_fluxd.get()["Johnson V"].value*1e7  # W/(m.m2)
     BASE_PATH = os.path.join(
@@ -59,7 +59,7 @@ class Spectral_Energy_Distribution:
         interpolated_spectral_distribution = splev(obj_wavelength, spl)
         return interpolated_spectral_distribution
 
-    def _calculate_effective_flux(self, magnitude):
+    def _calculate_photons_density(self, magnitude):
         return self.S_0*10**(-magnitude/2.5)*self.TELESCOPE_EFFECTIVE_AREA*self.EFFECT_WAVELENGTH*1e-9/h*c
 
 
@@ -68,9 +68,6 @@ class Source(Spectral_Energy_Distribution):
 
     This class inherits from the Spectral_Energy_Distribution class, and it represents the astronomical object.
     """
-
-    NAME_SED_SPECTRAL_TYPE = {'O': 'uko5v.dat', 'B': 'ukb0i.dat', 'A': 'uka0i.dat',
-                              'F': 'ukf0i.dat', 'G': 'ukg0i.dat', 'K': 'ukk0iii.dat', 'M': 'ukm0iii.dat'}
 
     def __init__(self):
         self.SPECTRAL_LIB_PATH = os.path.join(
@@ -95,12 +92,10 @@ class Source(Spectral_Energy_Distribution):
 
             In the 'blackbody' case, the spectral response of the object is calculated using the Planck function,
             given the temperature and the wavelength interval of the object. In the 'spectral_library' case, the
-            spectral response and the wavelength of the object are obtained using a library of spectral types. The
-            spectral types made available are: 'O', 'B', 'A', 'F', 'G', 'K', 'M'.  
+            spectral response and the wavelength of the object are obtained using a library of spectral types. 
             These spectrums are taken from the Library of Stellar Spectrum of the ESO, and they can be found at:
             https://www.eso.org/sci/observing/tools/standards/spectra/index.html.
-            The level of the spectral response is adjusted using the effective flux. 
-            The effective flux is calculated using the magnitude of the object in the V band.
+            The level of the spectral response is adjusted using the magnitude of the object in the V band.
 
         magnitude : int | float
             The magnitude of the astronomical object in the V band.
@@ -116,9 +111,10 @@ class Source(Spectral_Energy_Distribution):
             The blackbody temperature of the astronomical object in Kelvin.
             This parameter is used only if the calculation_method is 'blackbody'.
 
-        spectral_type : ['O', 'B', 'A', 'F', 'G', 'K', 'M'], optional
+        spectral_type : str, optional
             The spectral type of the star that will be used to calculate the SED.
             This parameter is used only if the calculation_method is 'spectral_standard'.
+            The available spectral types can be found using the print_available_spectral_types() method.
 
         Returns
         -------
@@ -143,7 +139,7 @@ class Source(Spectral_Energy_Distribution):
             raise ValueError(
                 "The calculation_method must be 'blackbody' or 'spectral_library'.")
 
-        effective_flux = self._calculate_effective_flux(
+        effective_flux = self._calculate_photons_density(
             magnitude)
         sed = sed * effective_flux
         return wavelength, sed
@@ -154,9 +150,21 @@ class Source(Spectral_Energy_Distribution):
 
     def _read_spectral_library(self, spectral_type):
         path = os.path.join(self.SPECTRAL_LIB_PATH,
-                            self.NAME_SED_SPECTRAL_TYPE[spectral_type])
-        sed = np.loadtxt(path)
-        return sed[:, 0]/10, sed[:, 1]
+                            'uk' + spectral_type + '.dat')
+        try:
+            sed = np.loadtxt(path)
+            return sed[:, 0]/10, sed[:, 1]
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"The spectral type must be one of the following:{self.print_available_spectral_types()}")
+
+    def print_available_spectral_types(self):
+        """Print the available spectral types."""
+        spec_types = os.listdir(self.SPECTRAL_LIB_PATH)
+        print('\nAvailable spectral types:')
+        print('-------------------------\n')
+        for idx, spec_type in enumerate(spec_types):
+            print(idx, spec_type.split('.')[0][2:])
 
 
 class Sky(Spectral_Energy_Distribution):
@@ -198,7 +206,7 @@ class Sky(Spectral_Energy_Distribution):
                 The SED of the sky in photons/m/s.
         """
         wavelength, mags = self._read_csv(self.CSV_FILE, moon_phase)
-        sed = self._calculate_effective_flux(mags)
+        sed = self._calculate_photons_density(mags)
         sed = self._interpolate_spectral_distribution(
             wavelength, sed, object_wavelength)
         return sed

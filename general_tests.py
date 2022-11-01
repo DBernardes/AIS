@@ -58,3 +58,10 @@ This is a script for the development of general tests
 # plt.plot(obj_wavelength, sed)
 # plt.show()
 # -----------------------------------------------------------------------------------------
+from AIS.Spectral_Energy_Distribution import Source
+from matplotlib import pyplot as plt
+
+source = Source()
+wv, sed = source.calculate_sed('spectral_library', 10, spectral_type='g0i')
+plt.plot(wv, sed)
+plt.show()
