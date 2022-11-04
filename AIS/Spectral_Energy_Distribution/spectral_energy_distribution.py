@@ -134,7 +134,8 @@ class Source(Spectral_Energy_Distribution):
                 wavelength, sed, self.EFFECT_WAVELENGTH)
             sed /= normalization_flux
         elif calculation_method == 'spectral_library':
-            wavelength, sed = self._read_spectral_library(spectral_type)
+            wavelength, sed = self._read_spectral_library(
+                spectral_type.lower())
         else:
             raise ValueError(
                 "The calculation_method must be 'blackbody' or 'spectral_library'.")
@@ -150,10 +151,10 @@ class Source(Spectral_Energy_Distribution):
 
     def _read_spectral_library(self, spectral_type):
         path = os.path.join(self.SPECTRAL_LIB_PATH,
-                            'uk' + spectral_type + '.dat')
+                            'uk' + spectral_type + '.csv')
         try:
-            sed = np.loadtxt(path)
-            return sed[:, 0]/10, sed[:, 1]
+            sed = pd.read_csv(path)
+            return sed['wavelength (nm)'], sed['flux (F_lambda)']
         except FileNotFoundError:
             raise FileNotFoundError(
                 f"The spectral type must be one of the following:{self.print_available_spectral_types()}")
