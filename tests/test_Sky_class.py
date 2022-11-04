@@ -29,13 +29,13 @@ ss = pd.read_csv(csv_file)
 
 def test_read_csv(sky):
     for value_name in ['new', 'waxing', 'waning', 'full']:
-        wv, value = sky._read_csv('moon_magnitudes.csv', value_name)
+        wv, value = sky._read_csv('moon_magnitude.csv', value_name)
         assert np.allclose(wv, ss['wavelength'])
         assert np.allclose(value, ss[value_name])
 
 
 moon_phase = 'new'
-EFFECT_WAVELENGTH = 550  # nm
+EFFECT_WAVELENGTH = 555.6  # nm
 TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
 S_0 = vega_fluxd.get()["Johnson V"].value*1e7  # W/(m.m2)
 new_sed = S_0*10**(-ss[moon_phase]/2.5)*TELESCOPE_EFFECTIVE_AREA * \

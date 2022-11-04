@@ -156,8 +156,9 @@ class Source(Spectral_Energy_Distribution):
             sed = pd.read_csv(path)
             return sed['wavelength (nm)'], sed['flux (F_lambda)']
         except FileNotFoundError:
-            raise FileNotFoundError(
-                f"The spectral type must be one of the following:{self.print_available_spectral_types()}")
+            print(f"\nThe spectral type {spectral_type} is not available.")
+            self.print_available_spectral_types()
+            raise FileNotFoundError
 
     def print_available_spectral_types(self):
         """Print the available spectral types."""
@@ -173,7 +174,7 @@ class Sky(Spectral_Energy_Distribution):
 
     This class inherits from the Spectral_Energy_Distribution class, and it represents the emission of the sky. 
     """
-    CSV_FILE = 'moon_magnitudes.csv'
+    CSV_FILE = 'moon_magnitude.csv'
 
     def __init__(self):
         '''Initialize the Sky class.'''

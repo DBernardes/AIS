@@ -275,7 +275,7 @@ class Artificial_Image_Simulator:
                           wavelength_interval: tuple = (),
                           temperature: int | float = 0,
                           spectral_type: str = '') -> ndarray:
-        """Create he Spectral Energy Distribution of the source.
+        """Create the Spectral Energy Distribution of the source.
 
         Parameters
         ----------
@@ -296,9 +296,10 @@ class Artificial_Image_Simulator:
             The blackbody temperature of the astronomical object in Kelvin.
             This parameter is used only if the calculation_method is 'blackbody'.
 
-        spectral_type : ['O', 'B', 'A', 'F', 'G', 'K', 'M'], optional
+        spectral_type : str, optional
             The spectral type of the star that will be used to calculate the SED.
             This parameter is used only if the calculation_method is 'spectral_standard'.
+            The available spectral types can be found using the print_available_spectral_types() method.
 
         Returns
         -------
@@ -312,6 +313,12 @@ class Artificial_Image_Simulator:
         wavelegnth, sed = src.calculate_sed(calculation_method, magnitude,
                                             wavelength_interval, temperature, spectral_type)
         return wavelegnth, sed
+
+    def print_available_spectral_types(self) -> None:
+        """Print the available spectral types."""
+        src = Source()
+        src.print_available_spectral_types()
+        return
 
     def _configure_image_name(self) -> None:
         """Create the image name.

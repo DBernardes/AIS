@@ -65,6 +65,10 @@ temperature = 5700
 # ------------------------------------------------------------
 
 
+def test_print_available_spectral_types(ais):
+    ais.print_available_spectral_types()
+
+
 def test_create_source_sed_blackbody(ais):
     wv, sed = ais.create_source_sed(calculation_method, magnitude,
                                     wavelegnth_interval, temperature)
@@ -75,11 +79,9 @@ def test_create_source_sed_blackbody(ais):
     assert np.allclose(sed, sed2)
 
 
-calculation_method = 'spectral_library'
-spectral_type = 'O'
-
-
 def test_create_source_sed_spectral_lib(ais):
+    calculation_method = 'spectral_library'
+    spectral_type = 'A0V'
     wv, sed = ais.create_source_sed(
         calculation_method, magnitude, spectral_type=spectral_type)
     src = Source()

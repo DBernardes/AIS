@@ -48,11 +48,11 @@ def test_calc_sed(sed_obj):
 
 magnitude = 10
 TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
-EFFECT_WAVELENGTH = 550  # nm
+EFFECT_WAVELENGTH = 555.6  # nm
 S_0 = vega_fluxd.get()['Johnson V'].value*1e7  # W/m2/m
 effective_flux = S_0*10**(-magnitude/2.5) * \
     TELESCOPE_EFFECTIVE_AREA*EFFECT_WAVELENGTH*1e-9/h*c
 
 
 def test_calculate_effective_flux(sed_obj):
-    assert sed_obj._calculate_effective_flux(magnitude) == effective_flux
+    assert sed_obj._calculate_photons_density(magnitude) == effective_flux

@@ -59,7 +59,7 @@ def test_calculate_sed_blackbody(source):
 
 # ------------------------------------------------------------
 TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
-EFFECT_WAVELENGTH = 550  # nm
+EFFECT_WAVELENGTH = 555.6  # nm
 S_0 = vega_fluxd.get()['Johnson V'].value*1e7  # W/m2/m
 effective_flux = S_0*10**(-magnitude/2.5) * \
     TELESCOPE_EFFECTIVE_AREA*EFFECT_WAVELENGTH*1e-9/h*c
@@ -73,8 +73,8 @@ new_sed = sed_blackbody * effective_flux / normalization_flux
 def test_calculate_sed(source):
     class_wv, class_sed = source.calculate_sed(
         calculation_method, magnitude, wavelength_interval, temperature)
-    assert np.allclose(class_wv, wv)
-    assert np.allclose(class_sed, new_sed)
+    assert np.allclose(class_wv, wv, rtol=0.005)
+    assert np.allclose(class_sed, new_sed, rtol=0.005)
 
 
 SPECTRAL_LIB_PATH = os.path.join(
@@ -88,17 +88,21 @@ def test_read_spectral_library(source):
         if name == '':
             continue
         wv, sed = source._read_spectral_library(name)
-        path = os.path.join(SPECTRAL_LIB_PATH, 'uk' + name + '.dat')
-        file_data = np.loadtxt(path)
-        assert np.allclose(wv, file_data[:, 0]/10)
-        assert np.allclose(sed, file_data[:, 1])
+        path = os.path.join(SPECTRAL_LIB_PATH, 'uk' + name + '.csv')
+        file_data = pd.read_csv(path)
+        assert np.allclose(wv, file_data['wavelength (nm)'])
+        assert np.allclose(sed, file_data['flux (F_lambda)'])
 
 
 def test_get_calculate_sed_spectral_lib(source):
-    for key, val in NAME_SED_SPECTRAL_TYPE.items():
+    for name in NAME_SED_SPECTRAL_TYPE:
+        name = name.split('.')[0][2:]
+        if name == '':
+            continue
         wv, sed = source.calculate_sed(
-            'spectral_library', magnitude, spectral_type=key)
-        path = os.path.join(SPECTRAL_LIB_PATH, val)
-        file_data = np.loadtxt(path)
-        assert np.allclose(wv, file_data[:, 0]/10, rtol=0.005)
-        assert np.allclose(sed, file_data[:, 1]*effective_flux, rtol=0.005)
+            'spectral_library', magnitude, spectral_type=name)
+        path = os.path.join(SPECTRAL_LIB_PATH, 'uk' + name + '.csv')
+        file_data = pd.read_csv(path)
+        assert np.allclose(wv, file_data['wavelength (nm)'], rtol=0.005)
+        assert np.allclose(
+            sed, file_data['flux (F_lambda)']*effective_flux, rtol=0.005)
