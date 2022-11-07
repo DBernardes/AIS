@@ -165,8 +165,8 @@ class Source(Spectral_Energy_Distribution):
         spec_types = os.listdir(self.SPECTRAL_LIB_PATH)
         print('\nAvailable spectral types:')
         print('-------------------------\n')
-        for idx, spec_type in enumerate(spec_types):
-            print(idx, spec_type.split('.')[0][2:])
+        spec_types = [spec_type.split('.')[0][2:] for spec_type in spec_types]
+        print(*spec_types, sep=', ')
 
 
 class Sky(Spectral_Energy_Distribution):

@@ -62,6 +62,7 @@ from AIS.Spectral_Energy_Distribution import Source
 from matplotlib import pyplot as plt
 
 source = Source()
-sv, sed = source.calculate_sed('spectral_library', 10, spectral_type='aaa')
-plt.plot(sv, sed)
-plt.show()
+source.print_available_spectral_types()
+# sv, sed = source.calculate_sed('spectral_library', 10, spectral_type='aaa')
+# plt.plot(sv, sed)
+# plt.show()

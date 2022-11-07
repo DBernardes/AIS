@@ -227,37 +227,32 @@ class Channel(Spectral_Response):
         "ccd": "ccd.csv",
     }
 
-    def __init__(self, channel, acquisition_mode: str, polarimetric_config: dict[str, str] = {}) -> None:
+    def __init__(self, channel_id: int | float, acquisition_mode: str, calibration_wheel: str = '', retarder_wavelplate: str = '') -> None:
         """Initialize the class.
 
         Parameters
         ----------
 
-        channel: str
-            The channel number.
+        channel_id: str
+            The channel ID number.
 
         acquisition_mode: ['polarimetric', 'photometric']
-            The acquisition mode of the channel. If the acquisition mode is polarimetric,
+            The acquisition mode of the channel ID. If the acquisition mode is polarimetric,
             the polarimetric configuration must be provided.
 
-        polarimetric_config: dictionary
-        A python dictionary with the polarimetric configuration. The allowed keywords for the
-        dictionary are:
+        calibration_wheel: ["polarizer", "depolarizer", "empty"]
+            The position of the calibration wheel.            
 
-        * calibration_wheel: {"polarizer", "depolarizer", "empty"}
-
-            The position of the calibration wheel.
-
-        * retarder: {"half", "quarter"}
-
+        retarder: ["half", "quarter"]
             The waveplate for polarimetric measurements.
 
         """
 
         super().__init__()
-        self._channel = channel
+        self._channel_id = channel_id
         self.acquisition_mode = acquisition_mode
-        self.polarimetric_config = polarimetric_config
+        self.calibration_wheel = calibration_wheel
+        self.retarder_wavelplate = retarder_wavelplate
         self._BASE_PATH = os.path.join(self._BASE_PATH, "channel")
         return
 
@@ -307,7 +302,8 @@ class Channel(Spectral_Response):
     def _apply_photometric_spectral_response(self, esd: ndarray, obj_wavelength: ndarray) -> ndarray:
         for csv_file in self._PHOT_OPTICAL_COMPONENTS.values():
             if csv_file != "collimator.csv":
-                csv_file = os.path.join(f"Channel {self._channel}", csv_file)
+                csv_file = os.path.join(
+                    f"Channel {self._channel_id}", csv_file)
             spectral_response = self.get_spectral_response(
                 obj_wavelength, csv_file)
             esd = np.multiply(spectral_response, esd)
@@ -316,7 +312,7 @@ class Channel(Spectral_Response):
 
     def _apply_polarimetric_spectral_response(self, esd: ndarray, obj_wavelength: ndarray) -> ndarray:
         _dict = {}
-        cal_wheel = self.polarimetric_config["calibration_wheel"]
+        cal_wheel = self.calibration_wheel
         if cal_wheel != "empty":
             _dict[cal_wheel] = self._POL_OPTICAL_COMPONENTS[cal_wheel]
         _dict['retarder'] = self._POL_OPTICAL_COMPONENTS['retarder']

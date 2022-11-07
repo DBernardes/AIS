@@ -393,75 +393,39 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
 
 # -----------------------Test SPARC4 operation mode ---------------------------------------
 
+def test_verify_sparc4_operation_mode_photometric(ais):
+    ais._verify_sparc4_operation_mode("photometric")
 
-def test_dic_without_acquisition_mode(ais):
-    sparc4_operation_mode = {}
+
+def test_verify_sparc4_operation_mode_error(ais):
     with pytest.raises(ValueError):
-        ais.apply_sparc4_spectral_response(
-            sparc4_operation_mode=sparc4_operation_mode,
-        )
+        ais._verify_sparc4_operation_mode("error")
 
 
-def test_wrong_acquisition_mode(ais):
-    dic = {"acquisition_mode": "a"}
+def test_verify_sparc4_operation_mode_polarimetric(ais):
+    ais._verify_sparc4_operation_mode("polarimetric", 'empty', 'half')
+
+
+def test_verify_sparc4_operation_mode_polarimetric_polarizer(ais):
+    ais._verify_sparc4_operation_mode("polarimetric", 'polarizer', 'half')
+
+
+def test_verify_sparc4_operation_mode_polarimetric_depolarizer(ais):
+    ais._verify_sparc4_operation_mode("polarimetric", 'depolarizer', 'half')
+
+
+def test_verify_sparc4_operation_mode_polarimetric_quarter(ais):
+    ais._verify_sparc4_operation_mode("polarimetric", 'empty', 'quarter')
+
+
+def test_verify_sparc4_operation_mode_polarimetric_wrong_retarder_value(ais):
     with pytest.raises(ValueError):
-        ais.apply_sparc4_spectral_response(sparc4_operation_mode=dic)
+        ais._verify_sparc4_operation_mode("polarimetric", 'empty', '')
 
 
-def test_acquisition_photometric_with_unnecessary_keywords(ais):
-    sparc4_operation_mode = {
-        "acquisition_mode": "photometric",
-        "calibration_wheel": "empty",
-        "retarder": "quarter",
-    }
+def test_verify_sparc4_operation_mode_polarimetric_wrong_calibration_wheel_value(ais):
     with pytest.raises(ValueError):
-        ais.apply_sparc4_spectral_response(
-            sparc4_operation_mode=sparc4_operation_mode)
-
-
-def test_acquisition_polarimetric_and_wrong_keyword(ais):
-    sparc4_operation_mode = {
-        "acquisition_mode": "polarimetric",
-        "calibration_wheel": "empty",
-        "retarder": "quarter",
-        "blah": 1,
-    }
-    with pytest.raises(ValueError):
-        ais.apply_sparc4_spectral_response(
-            sparc4_operation_mode=sparc4_operation_mode)
-
-
-def test_acquisition_polarimetric_missing_keyword(ais):
-    sparc4_operation_mode = {
-        "acquisition_mode": "polarimetric",
-        "calibration_wheel": "empty",
-    }
-    with pytest.raises(ValueError):
-        ais.apply_sparc4_spectral_response(
-            sparc4_operation_mode=sparc4_operation_mode)
-
-
-def test_acquisition_polarimetric_calibration_wheel_wrong_value(ais):
-    sparc4_operation_mode = {
-        "acquisition_mode": "polarimetric",
-        "calibration_wheel": "blah",
-        "retarder": "half",
-    }
-    with pytest.raises(ValueError):
-        ais.apply_sparc4_spectral_response(
-            sparc4_operation_mode=sparc4_operation_mode)
-
-
-def test_acquisition_polarimetric_retarder_wrong_value(ais):
-    sparc4_operation_mode = {
-        "acquisition_mode": "polarimetric",
-        "calibration_wheel": "polarizer",
-        "retarder": "blah",
-    }
-    with pytest.raises(ValueError):
-        ais.apply_sparc4_spectral_response(
-            sparc4_operation_mode=sparc4_operation_mode)
-
+        ais._verify_sparc4_operation_mode("polarimetric", '', 'half')
 
 # ---------------------------Missing CCD operation mode parameter -------------
 

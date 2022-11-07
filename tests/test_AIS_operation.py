@@ -21,34 +21,10 @@ import os
 import numpy as np
 import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
-from AIS.Spectral_Energy_Distribution import Source
+from AIS.Spectral_Energy_Distribution import Source, Sky
+from AIS.Spectral_Response import Atmosphere, Telescope, Channel
 
-from .AIS_spectral_response_curves import (
-    POLARIZER_90_MATRIX,
-    POLARIZER_MATRIX,
-    THETA_POL,
-    air_mass,
-    analyser_transmitance,
-    atm_transmitance,
-    calculate_retarder_matrix,
-    camera_c1,
-    ccd_operation_mode,
-    ccd_transmitance_c1,
-    collimator_transmitance,
-    l_final,
-    l_init,
-    l_step,
-    magnitude,
-    multiply_matrices,
-    polarizer_transmitance,
-    retardance_quarter,
-    retarder_transmitance,
-    sky_condition,
-    sky_specific_photons_per_second,
-    sparc4_operation_mode,
-    star_specific_photons_per_second,
-    tel_reflectance,
-)
+from .AIS_spectral_response_curves import ccd_operation_mode
 
 
 @pytest.fixture
@@ -70,74 +46,98 @@ def test_print_available_spectral_types(ais):
 
 
 def test_create_source_sed_blackbody(ais):
-    wv, sed = ais.create_source_sed(calculation_method, magnitude,
-                                    wavelegnth_interval, temperature)
+    ais.create_source_sed(calculation_method, magnitude,
+                          wavelegnth_interval, temperature)
     src = Source()
     wv2, sed2 = src.calculate_sed(
         calculation_method, magnitude, wavelegnth_interval, temperature)
-    assert np.allclose(wv, wv2)
-    assert np.allclose(sed, sed2)
+    assert np.allclose(ais.wavelength, wv2)
+    assert np.allclose(ais.source_sed, sed2)
 
 
 def test_create_source_sed_spectral_lib(ais):
     calculation_method = 'spectral_library'
     spectral_type = 'A0V'
-    wv, sed = ais.create_source_sed(
+    ais.create_source_sed(
         calculation_method, magnitude, spectral_type=spectral_type)
     src = Source()
     wv2, sed2 = src.calculate_sed(
         calculation_method, magnitude, spectral_type=spectral_type)
-    assert np.allclose(wv, wv2)
-    assert np.allclose(sed, sed2)
+    assert np.allclose(ais.wavelength, wv2)
+    assert np.allclose(ais.source_sed, sed2)
+
+
+wv = wavelegnth_interval
+obj_wavelength = np.linspace(wv[0], wv[1], wv[2])
+moon_phase = 'new'
+
+
+def test_create_sky_sed(ais):
+    ais.create_sky_sed(moon_phase, obj_wavelength)
+    sky = Sky()
+    sed2 = sky.calculate_sed(moon_phase, obj_wavelength)
+
+    assert np.allclose(ais.sky_sed, sed2)
 
 
 # # ----------------------- Apply spectruns ---------------------------
+air_mass = 1
+sky_condition = 'photometric'
 
 
-# def test_apply_atmosphere_spectral_response_star(ais):
-#     new_star_specific_photons_per_second = np.multiply(
-#         star_specific_photons_per_second[0][0].copy(), atm_transmitance
-#     )
-#     ais.apply_atmosphere_spectral_response(air_mass, sky_condition)
-#     assert np.allclose(
-#         ais.star_specific_photons_per_second[0][0],
-#         new_star_specific_photons_per_second,
-#     )
+def test_apply_atmosphere_spectral_response(ais):
+    ais.create_source_sed(calculation_method, magnitude,
+                          wavelegnth_interval, temperature)
+    atm = Atmosphere()
+    new_sed = atm.apply_spectral_response(
+        ais.source_sed, obj_wavelength, air_mass, sky_condition)
+    ais.apply_atmosphere_spectral_response(air_mass, sky_condition)
+    assert np.allclose(ais.source_sed, new_sed)
 
 
-# def test_apply_atmosphere_spectral_response_sky(ais):
-#     new_sky_specific_photons_per_second = np.multiply(
-#         sky_specific_photons_per_second[0][0].copy(), atm_transmitance
-#     )
-#     ais.apply_atmosphere_spectral_response(air_mass, sky_condition)
-#     assert np.allclose(
-#         ais.sky_specific_photons_per_second[0][0].copy(),
-#         new_sky_specific_photons_per_second,
-#     )
+def test_apply_telescope_spectral_response(ais):
+    ais.create_source_sed(calculation_method, magnitude,
+                          wavelegnth_interval, temperature)
+    ais.create_sky_sed(moon_phase, obj_wavelength)
+    tel = Telescope()
+    new_sed = tel.apply_spectral_response(ais.source_sed, obj_wavelength)
+    new_sky_sed = tel.apply_spectral_response(ais.sky_sed, obj_wavelength)
+    ais.apply_telescope_spectral_response()
+    assert np.allclose(ais.source_sed, new_sed)
+    assert np.allclose(ais.sky_sed, new_sky_sed)
 
 
-# def test_apply_telescope_spectral_response_star(ais):
-#     ais.apply_telescope_spectral_response()
-#     new_star_specific_photons_per_second = np.multiply(
-#         star_specific_photons_per_second.copy(), tel_reflectance
-#     )
-#     assert np.allclose(
-#         ais.star_specific_photons_per_second, new_star_specific_photons_per_second
-#     )
+def test_verify_sparc4_operation_mode(ais):
+    ais.apply_sparc4_spectral_response('photometric')
 
 
-# def test_apply_telescope_spectral_response_sky(ais):
-#     new_sky_specific_photons_per_second = np.multiply(
-#         sky_specific_photons_per_second.copy(), tel_reflectance
-#     )
-#     ais.apply_telescope_spectral_response()
-#     assert np.allclose(
-#         ais.sky_specific_photons_per_second, new_sky_specific_photons_per_second
-#     )
+# -----------------------------------Test apply SPARC4 spectral response ----------------------------------------------------
+
+channel_id = 1
 
 
-# # -----------------------------------Test apply SPARC4 spectral response ----------------------------------------------------
+def test_apply_sparc4_spectral_response_photometric(ais):
+    ais.create_source_sed(calculation_method, magnitude,
+                          wavelegnth_interval, temperature)
+    ais.create_sky_sed(moon_phase, obj_wavelength)
+    channel = Channel(channel_id, 'photometric')
+    new_sed = channel.apply_spectral_response(ais.source_sed, obj_wavelength)
+    new_sky_sed = channel.apply_spectral_response(ais.sky_sed, obj_wavelength)
+    ais.apply_sparc4_spectral_response(channel_id, 'photometric')
+    assert np.allclose(ais.source_sed, new_sed)
+    assert np.allclose(ais.sky_sed, new_sky_sed)
 
+
+def test_apply_sparc4_spectral_response_polarimetric(ais):
+    ais.create_source_sed(calculation_method, magnitude,
+                          wavelegnth_interval, temperature)
+    ais.create_sky_sed(moon_phase, obj_wavelength)
+    channel = Channel(channel_id, 'photometric')
+    new_sed = channel.apply_spectral_response(ais.source_sed, obj_wavelength)
+    new_sky_sed = channel.apply_spectral_response(ais.sky_sed, obj_wavelength)
+    ais.apply_sparc4_spectral_response(channel_id, 'photometric')
+    assert np.allclose(ais.source_sed, new_sed)
+    assert np.allclose(ais.sky_sed, new_sky_sed)
 
 # # def test_apply_sparc4_spectral_response_star():
 # #     star_specific_photons_per_second_c1 = star_specific_photons_per_second.copy()
@@ -166,15 +166,6 @@ def test_create_source_sed_spectral_lib(ais):
 # #     assert np.allclose(
 # #         star_specific_photons_per_second_c1, ais.star_specific_photons_per_second
 # #     )
-
-
-# # ----------------------------------------------------------------------------------------------------------------
-
-
-# # def test_apply_sparc4_spectral_response_sky(ais):
-# #     ais.apply_sparc4_spectral_response()
-
-# #     assert np.allclose(ais.sky_specific_photons_per_second, new_ordinary_ray)
 
 
 # # -----------------------------test _integrate_fluxes ------------------------

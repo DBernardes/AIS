@@ -222,35 +222,13 @@ class Artificial_Image_Simulator:
         self.ccd_temp = ccd_temp
         return
 
-    def _verify_sparc4_operation_mode(self, sparc4_operation_mode) -> None:
-        keywords = list(sparc4_operation_mode.keys())
+    def _verify_sparc4_operation_mode(self, acquisition_mode: str, calibration_wheel: str = '', retarder_waveplate: str = '') -> None:
 
-        if "acquisition_mode" not in keywords:
-            raise ValueError("Keyword 'acquisition_mode' was not found.")
-
-        if sparc4_operation_mode["acquisition_mode"] == "photometric":
-            if len(keywords) > 1:
-                raise ValueError(
-                    f"Unnecessary parameter(s) was(were) provided for the SPARC4 operation mode: {keywords}"
-                )
-        elif sparc4_operation_mode["acquisition_mode"] == "polarimetric":
-            polarimetric_keywords = [
-                "acquisition_mode",
-                "calibration_wheel",
-                "retarder",
-            ]
-
-            for word in keywords:
-                if word not in polarimetric_keywords:
-                    raise ValueError(
-                        f"The provided keyword is not a parameter of the SPARC4 operation mode: {word}"
-                    )
-            if sorted(keywords) != polarimetric_keywords:
-                raise ValueError(
-                    "A parameter of the SPARC4 operation mode is missing.")
-
+        if acquisition_mode == "photometric":
+            pass
+        elif acquisition_mode == "polarimetric":
             self._check_var_in_a_list(
-                sparc4_operation_mode["calibration_wheel"],
+                calibration_wheel,
                 "calibration wheel",
                 [
                     "polarizer",
@@ -260,13 +238,13 @@ class Artificial_Image_Simulator:
             )
 
             self._check_var_in_a_list(
-                sparc4_operation_mode["retarder"],
-                "retarder",
+                retarder_waveplate,
+                "retarder waveplate",
                 ["half", "quarter"],
             )
         else:
             raise ValueError(
-                f"The SPARC4 acquisition mode should be 'photometric' or 'polarimetric': {sparc4_operation_mode['acquisition_mode']}."
+                f"The SPARC4 acquisition mode should be 'photometric' or 'polarimetric': {acquisition_mode}."
             )
         return
 
@@ -274,7 +252,7 @@ class Artificial_Image_Simulator:
                           magnitude: int | float,
                           wavelength_interval: tuple = (),
                           temperature: int | float = 0,
-                          spectral_type: str = '') -> ndarray:
+                          spectral_type: str = ''):
         """Create the Spectral Energy Distribution of the source.
 
         Parameters
@@ -299,20 +277,11 @@ class Artificial_Image_Simulator:
         spectral_type : str, optional
             The spectral type of the star that will be used to calculate the SED.
             This parameter is used only if the calculation_method is 'spectral_standard'.
-            The available spectral types can be found using the print_available_spectral_types() method.
-
-        Returns
-        -------
-            wavelength : ndarray
-                The wavelength of the astronomical object in nm.
-
-            sed : ndarray
-                The SED of the astronomical object in photons/m/s.
+            The available spectral types can be found using the print_available_spectral_types() method.        
         """
         src = Source()
-        wavelegnth, sed = src.calculate_sed(calculation_method, magnitude,
-                                            wavelength_interval, temperature, spectral_type)
-        return wavelegnth, sed
+        self.wavelength, self.source_sed = src.calculate_sed(calculation_method, magnitude,
+                                                             wavelength_interval, temperature, spectral_type)
 
     def print_available_spectral_types(self) -> None:
         """Print the available spectral types."""
@@ -320,28 +289,27 @@ class Artificial_Image_Simulator:
         src.print_available_spectral_types()
         return
 
-    def _configure_image_name(self) -> None:
-        """Create the image name.
+    def create_sky_sed(self, moon_phase: str, object_wavelength: ndarray):
+        """Create the Spectral Energy Distribution of the sky.
 
-        The image name will be created based on the time that the image is created
+        Parameters
+        ----------
+            moon_phase : ['new', 'waning', 'waxing', 'full']
+                The phase of the moon.                 
 
-
+            object_wavelength : ndarray
+                The wavelength of the astronomical object in nm.
         """
-        now = datetime.datetime.now()
-        self.image_name = (
-            f"{now.year}{now.month:0>2}{now.day:0>2}T{now.hour:0>2}{now.minute:0>2}{now.second:0>2}"
-            + f"{now.microsecond}"[:2]
-        )
-        return
+        sky = Sky()
+        self.sky_sed = sky.calculate_sed(moon_phase, object_wavelength)
 
     def apply_atmosphere_spectral_response(
-        self, air_mass: int | float = 1.0, sky_condition: str = "good"
+        self, air_mass: int | float = 1.0, sky_condition: str = "photometric"
     ):
-        """
-        Apply the atmosphere spectral response.
+        """Apply the atmosphere spectral response.
 
         This functions applies the atmosphere spectral response on the
-        calculated star and sky specific flux.
+        Spectral Energy Distribution of the source.
 
         Parameters
         ----------
@@ -349,8 +317,8 @@ class Artificial_Image_Simulator:
         air_mass: 1.0, optional
         The air mass in the light path.
 
-        sky_condition: {"photometric", "regular", "good"}
-            The condition of the sky at the observaiton night. According to the value provided for this variable,
+        sky_condition: ["photometric", "regular", "good"], optional
+            The sky condition. According to the value provided for this variable,
             a different extinction coeficient for the atmosphere will be selected.
         """
 
@@ -362,83 +330,61 @@ class Artificial_Image_Simulator:
             sky_condition, "sky condition", ["photometric", "regular", "good"]
         )
 
-        asr = Atmosphere_Spectral_Response(air_mass, sky_condition)
-
-        self.star_specific_photons_per_second = [
-            asr.apply_atmosphere_spectral_response(
-                self.star_specific_photons_per_second[0],
-                wavelength_interval=self.wavelength_interval,
-            )
-        ]
-
-        self.sky_specific_photons_per_second = [
-            asr.apply_atmosphere_spectral_response(
-                self.sky_specific_photons_per_second[0],
-                wavelength_interval=self.wavelength_interval,
-            )
-        ]
+        atm = Atmosphere()
+        self.source_sed = atm.apply_spectral_response(
+            self.source_sed, self.wavelength, air_mass, sky_condition)
 
     def apply_telescope_spectral_response(self):
-        """
-        Apply the telescope spectral response.
+        """Apply the telescope spectral response.
 
         This functions applies the telescope spectral response on the
-        calculated star and sky specific flux.
+        Spectral Energy Distribution of the source and the sky.
 
         """
-        tsr = Telescope_Spectral_Response()
-        self.star_specific_photons_per_second = [
-            tsr.apply_telescope_spectral_response(
-                self.star_specific_photons_per_second[0],
-                wavelength_interval=self.wavelength_interval,
-            )
-        ]
-
-        self.sky_specific_photons_per_second = [
-            tsr.apply_telescope_spectral_response(
-                self.sky_specific_photons_per_second[0],
-                wavelength_interval=self.wavelength_interval,
-            )
-        ]
+        tel = Telescope()
+        self.source_sed = tel.apply_spectral_response(
+            self.source_sed, self.wavelength)
+        self.sky_sed = tel.apply_spectral_response(
+            self.sky_sed, self.wavelength)
 
     def apply_sparc4_spectral_response(
         self,
-        sparc4_operation_mode: dict[str, str] = {
-            "acquisition_mode": "photometric"},
+        channel_id: int | float,
+        acquisition_mode: str,
+        calibration_wheel: str = "",
+        retarder_waveplate: str = ""
     ):
-        """
-        Apply the SPARC4 spectral response.
+        """Apply the SPARC4 spectral response.
 
         This functions applies the SPARC4 spectral response on the
-        calculated star and sky specific flux.
+        Spectral Energy Distribution of the source and the sky.
 
         Parameters
         ----------
 
-        sparc4_operation_mode: dictionary
-        A python dictionary with the SPARC4 operation mode. The allowed keywords for the
-        dictionary are:
+        channel_id: int | float
+            The channel of the SPARC4.
 
-        * acquisition_mode: {"photometry", "polarimetry"}
-
+        acquisition_mode: ["photometric", "polarimetric"]
             The acquisition mode of the sparc4.
 
-        * calibration_wheel: {"polarizer", "depolarizer", "empty"}
-
+        calibration_wheel: ["polarizer", "depolarizer", "empty"], optional
             The position of the calibration wheel.
+            This parameter is used only if the acquisition_mode is 'polarimetric'.
 
-        * retarder: {"half", "quarter"}
-
+        retarder: ["half", "quarter"], optional
             The waveplate for polarimetric measurements.
+            This parameter is used only if the acquisition_mode is 'polarimetric'.
 
         """
-        self._verify_sparc4_operation_mode(sparc4_operation_mode)
-        self.star_specific_photons_per_second = self.chc.apply_sparc4_spectral_response(
-            self.star_specific_photons_per_second, sparc4_operation_mode
-        )
-        self.sky_specific_photons_per_second = self.chc.apply_sparc4_spectral_response(
-            self.sky_specific_photons_per_second, sparc4_operation_mode
-        )
+        self._verify_sparc4_operation_mode(
+            acquisition_mode, calibration_wheel, retarder_waveplate)  # jogar para dentro da classe !
+        channel = Channel(channel_id, acquisition_mode,
+                          calibration_wheel, retarder_waveplate)
+        self.source_sed = channel.apply_spectral_response(
+            self.source_sed, self.wavelength)
+        self.sky_sed = channel.apply_spectral_response(
+            self.sky_sed, self.wavelength)
 
     def _integrate_specific_photons_per_second(self):
         """Integrate the star and the sky specific fluxes."""
@@ -642,3 +588,18 @@ class Artificial_Image_Simulator:
             overwrite=True,
             header=header,
         )
+
+
+def _configure_image_name(self) -> None:
+    """Create the image name.
+
+    The image name will be created based on the time that the image is created
+
+
+    """
+    now = datetime.datetime.now()
+    self.image_name = (
+        f"{now.year}{now.month:0>2}{now.day:0>2}T{now.hour:0>2}{now.minute:0>2}{now.second:0>2}"
+        + f"{now.microsecond}"[:2]
+    )
+    return
