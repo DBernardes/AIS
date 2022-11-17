@@ -227,7 +227,10 @@ class Channel(Spectral_Response):
         "ccd": "ccd.csv",
     }
 
-    def __init__(self, channel_id: int | float, acquisition_mode: str, calibration_wheel: str = '', retarder_wavelplate: str = '') -> None:
+    def __init__(self, channel_id: int | float,
+                 acquisition_mode: str,
+                 calibration_wheel: str = 'empty',
+                 retarder_wavelplate: str = 'half') -> None:
         """Initialize the class.
 
         Parameters
@@ -240,10 +243,10 @@ class Channel(Spectral_Response):
             The acquisition mode of the channel ID. If the acquisition mode is polarimetric,
             the polarimetric configuration must be provided.
 
-        calibration_wheel: ["polarizer", "depolarizer", "empty"]
+        calibration_wheel: ["polarizer", "depolarizer", "empty"], optional
             The position of the calibration wheel.            
 
-        retarder: ["half", "quarter"]
+        retarder: ["half", "quarter"], optional
             The waveplate for polarimetric measurements.
 
         """
@@ -252,7 +255,7 @@ class Channel(Spectral_Response):
         self._channel_id = channel_id
         self.acquisition_mode = acquisition_mode
         self.calibration_wheel = calibration_wheel
-        self.retarder_wavelplate = retarder_wavelplate
+        self.retarder_waveplate = retarder_wavelplate
         self._BASE_PATH = os.path.join(self._BASE_PATH, "channel")
         return
 
@@ -323,6 +326,38 @@ class Channel(Spectral_Response):
             esd = np.multiply(spectral_response, esd)
 
         return esd
+
+    def _verify_sparc4_operation_mode(self) -> None:
+
+        if self.acquisition_mode == "photometric":
+            pass
+        elif self.acquisition_mode == "polarimetric":
+            self._check_var_in_a_list(
+                self.calibration_wheel,
+                "calibration wheel",
+                [
+                    "polarizer",
+                    "depolarizer",
+                    "empty",
+                ],
+            )
+
+            self._check_var_in_a_list(
+                self.retarder_waveplate,
+                "retarder waveplate",
+                ["half", "quarter"],
+            )
+        else:
+            raise ValueError(
+                f"The SPARC4 acquisition mode should be 'photometric' or 'polarimetric': {self.acquisition_mode}."
+            )
+        return
+
+    @staticmethod
+    def _check_var_in_a_list(var, var_name, _list):
+        if var not in _list:
+            raise ValueError(
+                f"The allowed values for the {var_name} are: {_list}")
 
 
 if __name__ == "__main__":

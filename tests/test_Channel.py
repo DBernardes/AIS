@@ -150,6 +150,51 @@ def test_read_csv_file_ccd(channel):
     assert np.allclose(new_wavelength, wv_ccd)
     assert np.allclose(new_transmitance, sr_ccd)
 
+# -----------------------Test SPARC4 operation mode ---------------------------------------
+
+
+def test_verify_sparc4_operation_mode_photometric():
+    channel = Channel(CHANNEL, 'photometric')
+    channel._verify_sparc4_operation_mode()
+
+
+def test_verify_sparc4_operation_mode_error():
+    channel = Channel(CHANNEL, 'error')
+    with pytest.raises(ValueError):
+        channel._verify_sparc4_operation_mode()
+
+
+def test_verify_sparc4_operation_mode_polarimetric():
+    channel = Channel(CHANNEL, "polarimetric", 'empty', 'half')
+    channel._verify_sparc4_operation_mode()
+
+
+def test_verify_sparc4_operation_mode_polarimetric_polarizer():
+    channel = Channel(CHANNEL, "polarimetric", 'polarizer', 'half')
+    channel._verify_sparc4_operation_mode()
+
+
+def test_verify_sparc4_operation_mode_polarimetric_depolarizer():
+    channel = Channel(CHANNEL, "polarimetric", 'depolarizer', 'half')
+    channel._verify_sparc4_operation_mode()
+
+
+def test_verify_sparc4_operation_mode_polarimetric_quarter():
+    channel = Channel(CHANNEL, "polarimetric", 'empty', 'quarter')
+    channel._verify_sparc4_operation_mode()
+
+
+def test_verify_sparc4_operation_mode_polarimetric_wrong_retarder_value():
+    channel = Channel(CHANNEL, "polarimetric", 'empty', '')
+    with pytest.raises(ValueError):
+        channel._verify_sparc4_operation_mode()
+
+
+def test_verify_sparc4_operation_mode_polarimetric_wrong_calibration_wheel_value():
+    channel = Channel(CHANNEL, "polarimetric", '', 'half')
+    with pytest.raises(ValueError):
+        channel._verify_sparc4_operation_mode()
+
 
 # --------------------------------------------------------------------------------------------
 

@@ -132,40 +132,13 @@ def test_apply_sparc4_spectral_response_polarimetric(ais):
     ais.create_source_sed(calculation_method, magnitude,
                           wavelegnth_interval, temperature)
     ais.create_sky_sed(moon_phase, obj_wavelength)
-    channel = Channel(channel_id, 'photometric')
+    channel = Channel(channel_id, 'polarimetric', 'polarizer', 'quarter')
     new_sed = channel.apply_spectral_response(ais.source_sed, obj_wavelength)
     new_sky_sed = channel.apply_spectral_response(ais.sky_sed, obj_wavelength)
-    ais.apply_sparc4_spectral_response(channel_id, 'photometric')
+    ais.apply_sparc4_spectral_response(
+        channel_id, 'polarimetric', 'polarizer', 'quarter')
     assert np.allclose(ais.source_sed, new_sed)
     assert np.allclose(ais.sky_sed, new_sky_sed)
-
-# # def test_apply_sparc4_spectral_response_star():
-# #     star_specific_photons_per_second_c1 = star_specific_photons_per_second.copy()
-# #     # Applying collimator
-# #     star_specific_photons_per_second_c1[0][0] = np.multiply(
-# #         collimator_transmitance, star_specific_photons_per_second_c1[0][0]
-# #     )
-# #     # Applying camera
-# #     star_specific_photons_per_second_c1[0][0] = np.multiply(
-# #         camera_c1, star_specific_photons_per_second_c1[0][0]
-# #     )
-# #     # Applying ccd
-# #     star_specific_photons_per_second_c1[0][0] = np.multiply(
-# #         ccd_transmitance_c1, star_specific_photons_per_second_c1[0][0]
-# #     )
-
-# #     sparc4_operation_mode = {
-# #         "acquisition_mode": "photometric",
-# #     }
-# #     ais = Artificial_Image_Simulator(
-# #         ccd_operation_mode=ccd_operation_mode,
-# #         sparc4_operation_mode=sparc4_operation_mode,
-# #         channel=1,
-# #     )
-# #     ais.apply_sparc4_spectral_response()
-# #     assert np.allclose(
-# #         star_specific_photons_per_second_c1, ais.star_specific_photons_per_second
-# #     )
 
 
 # # -----------------------------test _integrate_fluxes ------------------------

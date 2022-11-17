@@ -391,42 +391,6 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
         Artificial_Image_Simulator(ccd_operation_mode)
 
 
-# -----------------------Test SPARC4 operation mode ---------------------------------------
-
-def test_verify_sparc4_operation_mode_photometric(ais):
-    ais._verify_sparc4_operation_mode("photometric")
-
-
-def test_verify_sparc4_operation_mode_error(ais):
-    with pytest.raises(ValueError):
-        ais._verify_sparc4_operation_mode("error")
-
-
-def test_verify_sparc4_operation_mode_polarimetric(ais):
-    ais._verify_sparc4_operation_mode("polarimetric", 'empty', 'half')
-
-
-def test_verify_sparc4_operation_mode_polarimetric_polarizer(ais):
-    ais._verify_sparc4_operation_mode("polarimetric", 'polarizer', 'half')
-
-
-def test_verify_sparc4_operation_mode_polarimetric_depolarizer(ais):
-    ais._verify_sparc4_operation_mode("polarimetric", 'depolarizer', 'half')
-
-
-def test_verify_sparc4_operation_mode_polarimetric_quarter(ais):
-    ais._verify_sparc4_operation_mode("polarimetric", 'empty', 'quarter')
-
-
-def test_verify_sparc4_operation_mode_polarimetric_wrong_retarder_value(ais):
-    with pytest.raises(ValueError):
-        ais._verify_sparc4_operation_mode("polarimetric", 'empty', '')
-
-
-def test_verify_sparc4_operation_mode_polarimetric_wrong_calibration_wheel_value(ais):
-    with pytest.raises(ValueError):
-        ais._verify_sparc4_operation_mode("polarimetric", '', 'half')
-
 # ---------------------------Missing CCD operation mode parameter -------------
 
 

@@ -31,9 +31,9 @@ from ..Spectral_Energy_Distribution import Source, Sky
 class Artificial_Image_Simulator:
     """Artificial Images Simulator class.
 
-    The Artificial Images Simulator (AIS) class was developed to generate artificial star images, 
-    similar to those images that would be acquired by using the acquisition system of the SPARC4 instrument. 
-    To accomplish this, the AIS models as star flux as a 2D gaussian distribution. 
+    The Artificial Images Simulator (AIS) class was developed to generate artificial star images,
+    similar to those images that would be acquired by using the acquisition system of the SPARC4 instrument.
+    To accomplish this, the AIS models as star flux as a 2D gaussian distribution.
     Then, the star flux is added to an image with a background level
     given by counts distribution of an image of the SPARC4 cameras, as a function of its operation mode.
 
@@ -73,7 +73,7 @@ class Artificial_Image_Simulator:
 
         * image_size: int, optional
 
-            Image size in pixels    
+            Image size in pixels
 
     Returns
     ------
@@ -122,12 +122,6 @@ class Artificial_Image_Simulator:
             raise ValueError(
                 f"The {var_name} must be in the interval [{var_min},{var_max}]: {var}."
             )
-
-    @staticmethod
-    def _check_var_in_a_list(var, var_name, _list):
-        if var not in _list:
-            raise ValueError(
-                f"The allowed values for the {var_name} are: {_list}")
 
     def _verify_class_parameters(self) -> None:
         self._verify_type(self.channel, "channel", int)
@@ -222,32 +216,6 @@ class Artificial_Image_Simulator:
         self.ccd_temp = ccd_temp
         return
 
-    def _verify_sparc4_operation_mode(self, acquisition_mode: str, calibration_wheel: str = '', retarder_waveplate: str = '') -> None:
-
-        if acquisition_mode == "photometric":
-            pass
-        elif acquisition_mode == "polarimetric":
-            self._check_var_in_a_list(
-                calibration_wheel,
-                "calibration wheel",
-                [
-                    "polarizer",
-                    "depolarizer",
-                    "empty",
-                ],
-            )
-
-            self._check_var_in_a_list(
-                retarder_waveplate,
-                "retarder waveplate",
-                ["half", "quarter"],
-            )
-        else:
-            raise ValueError(
-                f"The SPARC4 acquisition mode should be 'photometric' or 'polarimetric': {acquisition_mode}."
-            )
-        return
-
     def create_source_sed(self, calculation_method: str,
                           magnitude: int | float,
                           wavelength_interval: tuple = (),
@@ -262,7 +230,7 @@ class Artificial_Image_Simulator:
             The method used to calculate the SED.
 
         magnitude : int | float
-            The magnitude of the astronomical object in the V band.            
+            The magnitude of the astronomical object in the V band.
 
         wavelength_interval : tuple, optional
             The wavelength interval, in nm, of the astronomical object.
@@ -277,7 +245,7 @@ class Artificial_Image_Simulator:
         spectral_type : str, optional
             The spectral type of the star that will be used to calculate the SED.
             This parameter is used only if the calculation_method is 'spectral_standard'.
-            The available spectral types can be found using the print_available_spectral_types() method.        
+            The available spectral types can be found using the print_available_spectral_types() method.
         """
         src = Source()
         self.wavelength, self.source_sed = src.calculate_sed(calculation_method, magnitude,
@@ -295,7 +263,7 @@ class Artificial_Image_Simulator:
         Parameters
         ----------
             moon_phase : ['new', 'waning', 'waxing', 'full']
-                The phase of the moon.                 
+                The phase of the moon.
 
             object_wavelength : ndarray
                 The wavelength of the astronomical object in nm.
@@ -351,8 +319,8 @@ class Artificial_Image_Simulator:
         self,
         channel_id: int | float,
         acquisition_mode: str,
-        calibration_wheel: str = "",
-        retarder_waveplate: str = ""
+        calibration_wheel: str = "empty",
+        retarder_waveplate: str = "half"
     ):
         """Apply the SPARC4 spectral response.
 
@@ -377,8 +345,6 @@ class Artificial_Image_Simulator:
             This parameter is used only if the acquisition_mode is 'polarimetric'.
 
         """
-        self._verify_sparc4_operation_mode(
-            acquisition_mode, calibration_wheel, retarder_waveplate)  # jogar para dentro da classe !
         channel = Channel(channel_id, acquisition_mode,
                           calibration_wheel, retarder_waveplate)
         self.source_sed = channel.apply_spectral_response(
@@ -386,19 +352,10 @@ class Artificial_Image_Simulator:
         self.sky_sed = channel.apply_spectral_response(
             self.sky_sed, self.wavelength)
 
-    def _integrate_specific_photons_per_second(self):
-        """Integrate the star and the sky specific fluxes."""
-        self.sky_photons_per_second = 0
-        for array in self.sky_specific_photons_per_second:
-            self.sky_photons_per_second += np.trapz(array[0, :])
-        self.sky_photons_per_second = 25  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        star_photons_per_second = []
-        for array in self.star_specific_photons_per_second:
-            star_photons_per_second.append(np.trapz(array[0, :]))
-        self.star_ordinary_ray = star_photons_per_second[0]
-        self.star_extra_ordinary_ray = 0
-        if len(star_photons_per_second) > 1:
-            self.star_extra_ordinary_ray = star_photons_per_second[1]
+    def _integrate_sed(self):
+        """Integrate the star and the sky SEDs."""
+        self.sky_photons_per_second = np.trapz(self.sky_sed)
+        self.star_photons_per_second = np.trapz(self.source_sed)
 
     def create_artificial_image(self):
         """
