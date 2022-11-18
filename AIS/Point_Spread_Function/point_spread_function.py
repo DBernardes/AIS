@@ -14,6 +14,7 @@ import numpy as np
 from astropy.table import Table
 from photutils.datasets import make_gaussian_sources_image, make_noise_image
 from numpy import ndarray
+from math import pi
 
 
 class Point_Spread_Function:
@@ -76,7 +77,6 @@ class Point_Spread_Function:
 
     @staticmethod
     def _make_noise_image(table, shape):
-        # normalizar 2pi !
         amplitude = table["amplitude"]
         noise_image = (
             make_noise_image(shape, "poisson", amplitude) - amplitude
@@ -144,7 +144,7 @@ class Point_Spread_Function:
         gaussian_amplitude = (
             ordinary_ray * t_exp * em_gain * binn ** 2 / self.ccd_gain
         )
-        self.table["amplitude"] = [gaussian_amplitude]
+        self.table["amplitude"] = [gaussian_amplitude / (2*pi)]"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 
         shape = (image_size, image_size)
         star_image = make_gaussian_sources_image(shape, self.table)
@@ -163,7 +163,7 @@ class Point_Spread_Function:
             * binn ** 2
             / self.ccd_gain
         )
-        self.table["amplitude"] = [gaussian_amplitude]
+        self.table["amplitude"] = [gaussian_amplitude / (2 * pi)]
         self.table["x_mean"] -= self._SPARC4_POL_SEPARATION
         self.table["y_mean"] -= self._SPARC4_POL_SEPARATION
         shape = (image_size, image_size)

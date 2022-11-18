@@ -67,26 +67,26 @@ class Spectral_Response:
 
         return spectral_response
 
-    def apply_spectral_response(self, esd: ndarray, obj_wavelength: ndarray) -> ndarray:
+    def apply_spectral_response(self, sed: ndarray, obj_wavelength: ndarray) -> ndarray:
         """Apply the spectral response.
 
         Parameters
         ----------
-            esd: array like
-                The Energy Spectral Distribution (ESD) of the object.
+            sed: array like
+                The Spectral Energy Distribution (SED) of the object.
             obj_wavelength: array like
                 The wavelength interval, in nm, of the object.
 
         Yields
         ------
-            reduced_esd: array like
-                The Energy Spectral Distribution (ESD) of the object subtracted from the loses
+            reduced_sed: array like
+                The Spectral Energy Distribution (SED) of the object subtracted from the loses
                 related to the spectral response of the system.
         """
         spectral_response = self.get_spectral_response(obj_wavelength)
-        reduced_esd = np.multiply(spectral_response, esd)
+        reduced_sed = np.multiply(spectral_response, sed)
 
-        return reduced_esd
+        return reduced_sed
 
 
 class Telescope(Spectral_Response):
@@ -169,7 +169,7 @@ class Atmosphere(Spectral_Response):
 
     def apply_spectral_response(
         self,
-        esd: ndarray,
+        sed: ndarray,
         obj_wavelength: ndarray,
         air_mass: int | float,
         sky_condition="photometric",
@@ -178,8 +178,8 @@ class Atmosphere(Spectral_Response):
 
         Parameters
         ----------
-            esd: array like
-                The Energy Spectral Distribution (ESD) of the object.
+            sed: array like
+                The Spectral Energy Distribution (SED) of the object.
             obj_wavelength: array like
                 The wavelength interval, in nm, of the object.
             air_mass: int, float
@@ -188,16 +188,16 @@ class Atmosphere(Spectral_Response):
 
         Yields
         ------
-            reduced_esd: array like
-                The Energy Spectral Distribution (ESD) of the object subtracted from the loses
+            reduced_sed: array like
+                The Spectral Energy Distribution (SED) of the object subtracted from the loses
                 related to the spectral response of the system.
         """
         spectral_response = self.get_spectral_response(
             obj_wavelength, air_mass, sky_condition
         )
-        reduced_esd = np.multiply(spectral_response, esd)
+        reduced_sed = np.multiply(spectral_response, sed)
 
-        return reduced_esd
+        return reduced_sed
 
 
 class Channel(Spectral_Response):
@@ -227,10 +227,7 @@ class Channel(Spectral_Response):
         "ccd": "ccd.csv",
     }
 
-    def __init__(self, channel_id: int | float,
-                 acquisition_mode: str,
-                 calibration_wheel: str = 'empty',
-                 retarder_wavelplate: str = 'half') -> None:
+    def __init__(self, channel_id: int | float) -> None:
         """Initialize the class.
 
         Parameters
@@ -238,24 +235,10 @@ class Channel(Spectral_Response):
 
         channel_id: str
             The channel ID number.
-
-        acquisition_mode: ['polarimetric', 'photometric']
-            The acquisition mode of the channel ID. If the acquisition mode is polarimetric,
-            the polarimetric configuration must be provided.
-
-        calibration_wheel: ["polarizer", "depolarizer", "empty"], optional
-            The position of the calibration wheel.            
-
-        retarder: ["half", "quarter"], optional
-            The waveplate for polarimetric measurements.
-
         """
 
         super().__init__()
         self._channel_id = channel_id
-        self.acquisition_mode = acquisition_mode
-        self.calibration_wheel = calibration_wheel
-        self.retarder_waveplate = retarder_wavelplate
         self._BASE_PATH = os.path.join(self._BASE_PATH, "channel")
         return
 
@@ -277,43 +260,66 @@ class Channel(Spectral_Response):
         self._CSV_FILE_NAME = csv_file_name
         return super().get_spectral_response(obj_wavelength)
 
-    def apply_spectral_response(self, esd: ndarray, obj_wavelength: ndarray) -> ndarray:
+    def write_sparc4_operation_mode(self, acquisition_mode: str,
+                                    calibration_wheel: str = 'empty',
+                                    retarder_waveplate: str = 'half') -> None:
+        """Write the operation mode of the SPARC4.
+
+        Parameters
+        ----------
+        acquisition_mode: ['polarimetric', 'photometric']
+            The acquisition mode of the channel. If the acquisition mode is polarimetric,
+            the polarimetric configuration must be provided.
+
+        calibration_wheel: ["polarizer", "depolarizer", "empty"], optional
+            The position of the calibration wheel.            
+
+        retarder: ["half", "quarter"], optional
+            The waveplate for polarimetric measurements.
+        """
+        self.acquisition_mode = acquisition_mode
+        self.calibration_wheel = calibration_wheel
+        self.retarder_waveplate = retarder_waveplate
+        self._verify_sparc4_operation_mode()
+        return
+
+    def apply_spectral_response(self, sed: ndarray, obj_wavelength: ndarray) -> ndarray:
         """Apply the spectral response.
 
         Parameters
         ----------
-            esd: array like
-                The Energy Spectral Distribution (ESD) of the object.
+            sed: array like
+                The Spectral Energy Distribution (SED) of the object.
             obj_wavelength: array like
                 The wavelength interval, in nm, of the object.
 
         Yields
         ------
-            reduced_esd: array like
-                The Energy Spectral Distribution (ESD) of the object subtracted from the loses
+            reduced_sed: array like
+                The Spectral Energy Distribution (SED) of the object subtracted from the loses
                 related to the spectral response of the system.
         """
 
         if self.acquisition_mode == "polarimetric":
-            esd = self._apply_polarimetric_spectral_response(
-                esd, obj_wavelength)
-        reduced_esd = self._apply_photometric_spectral_response(
-            esd, obj_wavelength)
+            sed = self._apply_polarimetric_spectral_response(
+                sed, obj_wavelength)
+        reduced_sed = self._apply_photometric_spectral_response(
+            sed, obj_wavelength)
 
-        return reduced_esd
+        return reduced_sed
 
-    def _apply_photometric_spectral_response(self, esd: ndarray, obj_wavelength: ndarray) -> ndarray:
+    def _apply_photometric_spectral_response(self, sed: ndarray, obj_wavelength: ndarray) -> ndarray:
         for csv_file in self._PHOT_OPTICAL_COMPONENTS.values():
             if csv_file != "collimator.csv":
                 csv_file = os.path.join(
                     f"Channel {self._channel_id}", csv_file)
             spectral_response = self.get_spectral_response(
                 obj_wavelength, csv_file)
-            esd = np.multiply(spectral_response, esd)
+            sed = np.multiply(spectral_response, sed)
 
-        return esd
+        return sed
 
-    def _apply_polarimetric_spectral_response(self, esd: ndarray, obj_wavelength: ndarray) -> ndarray:
+    def _apply_polarimetric_spectral_response(self, sed: ndarray, obj_wavelength: ndarray) -> ndarray:
         _dict = {}
         cal_wheel = self.calibration_wheel
         if cal_wheel != "empty":
@@ -323,9 +329,9 @@ class Channel(Spectral_Response):
         for csv_file in _dict.values():
             spectral_response = self.get_spectral_response(
                 obj_wavelength, csv_file)
-            esd = np.multiply(spectral_response, esd)
+            sed = np.multiply(spectral_response, sed)
 
-        return esd
+        return sed
 
     def _verify_sparc4_operation_mode(self) -> None:
 

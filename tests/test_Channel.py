@@ -32,7 +32,7 @@ _PHOT_OPTICAL_COMPONENTS = {
 
 @pytest.fixture
 def channel():
-    return Channel(CHANNEL, 'photometric')
+    return Channel(CHANNEL)
 
 
 def test_csv_file_name_pol(channel):
@@ -154,46 +154,46 @@ def test_read_csv_file_ccd(channel):
 
 
 def test_verify_sparc4_operation_mode_photometric():
-    channel = Channel(CHANNEL, 'photometric')
-    channel._verify_sparc4_operation_mode()
+    channel = Channel(CHANNEL)
+    channel.write_sparc4_operation_mode("photometric")
 
 
 def test_verify_sparc4_operation_mode_error():
-    channel = Channel(CHANNEL, 'error')
+    channel = Channel(CHANNEL)
     with pytest.raises(ValueError):
-        channel._verify_sparc4_operation_mode()
+        channel.write_sparc4_operation_mode('error')
 
 
 def test_verify_sparc4_operation_mode_polarimetric():
-    channel = Channel(CHANNEL, "polarimetric", 'empty', 'half')
-    channel._verify_sparc4_operation_mode()
+    channel = Channel(CHANNEL)
+    channel.write_sparc4_operation_mode("polarimetric", 'empty', 'half')
 
 
 def test_verify_sparc4_operation_mode_polarimetric_polarizer():
-    channel = Channel(CHANNEL, "polarimetric", 'polarizer', 'half')
-    channel._verify_sparc4_operation_mode()
+    channel = Channel(CHANNEL)
+    channel.write_sparc4_operation_mode("polarimetric", 'polarizer', 'half')
 
 
 def test_verify_sparc4_operation_mode_polarimetric_depolarizer():
-    channel = Channel(CHANNEL, "polarimetric", 'depolarizer', 'half')
-    channel._verify_sparc4_operation_mode()
+    channel = Channel(CHANNEL)
+    channel.write_sparc4_operation_mode("polarimetric", 'depolarizer', 'half')
 
 
 def test_verify_sparc4_operation_mode_polarimetric_quarter():
-    channel = Channel(CHANNEL, "polarimetric", 'empty', 'quarter')
-    channel._verify_sparc4_operation_mode()
+    channel = Channel(CHANNEL)
+    channel.write_sparc4_operation_mode("polarimetric", 'empty', 'quarter')
 
 
 def test_verify_sparc4_operation_mode_polarimetric_wrong_retarder_value():
-    channel = Channel(CHANNEL, "polarimetric", 'empty', '')
+    channel = Channel(CHANNEL)
     with pytest.raises(ValueError):
-        channel._verify_sparc4_operation_mode()
+        channel.write_sparc4_operation_mode("polarimetric", 'empty', '')
 
 
 def test_verify_sparc4_operation_mode_polarimetric_wrong_calibration_wheel_value():
-    channel = Channel(CHANNEL, "polarimetric", '', 'half')
+    channel = Channel(CHANNEL)
     with pytest.raises(ValueError):
-        channel._verify_sparc4_operation_mode()
+        channel.write_sparc4_operation_mode("polarimetric", '', 'half')
 
 
 # --------------------------------------------------------------------------------------------
@@ -250,7 +250,7 @@ def test_apply_pol_spectral_response_1(channel):
     spl = splrep(wv_analyser, sr_analyser)
     new_spectral_response = splev(obj_wavelength, spl)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-    channel.polarimetric_config['calibration_wheel'] = 'depolarizer'
+    channel.calibration_wheel = 'depolarizer'
     class_reduced_esd = channel._apply_polarimetric_spectral_response(
         esd, obj_wavelength)
     assert np.allclose(class_reduced_esd, reduced_esd)
@@ -268,7 +268,7 @@ def test_apply_pol_spectral_response_2(channel):
     spl = splrep(wv_analyser, sr_analyser)
     new_spectral_response = splev(obj_wavelength, spl)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-    channel.polarimetric_config['calibration_wheel'] = 'polarizer'
+    channel.calibration_wheel = 'polarizer'
     class_reduced_esd = channel._apply_polarimetric_spectral_response(
         esd, obj_wavelength)
     assert np.allclose(class_reduced_esd, reduced_esd)
@@ -283,7 +283,7 @@ def test_apply_pol_spectral_response_3(channel):
     spl = splrep(wv_analyser, sr_analyser)
     new_spectral_response = splev(obj_wavelength, spl)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-    channel.polarimetric_config['calibration_wheel'] = 'empty'
+    channel.calibration_wheel = 'empty'
     class_reduced_esd = channel._apply_polarimetric_spectral_response(
         esd, obj_wavelength)
     assert np.allclose(class_reduced_esd, reduced_esd)
@@ -310,7 +310,7 @@ def test_apply_spectral_response(channel):
     spl = splrep(wv_ccd, sr_ccd)
     new_spectral_response = splev(obj_wavelength, spl)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-    channel.polarimetric_config['calibration_wheel'] = 'empty'
+    channel.calibration_wheel = 'empty'
     channel.acquisition_mode = 'polarimetric'
     class_reduced_esd = channel.apply_spectral_response(
         esd, obj_wavelength)

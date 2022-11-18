@@ -17,7 +17,7 @@ Created on Fri Apr 16 09:10:51 2021
 
 
 import os
-
+import datetime
 import numpy as np
 import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
@@ -26,17 +26,18 @@ from AIS.Spectral_Response import Atmosphere, Telescope, Channel
 
 from .AIS_spectral_response_curves import ccd_operation_mode
 
-
-@pytest.fixture
-def ais():
-    return Artificial_Image_Simulator(
-        ccd_operation_mode=ccd_operation_mode)
-
-
 calculation_method = 'blackbody'
 magnitude = 10
 wavelegnth_interval = (350, 1100, 100)
 temperature = 5700
+channel_id = 1
+
+
+@pytest.fixture
+def ais():
+    return Artificial_Image_Simulator(
+        ccd_operation_mode, channel_id, temperature)
+
 
 # ------------------------------------------------------------
 
@@ -107,23 +108,18 @@ def test_apply_telescope_spectral_response(ais):
     assert np.allclose(ais.sky_sed, new_sky_sed)
 
 
-def test_verify_sparc4_operation_mode(ais):
-    ais.apply_sparc4_spectral_response('photometric')
-
-
 # -----------------------------------Test apply SPARC4 spectral response ----------------------------------------------------
-
-channel_id = 1
 
 
 def test_apply_sparc4_spectral_response_photometric(ais):
     ais.create_source_sed(calculation_method, magnitude,
                           wavelegnth_interval, temperature)
     ais.create_sky_sed(moon_phase, obj_wavelength)
-    channel = Channel(channel_id, 'photometric')
+    channel = Channel(channel_id)
+    channel.write_sparc4_operation_mode('photometric')
     new_sed = channel.apply_spectral_response(ais.source_sed, obj_wavelength)
     new_sky_sed = channel.apply_spectral_response(ais.sky_sed, obj_wavelength)
-    ais.apply_sparc4_spectral_response(channel_id, 'photometric')
+    ais.apply_sparc4_spectral_response('photometric')
     assert np.allclose(ais.source_sed, new_sed)
     assert np.allclose(ais.sky_sed, new_sky_sed)
 
@@ -132,28 +128,49 @@ def test_apply_sparc4_spectral_response_polarimetric(ais):
     ais.create_source_sed(calculation_method, magnitude,
                           wavelegnth_interval, temperature)
     ais.create_sky_sed(moon_phase, obj_wavelength)
-    channel = Channel(channel_id, 'polarimetric', 'polarizer', 'quarter')
+    channel = Channel(channel_id)
+    channel.write_sparc4_operation_mode('polarimetric', 'polarizer', 'quarter')
     new_sed = channel.apply_spectral_response(ais.source_sed, obj_wavelength)
     new_sky_sed = channel.apply_spectral_response(ais.sky_sed, obj_wavelength)
-    ais.apply_sparc4_spectral_response(
-        channel_id, 'polarimetric', 'polarizer', 'quarter')
+    ais.apply_sparc4_spectral_response('polarimetric', 'polarizer', 'quarter')
     assert np.allclose(ais.source_sed, new_sed)
     assert np.allclose(ais.sky_sed, new_sky_sed)
 
 
-# # -----------------------------test _integrate_fluxes ------------------------
+# # --------------------------------------------------------------------------
 
 
-# def test_integrate_specific_photons_per_second(ais):
-#     photons_per_second = np.trapz(star_specific_photons_per_second[0][0, :])
-#     ais.star_specific_photons_per_second = star_specific_photons_per_second
-#     ais.sky_specific_photons_per_second = star_specific_photons_per_second
-#     ais._integrate_specific_photons_per_second()
-#     assert ais.star_ordinary_ray == photons_per_second
-#     assert ais.sky_photons_per_second == 25
+def test_integrate_sed(ais):
+    ais.create_source_sed(calculation_method, magnitude,
+                          wavelegnth_interval, temperature)
+    ais.create_sky_sed(moon_phase, obj_wavelength)
+    src = Source()
+    _, sed2 = src.calculate_sed(
+        calculation_method, magnitude, wavelegnth_interval, temperature)
+    star_photons_per_second = np.trapz(sed2)
+    ais._integrate_sed()
+    sky = Sky()
+    sky_sed2 = sky.calculate_sed(moon_phase, obj_wavelength)
+    sky_photons_per_second = np.trapz(sky_sed2)
+    assert np.allclose(ais.star_photons_per_second, star_photons_per_second)
+    assert np.allclose(ais.sky_photons_per_second, sky_photons_per_second)
 
 
-# # --------------------------- test create artificial image ----------------
+image_path = os.path.join('tests', 'fits')
+
+
+def test_find_image_index(ais):
+    index = ais._find_image_index(image_path)
+    assert index == 3
+
+
+def test_create_image_name(ais):
+    image_name = ais._create_image_name(image_path)
+    now = datetime.datetime.now()
+    datetime_str = now.strftime('%Y%m%d_s4c1_000004.fits')
+    assert image_name == datetime_str
+
+# --------------------------- test create artificial image ----------------
 
 
 # def test_create_artificial_image_phot():

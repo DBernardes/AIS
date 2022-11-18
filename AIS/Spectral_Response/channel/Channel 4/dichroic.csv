@@ -1,5 +1,4 @@
-Wavelength,Transmission
-(nm),(%)
+Wavelength (nm),Transmitance (%)
 400,0.144
 405,0.135
 410,0.145

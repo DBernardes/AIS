@@ -44,36 +44,26 @@ class Artificial_Image_Simulator:
         values for the dictionary are
 
         * em_mode: {Conv, EM}
-
            Use the Conv for the Conventional Mode and EM for the Electron Multiplying mode
-
         * em_gain: float
-
            Electron Multiplying gain
-
         * preamp: {1, 2}
-
            Pre-amplification
-
-        * hss: {0.1, 1, 10, 20, 30}
-
-           Horizontal Shift Speed (readout rate) in MHz
-
+        * readrate: {0.1, 1, 10, 20, 30}
+           Rreadout rate in MHz
         * bin: int
-
            Number of the binned pixels
-
         * t_exp: float
-
            Exposure time in seconds
-
         * ccd_temp: float
-
             CCD temperature
-
         * image_size: int, optional
-
             Image size in pixels
+
+    channel_id: int
+        The channel number. The allowed values are 1, 2, 3, 4.
+    ccd_temperature: float
+        The CCD temperature in celsius degrees.    
 
     Returns
     ------
@@ -96,10 +86,24 @@ class Artificial_Image_Simulator:
 
     def __init__(
             self,
-            ccd_operation_mode: dict[str, int | float | str]) -> None:
-        """Initialize the class."""
+            ccd_operation_mode: dict[str, int | float | str],
+            channel_id: int,
+            ccd_temperature: float | int) -> None:
+        """Initialize the Artificial Image Simulator class."""
         self.ccd_operation_mode = ccd_operation_mode
+        self.channel_id = channel_id
         self._verify_ccd_operation_mode()
+        self.BGI_obj = Background_Image(
+            self.ccd_operation_mode, channel_id, ccd_temperature)
+        self.SRC_obj = Source()
+        self.SKY_obj = Sky()
+        self.ATM_obj = Atmosphere()
+        self.TEL_obj = Telescope()
+        self.CHNNL_obj = Channel(channel_id)
+        self.PSF_obj = Point_Spread_Function(
+            self.ccd_operation_mode, channel_id)
+        self.HDR_obj = Header(self.ccd_operation_mode,
+                              ccd_temperature, channel_id)
         return
 
     @staticmethod
@@ -216,6 +220,12 @@ class Artificial_Image_Simulator:
         self.ccd_temp = ccd_temp
         return
 
+    @staticmethod
+    def _check_var_in_a_list(var, var_name, _list):
+        if var not in _list:
+            raise ValueError(
+                f"The allowed values for the {var_name} are: {_list}")
+
     def create_source_sed(self, calculation_method: str,
                           magnitude: int | float,
                           wavelength_interval: tuple = (),
@@ -247,29 +257,24 @@ class Artificial_Image_Simulator:
             This parameter is used only if the calculation_method is 'spectral_standard'.
             The available spectral types can be found using the print_available_spectral_types() method.
         """
-        src = Source()
-        self.wavelength, self.source_sed = src.calculate_sed(calculation_method, magnitude,
-                                                             wavelength_interval, temperature, spectral_type)
+        self.wavelength, self.source_sed = self.SRC_obj.calculate_sed(calculation_method, magnitude,
+                                                                      wavelength_interval, temperature, spectral_type)
 
     def print_available_spectral_types(self) -> None:
         """Print the available spectral types."""
-        src = Source()
-        src.print_available_spectral_types()
+        self.SRC_obj.print_available_spectral_types()
         return
 
-    def create_sky_sed(self, moon_phase: str, object_wavelength: ndarray):
+    def create_sky_sed(self, moon_phase: str):
         """Create the Spectral Energy Distribution of the sky.
 
         Parameters
         ----------
             moon_phase : ['new', 'waning', 'waxing', 'full']
-                The phase of the moon.
-
-            object_wavelength : ndarray
-                The wavelength of the astronomical object in nm.
+                The phase of the moon.           
         """
-        sky = Sky()
-        self.sky_sed = sky.calculate_sed(moon_phase, object_wavelength)
+        self.sky_sed = self.SKY_obj.calculate_sed(
+            moon_phase, self.wavelength)
 
     def apply_atmosphere_spectral_response(
         self, air_mass: int | float = 1.0, sky_condition: str = "photometric"
@@ -297,9 +302,8 @@ class Artificial_Image_Simulator:
         self._check_var_in_a_list(
             sky_condition, "sky condition", ["photometric", "regular", "good"]
         )
-
-        atm = Atmosphere()
-        self.source_sed = atm.apply_spectral_response(
+        # passar verificação para dentro da classe
+        self.source_sed = self.ATM_obj.apply_spectral_response(
             self.source_sed, self.wavelength, air_mass, sky_condition)
 
     def apply_telescope_spectral_response(self):
@@ -307,17 +311,14 @@ class Artificial_Image_Simulator:
 
         This functions applies the telescope spectral response on the
         Spectral Energy Distribution of the source and the sky.
-
         """
-        tel = Telescope()
-        self.source_sed = tel.apply_spectral_response(
+        self.source_sed = self.TEL_obj.apply_spectral_response(
             self.source_sed, self.wavelength)
-        self.sky_sed = tel.apply_spectral_response(
+        self.sky_sed = self.TEL_obj.apply_spectral_response(
             self.sky_sed, self.wavelength)
 
     def apply_sparc4_spectral_response(
         self,
-        channel_id: int | float,
         acquisition_mode: str,
         calibration_wheel: str = "empty",
         retarder_waveplate: str = "half"
@@ -329,10 +330,6 @@ class Artificial_Image_Simulator:
 
         Parameters
         ----------
-
-        channel_id: int | float
-            The channel of the SPARC4.
-
         acquisition_mode: ["photometric", "polarimetric"]
             The acquisition mode of the sparc4.
 
@@ -345,50 +342,49 @@ class Artificial_Image_Simulator:
             This parameter is used only if the acquisition_mode is 'polarimetric'.
 
         """
-        channel = Channel(channel_id, acquisition_mode,
-                          calibration_wheel, retarder_waveplate)
-        self.source_sed = channel.apply_spectral_response(
+        self.CHNNL_obj.write_sparc4_operation_mode(
+            acquisition_mode, calibration_wheel, retarder_waveplate)
+        self.source_sed = self.CHNNL_obj.apply_spectral_response(
             self.source_sed, self.wavelength)
-        self.sky_sed = channel.apply_spectral_response(
+        self.sky_sed = self.CHNNL_obj.apply_spectral_response(
             self.sky_sed, self.wavelength)
 
     def _integrate_sed(self):
         """Integrate the star and the sky SEDs."""
-        self.sky_photons_per_second = np.trapz(self.sky_sed)
-        self.star_photons_per_second = np.trapz(self.source_sed)
+        self.sky_photons_per_second = np.trapz(self.sky_sed, self.wavelength)
+        self.star_photons_per_second = np.trapz(
+            self.source_sed, self.wavelength)
 
-    def create_artificial_image(self):
+    def create_artificial_image(self, image_path: str, star_coordinates: tuple) -> None:
         """
         Create the artificial star image.
 
-        This function will sum the background image with the star SPF image
-        to create an artificil image, similar to those acquired by the
-        SPARC4 cameras.
+        This function creates a FITS file of the artificial star image.
 
+        Parameters
+        ----------
+        image_path : str
+            The path where the FITS file will be saved.
 
-        Returns
-        -------
-        Star Image:
-            A FITS file with the calculated artificial image
+        star_coordinates : tuple
+            The coordinates in pixels of the star in the image.
+
         """
-        self._configure_image_name()
-        self._integrate_specific_photons_per_second()
-        background = self.bgi.create_background_image(
+
+        self._integrate_sed()
+        background = self.BGI_obj.create_sky_background(
             self.sky_photons_per_second)
-        star_psf = self.psf.create_star_psf(
-            self.star_coordinates,
-            self.star_ordinary_ray,
-            self.star_extra_ordinary_ray,
-        )
-
-        header = self.hdr.create_header()
-
-        image_name = os.path.join(self.image_dir, self.image_name + ".fits")
+        star_psf = self.PSF_obj.create_star_image(
+            star_coordinates,
+            self.star_photons_per_second)
+        header = self.HDR_obj.create_header()
+        image_name = os.path.join(
+            image_path,
+            self._create_image_name(image_path))
 
         fits.writeto(
             image_name,
             background + star_psf,
-            overwrite=True,
             header=header,
         )
 
@@ -546,17 +542,17 @@ class Artificial_Image_Simulator:
             header=header,
         )
 
+    def _find_image_index(self, image_path):
+        index = 0
+        for file in os.listdir(image_path):
+            new_index = int(file.split("_")[-1][:-5])
+            if new_index > index:
+                index = new_index
+        return index
 
-def _configure_image_name(self) -> None:
-    """Create the image name.
-
-    The image name will be created based on the time that the image is created
-
-
-    """
-    now = datetime.datetime.now()
-    self.image_name = (
-        f"{now.year}{now.month:0>2}{now.day:0>2}T{now.hour:0>2}{now.minute:0>2}{now.second:0>2}"
-        + f"{now.microsecond}"[:2]
-    )
-    return
+    def _create_image_name(self, image_path) -> str:
+        now = datetime.datetime.now()
+        index = self._find_image_index(image_path)
+        datetime_string = now.strftime(
+            f"%Y%m%d_s4c{self.channel_id}_{index + 1:06}.fits")
+        return datetime_string

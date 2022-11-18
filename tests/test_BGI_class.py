@@ -23,14 +23,14 @@ ccd_operation_mode = {
     "binn": 1,
     "t_exp": 1,
     "image_size": 1024,
-    'temp': -70
 }
+ccd_temp = -70
 
 
 @pytest.fixture
 def bgi_conv():
     return Background_Image(
-        ccd_operation_mode, 1, bias_level=100
+        ccd_operation_mode, 1, ccd_temp, bias_level=100
     )
 
 
@@ -39,7 +39,7 @@ def bgi_em():
     dic = ccd_operation_mode.copy()
     dic["em_mode"] = 'EM'
     dic["em_gain"] = 2
-    return Background_Image(dic, 1)
+    return Background_Image(dic, 1, ccd_temp)
 
 
 # ------------------------ Initialize the class --------------------------

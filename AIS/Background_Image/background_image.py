@@ -42,6 +42,8 @@ class Background_Image:
             The camera temperature in celsius degree.  
     channel: integer
         The channel related to the camera.
+    ccd_temp: float
+        The CCD temperature in celsius degree.
     bias_level : integer (optional)
         The bias level of the image in ADU.
     """
@@ -54,6 +56,7 @@ class Background_Image:
         self,
         ccd_operation_mode: dict,
         channel: int,
+        ccd_temp: float | int = -70,
         bias_level: int = 500,
     ):
         """Initialize the class."""
@@ -68,7 +71,7 @@ class Background_Image:
         noise = Noise(channel)
         self.read_noise = noise.calculate_read_noise(ccd_operation_mode)
         self.dark_noise = noise.calculate_dark_current(
-            ccd_operation_mode['temp']) * ccd_operation_mode['t_exp']
+            ccd_temp) * ccd_operation_mode['t_exp']
         self.get_ccd_gain()
 
     def get_ccd_gain(self):
