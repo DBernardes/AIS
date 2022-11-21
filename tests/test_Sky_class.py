@@ -28,7 +28,7 @@ ss = pd.read_csv(csv_file)
 
 
 def test_read_csv(sky):
-    for value_name in ['new', 'waxing', 'waning', 'full']:
+    for value_name in ['new', 'first quarter', 'third quarter', 'full']:
         wv, value = sky._read_csv('moon_magnitude.csv', value_name)
         assert np.allclose(wv, ss['wavelength'])
         assert np.allclose(value, ss[value_name])

@@ -121,11 +121,34 @@ import matplotlib.pyplot as plt
 
 wavelegnth_interval = (350, 1100, 100)
 ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
-ais.create_source_sed('blackbody', 30, wavelegnth_interval, 5700)
+ais.create_source_sed('blackbody', 15, wavelegnth_interval, 5700)
 ais.create_sky_sed('new')
 ais.apply_atmosphere_spectral_response()
 ais.apply_telescope_spectral_response()
 ais.apply_sparc4_spectral_response('photometric')
 ais._integrate_sed()
-print(ais.star_photons_per_second)
-#ais.create_artificial_image(r'E:\images\test', (50, 50))
+ais.create_artificial_image(r'E:\images\test', (50, 50))
+
+# -----------------------------------------------------------------------------------------
+# Test the PSF class
+# from AIS.Point_Spread_Function import Point_Spread_Function
+# from tests.AIS_spectral_response_curves import ccd_operation_mode
+# from matplotlib import pyplot as plt
+
+# psf = Point_Spread_Function(ccd_operation_mode, 1)
+# star_image = psf.create_star_image((50, 50), 1e20, 1e20)
+# plt.imshow(star_image)
+# plt.show()
+
+# -----------------------------------------------------------------------------------------
+# Test blackbody funcion
+# from AIS.Spectral_Energy_Distribution import Source
+# import matplotlib.pyplot as plt
+# import numpy as np
+
+# wv = np.linspace(400, 1100, 100)
+# source = Source()
+# #bb = source._calculate_sed_blackbody(wv, 5000)
+# #plt.plot(wv, bb)
+# # plt.show()
+# print(source._calculate_photons_density(15))

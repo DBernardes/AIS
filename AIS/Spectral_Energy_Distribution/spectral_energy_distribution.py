@@ -60,7 +60,7 @@ class Spectral_Energy_Distribution:
         return interpolated_spectral_distribution
 
     def _calculate_photons_density(self, magnitude):
-        return self.S_0*10**(-magnitude/2.5)*self.TELESCOPE_EFFECTIVE_AREA*self.EFFECT_WAVELENGTH*1e-9/h*c
+        return self.S_0*10**(-magnitude/2.5)*self.TELESCOPE_EFFECTIVE_AREA*self.EFFECT_WAVELENGTH*1e-9/(h*c)
 
 
 class Source(Spectral_Energy_Distribution):
@@ -147,7 +147,7 @@ class Source(Spectral_Energy_Distribution):
 
     @staticmethod
     def _calculate_sed_blackbody(wavelength, temperature):
-        return 2 * pi * h * c ** 2 / (wavelength * 1e-9) ** 5 * 1 / (np.exp(h * c / (wavelength * 1e-9 * k * temperature)) - 1)
+        return 8 * pi * h * c / (wavelength * 1e-9) ** 5 * 1 / (np.exp(h * c / (wavelength * 1e-9 * k * temperature)) - 1)
 
     def _read_spectral_library(self, spectral_type):
         path = os.path.join(self.SPECTRAL_LIB_PATH,
@@ -193,7 +193,7 @@ class Sky(Spectral_Energy_Distribution):
 
         Parameters
         ----------
-        moon_phase : ['new', 'waxing', 'waning', 'full']
+        moon_phase : ['new', 'first quarter', 'third quarter', 'full']
             The phase of the moon.
 
         object_wavelength : ndarray

@@ -270,7 +270,7 @@ class Artificial_Image_Simulator:
 
         Parameters
         ----------
-            moon_phase : ['new', 'waning', 'waxing', 'full']
+            moon_phase : ['new', 'first quarter', 'third quarter', 'full']
                 The phase of the moon.           
         """
         self.sky_sed = self.SKY_obj.calculate_sed(

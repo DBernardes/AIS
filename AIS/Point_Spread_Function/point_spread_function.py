@@ -144,7 +144,8 @@ class Point_Spread_Function:
         gaussian_amplitude = (
             ordinary_ray * t_exp * em_gain * binn ** 2 / self.ccd_gain
         )
-        self.table["amplitude"] = [gaussian_amplitude / (2*pi)]"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        # "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        self.table["amplitude"] = [gaussian_amplitude / (2*pi)]
 
         shape = (image_size, image_size)
         star_image = make_gaussian_sources_image(shape, self.table)
