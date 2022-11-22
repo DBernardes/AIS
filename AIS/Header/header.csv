@@ -1,99 +1,59 @@
-keyword,value,comment
-FILENAME," ",File name at acquisition
-OBJECT,AB_Crux,Object name
-CHANNEL,1,Instrument channel
-NEXPSEQ,1,Total number of exposures in sequence
-READMODE,Image,CCD read mode
-PREAMP,2,Pre-amplifier gain
-OBSTYPE,OBJECT,"Image type: OBJECT, BIAS, FLAT, ARC, DARK"
-VSHIFT,0.6,Vertical Shift Speed
-EMMODE,Conventional,Output amplifier mode
-VBIN,1,Vertical binning
-INITLIN,1,Initial Line
-KSERLEN,1,Kinetic Series Length
-OPENSHT,50,Time to open the shutter (ms)
-FINALLIN,1024,Final Line
-DATE," ",Acquired image date (YY/MM/DD:HH:MM:SS.MM)
-GAINERR,0.01,Gain error (e-/ADU)
-OBSERVER,Denis,Name of the observer
-NIGHTDIR," ",Night directory name
-INSTRUME,SPARC4,Instrument
-SEQINDEX,1,Exposure index in the sequence
-ACQMODE,Kinetic,Acquisition Mode
-READOUT,1 MHz,Readout Rate
-READMOD,normal,"Read out mode: fast, normal, slow"
-TRIGGER,External,Trigger Mode
-EMGAIN,2,EM Gain
-HBIN,1,Horizontal binning
-INITCOL,1,Initial Column
-SHUTTER,Open,"Shutter Mode (OPEN, CLOSED, or AUTO)"
-CLOSESHT,50,Time to close the shutter (ms)
-FINALCOL,1024,Final Column
-GAIN,5,Gain (e-/ADU)
-RDNOISE,3.6,Read noise (e-)
-PROGRID,1,Program ID
-RNOISERR,0.01,Read noise error (e-)
-SKYFIBER,OFF,Sky fiber: ON or OFF
-CALFIBER,OFF,Calibration Fiber: ON or OFF
-UTDATE,00:00:00,UT date at start of exposure
-LOCTIME,00:00:00,LT date at start of exposure
-MJD,2001.52,Modified Julian Date at start of exposure
-OBSLON,00o00'00'',Observatory East Longitude
-OBSLAT,00o00'00'',Observatory Latitude
-OBSALT,1800,Observatory elevation above sea level (m)
-EXPTIME,1,Exposure time (s)
-TELRA,00:00:00,TCS right ascension: HH:MM:SS.SSS
-TELDEC,00:00:00,TCS declination: +-DD:MM:SS.SSS
-RA,00:00:00,Requested right Ascension: HH:MM:SS.SSS
-DEC,00:00:00,Requested Declination: +- DD:MM:SS.SSS
-RA_DEG,20,Requested Right Ascension (deg)
-DEC_DEG,20,Requested Declination (deg)
-EPOCH,2000,Epoch for Target coordinates
-HA,00:00:00,Hour Angle (Sexagesimal)
-HAD,20,Hour Angle (deg)
-AIRMASS,1,Mean airmass for the observation
-AMSTART,1,Airmass at start of exposure
-AMEND,1,Airmass at end of exposure
-XOFFSET,00:00:00,Telescope RA offset in arcsec
-YOFFSET,00:00:00,Telescope DEC offset in arcsec
-PA,0,Current Rotator Position Angle (degree)
-CAMFOC,200,Camera focus position (mm)
-TELFOC,200,Telescope focus position (mm)
-TCSUT,00:00:00,TCS Universal Time
-TCSST,00:00:00,TCS Sideral Time
-MOONDIST,20,Moon angular distance to object (deg)
-MOONALT,20,Moon elevation above horizon (deg)
-MOONPHAS,New,Phase of the moon
-ADC,OFF,Atmospheric Dispersion Corrector: ON or OFF
-ADCSPEED,30,ADC motor speed (rpm)
-CALMIRR,IN,Calibration mirror position: IN or OUT
-GUIDING,ON,Guider status: ON or OFF
-GUIDTEXP,1,Guider exposure time (s)
-GUIDFREQ,1 Hz,Guiding frequency (Hz)
-GUIDOBJX,10,Guiding object x position (pixel)
-GUIDOBJY,10,Guiding object y position (pixel)
-AVGYCORR,5,Average correction in RA (arcsec)
-AVGXCORR,5,Average correction in DEC (arcsec)
-GFOCUS,56,Guider focus position (mm)
-THARLAMP,OFF,Thorium-Argon lamp state: ON or OFF
-HALLAMP,OFF,Halogen lamp state: ON or OFF
-AGITATOR,OFF,Fiber agitator: ON or OFF
-THARMIRR,TELESCOPE,Th-Ar mirror position: SPECTROGRAPH or TELESCOP
-DSTATUS,Open,Dome Status: OPEN or CLOSED
-DPOS,56,Dome position (deg)
-DTEMP,25,Dome temperature (deg C)
-DHUM,100,Dome humidity (per cent)
-DLAMP,OFF,Dome lamp: ON or OFF
-DFLAT,OFF,Dome flat lamp: ON or OFF
-TEMPEXT,15,External temperature (deg C)
-PRESSURE,700,Pressure (mbar)
-HUMIDITY,100,Humidity (per cent)
-WINDDIR,North,Wind direction: North-eastward (deg)
-WINSPEED,20,Wind Speed (km/h)
-SHTTTL,High,Shutter TTL
-COOLER,ON,CCD cooler: ON or OFF
-TEMP,-70,CCD temperature
-TEMPST,TEMPERATURE_STABILIZED,Temperature status
-SERN,9914,Serial Number
-IM_DT0,0,Delay in nsec of the image 1
-OBSTITLE,Come on SPARC4!,Observation title
+keyword	value	comment
+NAXIS1  		Number of columns
+NAXIS2  		Number of rows
+OBSERVER	"Kepler"	Name of the observer
+OBJECT  	"HD5980"	Object name                                                                                           
+INSTRUME	"SPARC4"	Instrument                                     
+OBSTYPE 	"NONE"	Image type: OBJECT, ZERO, FLAT, DARK, NONE          
+CHANNEL 		Instrument channel   
+SERN    		Serial Number of the CCD  
+FILENAME		File name 
+DATE-OBS		Acquisition date in UTC (ISO8601)
+UTTIME  		Acquisition UTC time 
+UTDATE  		Acquisition UTC date 
+NCYCLES 	1	Number of cycles
+CYCLIND 	1	Index of the cycle in the sequence
+NFRAMES  	1	Number of frames in the cycle
+FRAMEIND	1	Index of the frame in the cycle
+EXPTIME 		Exposure time of the frame in seconds   
+CYCLTEXP		Cycle exposure time in seconds                                                                
+ACQMODE 	"Kinetic"	Acquisition Mode                               
+PREAMP  		Pre-amplifier gain                             
+READRATE 		Readout Rate in MHz                               
+VSHIFT  	4.33	Vertical Shift Speed in microseconds                      
+TRIGGER 	"Internal"	Trigger Mode
+EMMODE  		Output amplifier mode                        
+EMGAIN  		EM Gain  
+VBIN    		Vertical binning                               
+HBIN    		Horizontal binning                             
+INITLIN 		Initial Line                                   
+INITCOL 		Initial Column                                 
+FINALLIN		Final Line                                     
+FINALCOL		Final Column                                   
+SHUTTER 	"Open"	Shutter Mode
+COOLER  	"ON"	CCD cooler: ON or OFF                          
+CCDTEMP    		CCD temperature in celsius degrees   
+TGTEMP  		Target temperature in celsius degrees                             
+TEMPST  	"TEMPERATURE_STABILIZED"	Temperature status                             
+FRAMETRF 	"ON"	Frame Transfer: ON or OFF                      
+VCLKAMP 	"Normal"	Vertical Clock Amplitude: Normal, +1, +2, +3, +4    
+GAIN    		Gain in e-/ADU
+RDNOISE 		Read noise in e-
+RA      	"00:00:00"	Right Ascension: HH:MM:SS       
+DEC     	"00:00:00"	Declination: +- HH:MM:SS
+EQUINOX 	2000	Equinox for the target coordinates                                                    
+TELFOCUS  	465	Telescope focus position
+TCSHA      	"00:00:00"	TCS hour angle
+TCSDATE 		TCS date in UT                                     
+GFOCUS  		Guider focus position 
+GUIDEAR  		AR of the guider object
+GUIDEDEC 		DEC of the guider object            
+EXTTEMP 	12	External temperature in celsius degrees
+AIRMASS 	1.01	Airmass in the start of the exposure                
+PRESSURE	760	Pressure in mbar
+HUMIDITY	86	Humidity in percent
+ACSVRSN 	1.0.0	The version of the ACS                         
+CTRLINTE	"S4GUI"	Graphical control interface of the ACS    
+ACSMODE 	"Real"	Mode of the ACS (simulated or real)
+ICSMODE 	"Real"	Mode of the ICS (simulated or real)
+TCSMODE 	"Real"	Mode of the TCS (simulated or real)

@@ -72,7 +72,7 @@ class Header:
 
     @staticmethod
     def _read_spreadsheet(file):
-        ss = pd.read_csv(file)
+        ss = pd.read_csv(file, sep='\t', keep_default_na=False)
         return ss
 
     def create_header(self):
