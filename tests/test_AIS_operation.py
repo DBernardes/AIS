@@ -74,7 +74,9 @@ moon_phase = 'new'
 
 
 def test_create_sky_sed(ais):
-    ais.create_sky_sed(moon_phase, obj_wavelength)
+    ais.create_source_sed('blackbody', magnitude,
+                          wavelegnth_interval, temperature)
+    ais.create_sky_sed(moon_phase)
     sky = Sky()
     sed2 = sky.calculate_sed(moon_phase, obj_wavelength)
 
@@ -99,7 +101,7 @@ def test_apply_atmosphere_spectral_response(ais):
 def test_apply_telescope_spectral_response(ais):
     ais.create_source_sed(calculation_method, magnitude,
                           wavelegnth_interval, temperature)
-    ais.create_sky_sed(moon_phase, obj_wavelength)
+    ais.create_sky_sed(moon_phase)
     tel = Telescope()
     new_sed = tel.apply_spectral_response(ais.source_sed, obj_wavelength)
     new_sky_sed = tel.apply_spectral_response(ais.sky_sed, obj_wavelength)
@@ -114,7 +116,7 @@ def test_apply_telescope_spectral_response(ais):
 def test_apply_sparc4_spectral_response_photometric(ais):
     ais.create_source_sed(calculation_method, magnitude,
                           wavelegnth_interval, temperature)
-    ais.create_sky_sed(moon_phase, obj_wavelength)
+    ais.create_sky_sed(moon_phase)
     channel = Channel(channel_id)
     channel.write_sparc4_operation_mode('photometric')
     new_sed = channel.apply_spectral_response(ais.source_sed, obj_wavelength)
@@ -127,7 +129,7 @@ def test_apply_sparc4_spectral_response_photometric(ais):
 def test_apply_sparc4_spectral_response_polarimetric(ais):
     ais.create_source_sed(calculation_method, magnitude,
                           wavelegnth_interval, temperature)
-    ais.create_sky_sed(moon_phase, obj_wavelength)
+    ais.create_sky_sed(moon_phase)
     channel = Channel(channel_id)
     channel.write_sparc4_operation_mode('polarimetric', 'polarizer', 'quarter')
     new_sed = channel.apply_spectral_response(ais.source_sed, obj_wavelength)
@@ -143,15 +145,15 @@ def test_apply_sparc4_spectral_response_polarimetric(ais):
 def test_integrate_sed(ais):
     ais.create_source_sed(calculation_method, magnitude,
                           wavelegnth_interval, temperature)
-    ais.create_sky_sed(moon_phase, obj_wavelength)
+    ais.create_sky_sed(moon_phase)
     src = Source()
-    _, sed2 = src.calculate_sed(
+    wv, sed2 = src.calculate_sed(
         calculation_method, magnitude, wavelegnth_interval, temperature)
-    star_photons_per_second = np.trapz(sed2)
+    star_photons_per_second = np.trapz(sed2, wv)
     ais._integrate_sed()
     sky = Sky()
     sky_sed2 = sky.calculate_sed(moon_phase, obj_wavelength)
-    sky_photons_per_second = np.trapz(sky_sed2)
+    sky_photons_per_second = np.trapz(sky_sed2, obj_wavelength)
     assert np.allclose(ais.star_photons_per_second, star_photons_per_second)
     assert np.allclose(ais.sky_photons_per_second, sky_photons_per_second)
 

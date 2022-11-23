@@ -39,7 +39,7 @@ EFFECT_WAVELENGTH = 555.6  # nm
 TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
 S_0 = vega_fluxd.get()["Johnson V"].value*1e7  # W/(m.m2)
 new_sed = S_0*10**(-ss[moon_phase]/2.5)*TELESCOPE_EFFECTIVE_AREA * \
-    EFFECT_WAVELENGTH*1e-9/h*c
+    EFFECT_WAVELENGTH*1e-9/(h*c)
 spl = splrep(ss['wavelength'], new_sed)
 new_sed = splev(obj_wavelength, spl)
 

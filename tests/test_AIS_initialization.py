@@ -43,17 +43,25 @@ from .AIS_spectral_response_curves import (
     sparc4_operation_mode,
 )
 
+channel_id = 1
+temperature = -70
+
 
 @pytest.fixture
 def ais():
     return Artificial_Image_Simulator(
-        ccd_operation_mode=ccd_operation_mode)
+        ccd_operation_mode, channel_id, temperature)
 
 
 # # -------------------- Testing the AIS class --------------------------------
 
 def test_ccd_operation_mode(ais):
     assert ais.ccd_operation_mode == ccd_operation_mode
+
+
+def test_channel_id(ais):
+    assert ais.channel_id == channel_id
+
 
 # -------  provide a wrong parameter to the CCD operation mode---------------
 
@@ -70,7 +78,7 @@ def test_ccd_operation_mode_wrong_keyword_em_mode():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyword_em_gain():
@@ -85,7 +93,7 @@ def test_ccd_operation_mode_wrong_keyword_em_gain():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyword_preamp():
@@ -100,7 +108,7 @@ def test_ccd_operation_mode_wrong_keyword_preamp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyword_hss():
@@ -115,7 +123,7 @@ def test_ccd_operation_mode_wrong_keyword_hss():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyword_bin():
@@ -130,7 +138,7 @@ def test_ccd_operation_mode_wrong_keyword_bin():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyword_t_exp():
@@ -145,7 +153,7 @@ def test_ccd_operation_mode_wrong_keyword_t_exp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyword_ccd_temp():
@@ -160,7 +168,7 @@ def test_ccd_operation_mode_wrong_keyword_ccd_temp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyword_image_size():
@@ -175,7 +183,7 @@ def test_ccd_operation_mode_wrong_keyword_image_size():
         "image_sizee": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 # ------------ provide a wrong value to the CCD operation mode-------------
@@ -193,7 +201,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_mode():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_1():
@@ -208,7 +216,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_1():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_2():
@@ -223,7 +231,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_2():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_em_gain_3():
@@ -238,7 +246,7 @@ def test_ccd_operation_mode_wrong_keyvalue_em_gain_3():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_preamp():
@@ -253,7 +261,7 @@ def test_ccd_operation_mode_wrong_keyvalue_preamp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_hss():
@@ -268,7 +276,7 @@ def test_ccd_operation_mode_wrong_keyvalue_hss():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_bin():
@@ -283,7 +291,7 @@ def test_ccd_operation_mode_wrong_keyvalue_bin():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_exp_1():
@@ -298,7 +306,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_exp_1():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_exp_2():
@@ -313,7 +321,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_exp_2():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_ccd_temp_1():
@@ -328,7 +336,7 @@ def test_ccd_operation_mode_wrong_keyvalue_ccd_temp_1():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_ccd_temp_2():
@@ -343,7 +351,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_ccd_temp_2():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_image_size_1():
@@ -358,7 +366,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_1():
         "image_size": -1,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_image_size_2():
@@ -373,7 +381,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_2():
         "image_size": 0,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
@@ -388,7 +396,7 @@ def test_ccd_operation_mode_wrong_keyvalue_t_image_size_3():
         "image_size": 1.1,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 # ---------------------------Missing CCD operation mode parameter -------------
@@ -405,7 +413,7 @@ def test_ccd_operation_mode_missing_parameter_em_mode():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_missing_parameter_em_gain():
@@ -419,7 +427,7 @@ def test_ccd_operation_mode_missing_parameter_em_gain():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_missing_parameter_preamp():
@@ -433,7 +441,7 @@ def test_ccd_operation_mode_missing_parameter_preamp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_missing_parameter_hss():
@@ -447,7 +455,7 @@ def test_ccd_operation_mode_missing_parameter_hss():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_missing_parameter_t_exp():
@@ -461,7 +469,7 @@ def test_ccd_operation_mode_missing_parameter_t_exp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_missing_parameter_bin():
@@ -475,7 +483,7 @@ def test_ccd_operation_mode_missing_parameter_bin():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_missing_parameter_ccd_temp():
@@ -489,7 +497,7 @@ def test_ccd_operation_mode_missing_parameter_ccd_temp():
         "image_size": 200,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 def test_ccd_operation_mode_missing_parameter_image_size():
@@ -503,4 +511,4 @@ def test_ccd_operation_mode_missing_parameter_image_size():
         "ccd_temp": -70,
     }
     with pytest.raises(ValueError):
-        Artificial_Image_Simulator(ccd_operation_mode)
+        Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)

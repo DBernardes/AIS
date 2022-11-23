@@ -47,7 +47,7 @@ def test_get_sed_error(source):
 # ------------------------------------------------------------
 wv = np.linspace(350, 1100, 100)
 temperature = 5700
-sed_blackbody = 2 * pi * h * c ** 2 / (wv * 1e-9) ** 5 * 1 / \
+sed_blackbody = 8 * pi * h * c / (wv * 1e-9) ** 5 * 1 / \
     (np.exp(h * c / (wv * 1e-9 * k * temperature)) - 1)
 
 
@@ -62,7 +62,7 @@ TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
 EFFECT_WAVELENGTH = 555.6  # nm
 S_0 = vega_fluxd.get()['Johnson V'].value*1e7  # W/m2/m
 effective_flux = S_0*10**(-magnitude/2.5) * \
-    TELESCOPE_EFFECTIVE_AREA*EFFECT_WAVELENGTH*1e-9/h*c
+    TELESCOPE_EFFECTIVE_AREA*EFFECT_WAVELENGTH*1e-9/(h*c)
 wavelength_interval = (350, 1100, 100)
 calculation_method = 'blackbody'
 spl = splrep(wv, sed_blackbody)
