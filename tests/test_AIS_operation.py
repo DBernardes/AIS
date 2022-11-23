@@ -184,20 +184,29 @@ def test_create_image_name(ais):
 # --------------------------- test create artificial image ----------------
 
 
-# def test_create_artificial_image_phot():
-#     ccd_operation_mode = {
-#         "em_mode": "Conv",
-#         "em_gain": 1,
-#         "preamp": 1,
-#         "hss": 1,
-#         "binn": 1,
-#         "t_exp": 1,
-#         "ccd_temp": -70,
-#         "image_size": 100,
-#     }
-#     ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
-#     ais.apply_sparc4_spectral_response(sparc4_operation_mode)
-#     ais.create_artificial_image()
+sparc4_operation_mode = 'photometry'
+star_coordinates = (50, 50)
+
+
+def test_create_artificial_image_phot():
+    ccd_operation_mode = {
+        "em_mode": "Conv",
+        "em_gain": 1,
+        "preamp": 1,
+        "readout": 1,
+        "binn": 1,
+        "t_exp": 1,
+        "image_size": 100,
+    }
+    ais = Artificial_Image_Simulator(
+        ccd_operation_mode, channel_id, temperature)
+    ais.create_source_sed(calculation_method, magnitude,
+                          wavelegnth_interval, temperature)
+    ais.create_sky_sed(moon_phase)
+    ais.apply_sparc4_spectral_response(sparc4_operation_mode)
+    path = os.path.join('tests', 'fits')
+    ais.create_artificial_image(path, star_coordinates)
+    os.remove(os.path.join(path, ais.image_name))
 
 
 # def test_create_artificial_image_pol():

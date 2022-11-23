@@ -36,6 +36,19 @@ class Spectral_Response:
         return
 
     @staticmethod
+    def _check_var_in_a_list(var, var_name, _list):
+        if var not in _list:
+            raise ValueError(
+                f"The allowed values for the {var_name} are: {_list}")
+
+    @staticmethod
+    def _verify_var_in_interval(var, var_name, var_min=0, var_max=2 ** 32):
+        if var <= var_min or var >= var_max:
+            raise ValueError(
+                f"The {var_name} must be in the interval [{var_min},{var_max}]: {var}."
+            )
+
+    @staticmethod
     def _read_csv_file(csv_file_name):
         ss = pd.read_csv(csv_file_name)
         return np.array(ss["Wavelength (nm)"]), np.array(ss["Transmitance (%)"]) / 100
@@ -192,6 +205,9 @@ class Atmosphere(Spectral_Response):
                 The Spectral Energy Distribution (SED) of the object subtracted from the loses
                 related to the spectral response of the system.
         """
+        self._verify_var_in_interval(air_mass, "air_mass", var_max=3)
+        self._check_var_in_a_list(sky_condition, "sky_condition", [
+                                  "photometric", "regular", "good"])
         spectral_response = self.get_spectral_response(
             obj_wavelength, air_mass, sky_condition
         )
@@ -267,8 +283,8 @@ class Channel(Spectral_Response):
 
         Parameters
         ----------
-        acquisition_mode: ['polarimetric', 'photometric']
-            The acquisition mode of the channel. If the acquisition mode is polarimetric,
+        acquisition_mode: ['polarimetry', 'photometry']
+            The acquisition mode of the channel. If the acquisition mode is polarimetry,
             the polarimetric configuration must be provided.
 
         calibration_wheel: ["polarizer", "depolarizer", "empty"], optional
@@ -300,7 +316,7 @@ class Channel(Spectral_Response):
                 related to the spectral response of the system.
         """
 
-        if self.acquisition_mode == "polarimetric":
+        if self.acquisition_mode == "polarimetry":
             sed = self._apply_polarimetric_spectral_response(
                 sed, obj_wavelength)
         reduced_sed = self._apply_photometric_spectral_response(
@@ -335,9 +351,9 @@ class Channel(Spectral_Response):
 
     def _verify_sparc4_operation_mode(self) -> None:
 
-        if self.acquisition_mode == "photometric":
+        if self.acquisition_mode == "photometry":
             pass
-        elif self.acquisition_mode == "polarimetric":
+        elif self.acquisition_mode == "polarimetry":
             self._check_var_in_a_list(
                 self.calibration_wheel,
                 "calibration wheel",
@@ -355,15 +371,9 @@ class Channel(Spectral_Response):
             )
         else:
             raise ValueError(
-                f"The SPARC4 acquisition mode should be 'photometric' or 'polarimetric': {self.acquisition_mode}."
+                f"The SPARC4 acquisition mode should be 'photometry' or 'polarimetry': {self.acquisition_mode}."
             )
         return
-
-    @staticmethod
-    def _check_var_in_a_list(var, var_name, _list):
-        if var not in _list:
-            raise ValueError(
-                f"The allowed values for the {var_name} are: {_list}")
 
 
 if __name__ == "__main__":

@@ -35,40 +35,7 @@ class Artificial_Image_Simulator:
     similar to those images that would be acquired by using the acquisition system of the SPARC4 instrument.
     To accomplish this, the AIS models as star flux as a 2D gaussian distribution.
     Then, the star flux is added to an image with a background level
-    given by counts distribution of an image of the SPARC4 cameras, as a function of its operation mode.
-
-    Parameters
-    ----------
-    ccd_operation_mode: dictionary
-        A python dictionary with the CCD operation mode. The allowed keywords
-        values for the dictionary are
-
-        * em_mode: {Conv, EM}
-           Use the Conv for the Conventional Mode and EM for the Electron Multiplying mode
-        * em_gain: float
-           Electron Multiplying gain
-        * preamp: {1, 2}
-           Pre-amplification
-        * readrate: {0.1, 1, 10, 20, 30}
-           Rreadout rate in MHz
-        * bin: int
-           Number of the binned pixels
-        * t_exp: float
-           Exposure time in seconds
-        * ccd_temp: float
-            CCD temperature
-        * image_size: int, optional
-            Image size in pixels
-
-    channel_id: int
-        The channel number. The allowed values are 1, 2, 3, 4.
-    ccd_temperature: float
-        The CCD temperature in celsius degrees.    
-
-    Returns
-    ------
-        image: ndarray
-            An image in the FITS format with the star flux distribution
+    given by counts distribution of an image of the SPARC4 cameras, as a function of its operation mode.    
 
     Notes
     -----
@@ -89,7 +56,34 @@ class Artificial_Image_Simulator:
             ccd_operation_mode: dict[str, int | float | str],
             channel_id: int,
             ccd_temperature: float | int) -> None:
-        """Initialize the Artificial Image Simulator class."""
+        """Initialize the Artificial Image Simulator class.
+
+        Parameters
+        ----------
+        ccd_operation_mode: dictionary
+            A python dictionary with the CCD operation mode. The allowed keywords
+            values for the dictionary are
+
+            * em_mode: [Conv, EM]
+                Use the Conv for the Conventional Mode and EM for the Electron Multiplying mode
+            * em_gain: float
+                Electron Multiplying gain
+            * preamp: [1, 2]
+                Pre-amplification gain
+            * readout: [0.1, 1, 10, 20, 30]
+                Readout rate in MHz
+            * binn: int
+                Number of the binned pixels
+            * t_exp: float
+                Exposure time in seconds            
+            * image_size: int, optional
+                Image size in pixels
+
+        channel_id: [1, 2, 3, 4]
+            The channel ID. 
+        ccd_temperature: float
+            The CCD temperature in celsius degrees.           
+        """
         self.ccd_operation_mode = ccd_operation_mode
         self.channel_id = channel_id
         self._verify_ccd_operation_mode()
@@ -107,63 +101,15 @@ class Artificial_Image_Simulator:
         return
 
     @staticmethod
-    def _verify_type(var, var_name, _type=float | int):
-        if not isinstance(var, _type):
-            if type(_type) == UnionType:
-                raise ValueError(
-                    f"The {var_name} must be an integer or a float: {var}."
-                )
-            elif _type == int:
-                raise ValueError(f"The {var_name} must be an integer: {var}.")
-            elif _type == str:
-                raise ValueError(f"The {var_name} must be a string: {var}.")
-            else:
-                pass
-
-    @staticmethod
     def _verify_var_in_interval(var, var_name, var_min=0, var_max=2 ** 32):
         if var <= var_min or var >= var_max:
             raise ValueError(
                 f"The {var_name} must be in the interval [{var_min},{var_max}]: {var}."
             )
 
-    def _verify_class_parameters(self) -> None:
-        self._verify_type(self.channel, "channel", int)
-        self._check_var_in_a_list(self.channel, "channel", [1, 2, 3, 4])
-
-        for coord in self.star_coordinates:
-            self._verify_type(coord, "star coordinate")
-            self._verify_var_in_interval(coord, "star coordinate")
-            if coord > self.ccd_operation_mode["image_size"]:
-                raise ValueError(
-                    f"The star coordinates must be smaller than the image size: {coord}"
-                )
-
-        self._verify_type(self.bias_level, "bias_level", int)
-        self._verify_var_in_interval(self.bias_level, "bias_level")
-
-        for wavelength in self.wavelength_interval:
-            self._verify_type(wavelength, "wavelength")
-            self._verify_var_in_interval(wavelength, "wavelength", 350, 1150)
-
-        self._verify_type(self.seeing, "seeing")
-        self._verify_var_in_interval(self.seeing, "seeing")
-
-        self._verify_type(self.star_magnitude, "star magnitude")
-
-        self._verify_type(self.image_dir, "image directory", str)
-
-        self._verify_type(self.moon_condition, "moon condition", str)
-        self._check_var_in_a_list(
-            self.moon_condition, "moon condition", [
-                "new", "waxing", "waning", "full"]
-        )
-        return
-
     def _verify_ccd_operation_mode(self) -> None:
         dic_keywords_list = [
             "binn",
-            "ccd_temp",
             "em_gain",
             "em_mode",
             "image_size",
@@ -188,7 +134,6 @@ class Artificial_Image_Simulator:
         preamp = self.ccd_operation_mode["preamp"]
         binn = self.ccd_operation_mode["binn"]
         t_exp = self.ccd_operation_mode["t_exp"]
-        ccd_temp = self.ccd_operation_mode["ccd_temp"]
         image_size = self.ccd_operation_mode["image_size"]
 
         self._check_var_in_a_list(em_mode, "EM mode", ["Conv", "EM"])
@@ -198,7 +143,6 @@ class Artificial_Image_Simulator:
                     f"The EM Gain must be 1 for the Conventional Mode: {em_gain}"
                 )
         else:
-            self._verify_type(em_gain, "EM gain")
             self._verify_var_in_interval(em_gain, "EM Gain", 2, 300)
 
         self._check_var_in_a_list(hss, "readout rate", [0.1, 1, 10, 20, 30])
@@ -207,17 +151,11 @@ class Artificial_Image_Simulator:
 
         self._check_var_in_a_list(binn, "binning", [1, 2])
 
-        self._verify_type(image_size, "image size", int)
         self._verify_var_in_interval(image_size, "image size", 0, 1025)
         self.image_size = image_size
 
-        self._verify_type(t_exp, "exposure time")
         self._verify_var_in_interval(t_exp, "exposure time", 1e-5, 84600)
         self.t_exp = t_exp
-
-        self._verify_type(ccd_temp, "CCD temperature")
-        self._verify_var_in_interval(ccd_temp, "CCD temperature", -80, 20)
-        self.ccd_temp = ccd_temp
         return
 
     @staticmethod
@@ -288,21 +226,13 @@ class Artificial_Image_Simulator:
         ----------
 
         air_mass: 1.0, optional
-        The air mass in the light path.
+            The air mass in the light path.
 
         sky_condition: ["photometric", "regular", "good"], optional
             The sky condition. According to the value provided for this variable,
             a different extinction coeficient for the atmosphere will be selected.
         """
 
-        self._verify_type(air_mass, "air mass")
-        self._verify_var_in_interval(air_mass, "air mass", -1e-3)
-
-        self._verify_type(sky_condition, "sky condition", str)
-        self._check_var_in_a_list(
-            sky_condition, "sky condition", ["photometric", "regular", "good"]
-        )
-        # passar verificação para dentro da classe
         self.source_sed = self.ATM_obj.apply_spectral_response(
             self.source_sed, self.wavelength, air_mass, sky_condition)
 
@@ -330,14 +260,14 @@ class Artificial_Image_Simulator:
 
         Parameters
         ----------
-        acquisition_mode: ["photometric", "polarimetric"]
+        acquisition_mode: ["photometry", "polarimetry"]
             The acquisition mode of the sparc4.
 
         calibration_wheel: ["polarizer", "depolarizer", "empty"], optional
             The position of the calibration wheel.
             This parameter is used only if the acquisition_mode is 'polarimetric'.
 
-        retarder: ["half", "quarter"], optional
+        retarder_waveplate: ["half", "quarter"], optional
             The waveplate for polarimetric measurements.
             This parameter is used only if the acquisition_mode is 'polarimetric'.
 
@@ -377,43 +307,46 @@ class Artificial_Image_Simulator:
         star_psf = self.PSF_obj.create_star_image(
             star_coordinates,
             self.star_photons_per_second)
+        self._create_image_name(image_path)
         header = self.HDR_obj.create_header()
-        image_name = os.path.join(
-            image_path,
-            self._create_image_name(image_path))
+        header['OBSTYPE'] = 'OBJECT'
+        header['FILENAME'] = self.image_name
+
+        file = os.path.join(image_path, self.image_name)
 
         fits.writeto(
-            image_name,
+            file,
             background + star_psf,
             header=header,
         )
 
-    def create_background_image(self):
+    def create_background_image(self, image_path: str):
         """
         Create the background image.
 
         This function creates the background image, similar to those
-        acquired by the SPARC4 cameras.
+        acquired by the SPARC4 cameras.  
 
+        Parameters  
+        ----------
 
-        Returns
-        -------
-        Background Image:
-            A FITS file with the calculated background image
+        image_path : str
+            The path where the FITS file will be saved.
         """
-        self._configure_image_name()
-        self._integrate_specific_photons_per_second()
-        background = self.bgi.create_background_image(
+        self._integrate_sed()
+        background = self.BGI_obj.create_sky_background(
             self.sky_photons_per_second)
-        header = self.hdr.create_header()
+        header = self.HDR_obj.create_header()
+        self.image_name = self._create_image_name(image_path)
+        header['FILENAME'] = self.image_name
+        header['OBSTYPE'] = 'FLAT'  # ?
 
-        image_name = os.path.join(self.image_dir, self.image_name + "_BG.fits")
+        file = os.path.join(image_path, self.image_name)
 
         fits.writeto(
-            image_name,
+            file,
             background,
-            overwrite=True,
-            header=header,
+            header=header
         )
 
     def create_dark_image(self):
@@ -553,6 +486,5 @@ class Artificial_Image_Simulator:
     def _create_image_name(self, image_path) -> str:
         now = datetime.datetime.now()
         index = self._find_image_index(image_path)
-        datetime_string = now.strftime(
+        self.image_name = now.strftime(
             f"%Y%m%d_s4c{self.channel_id}_{index + 1:06}.fits")
-        return datetime_string

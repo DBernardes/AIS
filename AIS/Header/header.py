@@ -101,8 +101,6 @@ class Header:
         date = datetime.datetime.now()
         date_obs = date.strftime('%Y%m%dT%H:%M:%S.%f')[:-3]
         self.header["DATE-OBS"] = date_obs
-        self.header["FILENAME"] = date.strftime(
-            '%Y%m%d') + f'_s4c{self.channel}_000000.fits'
         self.header["UTDATE"] = date_obs.split('T')[0]
         self.header["UTTIME"] = date_obs.split('T')[1]
 
