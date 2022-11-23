@@ -27,7 +27,7 @@ def hdr():
 
 
 file = os.path.join("AIS", "Header", "header.csv")
-ss = pd.read_csv(file)
+ss = pd.read_csv(file, sep='\t')
 ccd_gain = 3.37
 
 
@@ -59,8 +59,8 @@ def test_get_ccd_gain(hdr):
 
 # -----------------------------test_create_image_header---------------------
 
-cards = [(keyword, value, comment) for keyword, value,
-         comment in zip(ss['keyword'], ss['value'], ss['comment'])]
+cards = [(keyword, '', comment)
+         for keyword, comment in zip(ss['keyword'], ss['comment'])]
 dic = ccd_operation_mode
 channel = 1
 header = fits.Header(cards)
@@ -71,8 +71,8 @@ header["VBIN"] = dic['binn']
 header["TRIGGER"] = "External"
 header["EXPTIME"] = dic['t_exp']
 header["TEMP"] = ccd_temp
-header["READOUT"] = str(1 / dic['readout']) + "E-006"
-header["VSHIFT"] = "0.6E-06"
+header["READOUT"] = dic['readout']
+header["VSHIFT"] = 4.33
 header["GAIN"] = ccd_gain
 header["EMMODE"] = dic['em_mode']
 header["EMGAIN"] = dic['em_gain']
@@ -80,9 +80,11 @@ header["PREAMP"] = str(dic['preamp']) + "x"
 header["SERN"] = 9913 + channel
 header['CHANNEL'] = channel
 date = datetime.datetime.now()
-date_str = date.strftime('%Y%m%dT%H:%M:%S')
-header["DATE-OBS"] = date_str
-header["FILENAME"] = date_str
+
+header["DATE-OBS"] = date.strftime('%Y%m%dT%H:%M:%S')
+header["FILENAME"] = date.strftime('%Y%m%d') + f'_s4c{channel}_000000.fits'
+header["UTDATE"] = date.strftime('%Y%m%d')
+header["UTTIME"] = date.strftime('%H:%M:%S')
 
 
 # def test_create_header(hdr):

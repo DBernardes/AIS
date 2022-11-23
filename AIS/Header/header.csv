@@ -1,59 +1,59 @@
-keyword	value	comment
-NAXIS1  		Number of columns
-NAXIS2  		Number of rows
-OBSERVER	"Kepler"	Name of the observer
-OBJECT  	"HD5980"	Object name                                                                                           
-INSTRUME	"SPARC4"	Instrument                                     
-OBSTYPE 	"NONE"	Image type: OBJECT, ZERO, FLAT, DARK, NONE          
-CHANNEL 		Instrument channel   
-SERN    		Serial Number of the CCD  
-FILENAME		File name 
-DATE-OBS		Acquisition date in UTC (ISO8601)
-UTTIME  		Acquisition UTC time 
-UTDATE  		Acquisition UTC date 
-NCYCLES 	1	Number of cycles
-CYCLIND 	1	Index of the cycle in the sequence
-NFRAMES  	1	Number of frames in the cycle
-FRAMEIND	1	Index of the frame in the cycle
-EXPTIME 		Exposure time of the frame in seconds   
-CYCLTEXP		Cycle exposure time in seconds                                                                
-ACQMODE 	"Kinetic"	Acquisition Mode                               
-PREAMP  		Pre-amplifier gain                             
-READRATE 		Readout Rate in MHz                               
-VSHIFT  	4.33	Vertical Shift Speed in microseconds                      
-TRIGGER 	"Internal"	Trigger Mode
-EMMODE  		Output amplifier mode                        
-EMGAIN  		EM Gain  
-VBIN    		Vertical binning                               
-HBIN    		Horizontal binning                             
-INITLIN 		Initial Line                                   
-INITCOL 		Initial Column                                 
-FINALLIN		Final Line                                     
-FINALCOL		Final Column                                   
-SHUTTER 	"Open"	Shutter Mode
-COOLER  	"ON"	CCD cooler: ON or OFF                          
-CCDTEMP    		CCD temperature in celsius degrees   
-TGTEMP  		Target temperature in celsius degrees                             
-TEMPST  	"TEMPERATURE_STABILIZED"	Temperature status                             
-FRAMETRF 	"ON"	Frame Transfer: ON or OFF                      
-VCLKAMP 	"Normal"	Vertical Clock Amplitude: Normal, +1, +2, +3, +4    
-GAIN    		Gain in e-/ADU
-RDNOISE 		Read noise in e-
-RA      	"00:00:00"	Right Ascension: HH:MM:SS       
-DEC     	"00:00:00"	Declination: +- HH:MM:SS
-EQUINOX 	2000	Equinox for the target coordinates                                                    
-TELFOCUS  	465	Telescope focus position
-TCSHA      	"00:00:00"	TCS hour angle
-TCSDATE 		TCS date in UT                                     
-GFOCUS  		Guider focus position 
-GUIDEAR  		AR of the guider object
-GUIDEDEC 		DEC of the guider object            
-EXTTEMP 	12	External temperature in celsius degrees
-AIRMASS 	1.01	Airmass in the start of the exposure                
-PRESSURE	760	Pressure in mbar
-HUMIDITY	86	Humidity in percent
-ACSVRSN 	1.0.0	The version of the ACS                         
-CTRLINTE	"S4GUI"	Graphical control interface of the ACS    
-ACSMODE 	"Real"	Mode of the ACS (simulated or real)
-ICSMODE 	"Real"	Mode of the ICS (simulated or real)
-TCSMODE 	"Real"	Mode of the TCS (simulated or real)
+keyword	comment
+NAXIS1  	Number of columns
+NAXIS2  	Number of rows
+OBSERVER	Name of the observer
+OBJECT  	Object name                                                                                           
+INSTRUME	Instrument                                     
+OBSTYPE 	Image type: OBJECT, ZERO, FLAT, DARK, NONE          
+CHANNEL 	Instrument channel   
+SERN    	Serial Number of the CCD  
+FILENAME	File name 
+DATE-OBS	Acquisition date in UTC (ISO8601)
+UTTIME  	Acquisition UTC time 
+UTDATE  	Acquisition UTC date 
+NCYCLES 	Number of cycles
+CYCLIND 	Index of the cycle in the sequence
+NFRAMES  	Number of frames in the cycle
+FRAMEIND	Index of the frame in the cycle
+EXPTIME 	Exposure time of the frame in seconds   
+CYCLTEXP	Cycle exposure time in seconds                                                                
+ACQMODE 	Acquisition Mode                               
+PREAMP  	Pre-amplifier gain                             
+READRATE 	Readout Rate in MHz                               
+VSHIFT  	Vertical Shift Speed in microseconds                      
+TRIGGER 	Trigger Mode
+EMMODE  	Output amplifier mode                        
+EMGAIN  	EM Gain  
+VBIN    	Vertical binning                               
+HBIN    	Horizontal binning                             
+INITLIN 	Initial Line                                   
+INITCOL 	Initial Column                                 
+FINALLIN	Final Line                                     
+FINALCOL	Final Column                                   
+SHUTTER 	Shutter Mode
+COOLER  	CCD cooler: ON or OFF                          
+CCDTEMP    	CCD temperature in celsius degrees   
+TGTEMP  	Target temperature in celsius degrees                             
+TEMPST  	Temperature status                             
+FRAMETRF 	Frame Transfer: ON or OFF                      
+VCLKAMP 	Vertical Clock Amplitude: Normal, +1, +2, +3, +4    
+GAIN    	Gain in e-/ADU
+RDNOISE 	Read noise in e-
+RA      	Right Ascension: HH:MM:SS       
+DEC     	Declination: +- DD:MM:SS
+EQUINOX 	Equinox for the target coordinates                                                    
+TELFOCUS  	Telescope focus position
+TCSHA      	TCS hour angle
+TCSDATE 	TCS date in UT                                     
+GFOCUS  	Guider focus position 
+GUIDEAR  	AR of the guider object
+GUIDEDEC 	DEC of the guider object            
+EXTTEMP 	External temperature in celsius degrees
+AIRMASS 	Airmass in the start of the exposure                
+PRESSURE	Pressure in mbar
+HUMIDITY	Humidity in percent
+ACSVRSN 	The version of the ACS                         
+CTRLINTE	Graphical control interface of the ACS    
+ACSMODE 	Mode of the ACS (simulated or real)
+ICSMODE 	Mode of the ICS (simulated or real)
+TCSMODE 	Mode of the TCS (simulated or real)
