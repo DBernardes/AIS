@@ -7,3 +7,4 @@ astropy
 sphinx-rtd-theme
 sphinxcontrib-napoleon
 ipython
+sbpy
