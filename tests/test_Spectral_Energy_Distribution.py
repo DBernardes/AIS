@@ -13,7 +13,7 @@ from scipy.interpolate import splev, splrep
 from sbpy.calib import vega_fluxd
 from scipy.constants import c, h, k
 
-from tests.AIS_spectral_response_curves import wavelength_interval as obj_wavelength
+obj_wavelength = np.linspace(400, 1100, 100)
 
 
 @pytest.fixture

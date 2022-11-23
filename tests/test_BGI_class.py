@@ -12,7 +12,6 @@ Created on Thu Apr 22 13:44:35 2021
 import numpy as np
 import pytest
 from AIS.Background_Image import Background_Image
-from tests.AIS_spectral_response_curves import ccd_operation_mode
 from photutils.datasets import make_noise_image
 
 ccd_operation_mode = {

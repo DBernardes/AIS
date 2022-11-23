@@ -31,20 +31,18 @@ Created on Fri Apr 16 09:10:51 2021
 import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
-from .AIS_spectral_response_curves import (
-    air_mass,
-    ccd_operation_mode,
-    l_final,
-    l_init,
-    l_step,
-    magnitude,
-    moon_condition,
-    sky_condition,
-    sparc4_operation_mode,
-)
-
 channel_id = 1
 temperature = -70
+ccd_operation_mode = {
+    "em_mode": "Conv",
+    "em_gain": 1,
+    "preamp": 1,
+    "readout": 1,
+    "binn": 1,
+    "t_exp": 1,
+    "ccd_temp": -70,
+    "image_size": 200,
+}
 
 
 @pytest.fixture

@@ -11,10 +11,10 @@ from AIS.Spectral_Response import Spectral_Response
 import pytest
 import os
 import numpy as np
-from tests.AIS_spectral_response_curves import wavelength_interval as obj_wavelength
 from scipy.interpolate import splev, splrep
 import pandas as pd
 
+obj_wavelength = np.linspace(400, 1100, 100)
 csv_file_name = 'csv_file.csv'
 BASE_PATH = os.path.join('AIS', 'Spectral_Response')
 ss = pd.read_csv(os.path.join(BASE_PATH, csv_file_name))

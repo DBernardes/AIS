@@ -11,11 +11,10 @@ from AIS.Spectral_Response import Telescope
 import pytest
 import os
 import numpy as np
-from tests.AIS_spectral_response_curves import wavelength_interval as obj_wavelength
 from scipy.interpolate import splev, splrep
 import pandas as pd
 
-
+obj_wavelength = np.linspace(400, 1100, 100)
 csv_file_name = 'telescope.csv'
 BASE_PATH = os.path.join('AIS', 'Spectral_Response')
 spreadsheet_path = os.path.join(BASE_PATH, csv_file_name)

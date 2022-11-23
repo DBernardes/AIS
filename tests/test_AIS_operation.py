@@ -24,7 +24,16 @@ from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 from AIS.Spectral_Energy_Distribution import Source, Sky
 from AIS.Spectral_Response import Atmosphere, Telescope, Channel
 
-from .AIS_spectral_response_curves import ccd_operation_mode
+ccd_operation_mode = {
+    "em_mode": "Conv",
+    "em_gain": 1,
+    "preamp": 1,
+    "readout": 1,
+    "binn": 1,
+    "t_exp": 1,
+    "ccd_temp": -70,
+    "image_size": 200,
+}
 
 calculation_method = 'blackbody'
 magnitude = 10

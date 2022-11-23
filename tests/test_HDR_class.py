@@ -17,7 +17,17 @@ import numpy as np
 import pandas as pd
 import pytest
 from AIS.Header import Header
-from tests.AIS_spectral_response_curves import ccd_operation_mode, ccd_temp
+
+ccd_operation_mode = {
+    "em_mode": 'Conv',
+    "em_gain": 1,
+    "preamp": 1,
+    "readout": 1,
+    "binn": 1,
+    "t_exp": 1,
+    "image_size": 1024,
+}
+ccd_temp = -70
 
 
 @pytest.fixture

@@ -12,9 +12,10 @@ from AIS.Spectral_Energy_Distribution import Source
 from scipy.interpolate import splev, splrep
 from scipy.constants import c, h, k
 from sbpy.calib import vega_fluxd
-from tests.AIS_spectral_response_curves import wavelength_interval as obj_wavelength
 from math import pi
 from sys import exit
+
+obj_wavelength = np.linspace(400, 1100, 100)
 
 
 @pytest.fixture
