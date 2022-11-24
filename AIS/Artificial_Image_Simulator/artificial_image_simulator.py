@@ -33,15 +33,42 @@ class Artificial_Image_Simulator:
     similar to those images that would be acquired by using the acquisition system of the SPARC4 instrument.
     To accomplish this, the AIS models as star flux as a 2D gaussian distribution.
     Then, the star flux is added to an image with a background level
-    given by counts distribution of an image of the SPARC4 cameras, as a function of its operation mode.    
+    given by counts distribution of an image of the SPARC4 cameras, as a function of its operation mode. 
+
+    Example
+    --------    
+
+    ccd_operation_mode = {
+        'em_mode': 'Conv',
+        'em_gain': 1,
+        'preamp': 1,
+        'readout': 1,
+        'binn': 1,
+        't_exp': 1,
+        'image_size': 100
+    }         
+
+    ais = Artificial_Image_Simulator(ccd_operation_mode, channel_id=1, ccd_temperature=-70)
+
+    ais.create_source_sed(calculation_method='blackbody', 
+                            magnitude=15, 
+                            wavelength_interval=(400, 1100, 1000), 
+                            temperature=5700)
+
+    ais.create_sky_sed(moon_phase='new')
+
+    ais.apply_atmosphere_spectral_response()
+
+    ais.apply_telescope_spectral_response()
+
+    ais.apply_sparc4_spectral_response(acquisition_mode='photometry')
+
+    ais.create_artificial_image(image_path='.', star_coordinates=(50,50)) 
 
     Notes
     -----
         Explicar o código; background; passo-a-passo
 
-    Examples
-    --------
-        Incluir exemplos
 
     References
     ----------
@@ -78,7 +105,7 @@ class Artificial_Image_Simulator:
         channel_id: [1, 2, 3, 4]
             The channel ID. 
         ccd_temperature: float
-            The CCD temperature in celsius degrees.           
+            The CCD temperature in celsius degrees.        
         """
         self.ccd_operation_mode = ccd_operation_mode
         self.channel_id = channel_id
@@ -476,9 +503,10 @@ class Artificial_Image_Simulator:
     def _find_image_index(self, image_path) -> int:
         index = 0
         for file in os.listdir(image_path):
-            new_index = int(file.split("_")[-1][:-5])
-            if new_index > index:
-                index = new_index
+            if file.endswith(".fits"):
+                new_index = int(file.split("_")[-1][:-5])
+                if new_index > index:
+                    index = new_index
         return index
 
     def _create_image_name(self, image_path) -> None:

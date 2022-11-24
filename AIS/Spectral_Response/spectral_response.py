@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 from numpy import ndarray
 from scipy.interpolate import splev, splrep
+from ._utils import POLARIZER_90_MATRIX, POLARIZER_MATRIX, calculate_retarder_matrix
 
 __all__ = ['Atmosphere', 'Telescope', 'Channel']
 
@@ -376,7 +377,3 @@ class Channel(Spectral_Response):
                 f"The SPARC4 acquisition mode should be 'photometry' or 'polarimetry': {self.acquisition_mode}."
             )
         return
-
-
-if __name__ == "__main__":
-    pass
