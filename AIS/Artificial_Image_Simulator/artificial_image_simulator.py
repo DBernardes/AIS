@@ -14,7 +14,7 @@ import datetime
 import os
 from random import randint
 from types import UnionType
-
+from sys import exit
 import astropy.io.fits as fits
 import numpy as np
 import pandas as pd
@@ -61,8 +61,7 @@ class Artificial_Image_Simulator:
         Parameters
         ----------
         ccd_operation_mode: dictionary
-            A python dictionary with the CCD operation mode. The allowed keywords
-            values for the dictionary are
+            A python dictionary with the CCD operation mode. The allowed keywords and values are:            
 
             * em_mode: [Conv, EM]
                 Use the Conv for the Conventional Mode and EM for the Electron Multiplying mode
@@ -78,7 +77,6 @@ class Artificial_Image_Simulator:
                 Exposure time in seconds            
             * image_size: int, optional
                 Image size in pixels
-
         channel_id: [1, 2, 3, 4]
             The channel ID. 
         ccd_temperature: float
@@ -130,7 +128,7 @@ class Artificial_Image_Simulator:
 
         em_mode = self.ccd_operation_mode["em_mode"]
         em_gain = self.ccd_operation_mode["em_gain"]
-        hss = self.ccd_operation_mode["readout"]
+        readout = self.ccd_operation_mode["readout"]
         preamp = self.ccd_operation_mode["preamp"]
         binn = self.ccd_operation_mode["binn"]
         t_exp = self.ccd_operation_mode["t_exp"]
@@ -145,7 +143,8 @@ class Artificial_Image_Simulator:
         else:
             self._verify_var_in_interval(em_gain, "EM Gain", 2, 300)
 
-        self._check_var_in_a_list(hss, "readout rate", [0.1, 1, 10, 20, 30])
+        self._check_var_in_a_list(
+            readout, "readout rate", [0.1, 1, 10, 20, 30])
 
         self._check_var_in_a_list(preamp, "pre-amplification", [1, 2])
 
@@ -311,6 +310,7 @@ class Artificial_Image_Simulator:
         header = self.HDR_obj.create_header()
         header['OBSTYPE'] = 'OBJECT'
         header['FILENAME'] = self.image_name
+        header['SHUTTER'] = 'OPEN'
 
         file = os.path.join(image_path, self.image_name)
 
@@ -321,8 +321,7 @@ class Artificial_Image_Simulator:
         )
 
     def create_background_image(self, image_path: str):
-        """
-        Create the background image.
+        """Create the background image.
 
         This function creates the background image, similar to those
         acquired by the SPARC4 cameras.  
@@ -337,9 +336,10 @@ class Artificial_Image_Simulator:
         background = self.BGI_obj.create_sky_background(
             self.sky_photons_per_second)
         header = self.HDR_obj.create_header()
-        self.image_name = self._create_image_name(image_path)
+        self._create_image_name(image_path)
         header['FILENAME'] = self.image_name
         header['OBSTYPE'] = 'FLAT'  # ?
+        header['SHUTTER'] = 'OPEN'
 
         file = os.path.join(image_path, self.image_name)
 
@@ -349,57 +349,56 @@ class Artificial_Image_Simulator:
             header=header
         )
 
-    def create_dark_image(self):
+    def create_dark_image(self, image_path: str):
         """
         Create a dark image.
 
         This function creates a dark image, similar to those
         acquired by the SPARC4 cameras.
 
-
-        Returns
-        -------
-        Dark Image:
-            A FITS file with the calculated dark image
+        Parameters
+        ----------
+        image_path : str
+            The path where the FITS file will be saved.       
         """
-        self._configure_image_name()
-        dark_image = self.bgi.create_dark_image()
-        header = self.hdr.create_header()
+        dark_image = self.BGI_obj.create_dark_background()
+        header = self.HDR_obj.create_header()
+        self._create_image_name(image_path)
+        header['FILENAME'] = self.image_name
+        header['OBSTYPE'] = 'DARK'
         image_name = os.path.join(
-            self.image_dir, self.image_name + "_DARK.fits")
+            image_path, self.image_name)
 
         fits.writeto(
             image_name,
             dark_image,
-            overwrite=True,
             header=header,
         )
 
-    def create_bias_image(self):
+    def create_bias_image(self, image_path: str):
         """
         Create a bias image.
 
         This function creates a bias image, similar to those
         acquired by the SPARC4 cameras.
 
-
-        Returns
-        -------
-        Bias Image:
-            A FITS file with the calculated bias image
+        Parameters
+        ----------
+        image_path : str
+            The path where the FITS file will be saved.       
         """
-        self._configure_image_name()
-        bias = self.bgi.create_bias_image()
-        header = self.hdr.create_header()
-        header["EXPOSURE"] = 1e-5
+        bias = self.BGI_obj.create_bias_background()
+        header = self.HDR_obj.create_header()
+        self._create_image_name(image_path)
+        header["EXPTIME"] = 1e-5
+        header['FILENAME'] = self.image_name
+        header['OBSTYPE'] = 'ZERO'
 
-        image_name = os.path.join(
-            self.image_dir, self.image_name + "_BIAS.fits")
+        image_name = os.path.join(image_path, self.image_name)
 
         fits.writeto(
             image_name,
             bias,
-            overwrite=True,
             header=header,
         )
 
@@ -448,30 +447,31 @@ class Artificial_Image_Simulator:
             header=header,
         )
 
-    def create_flat_image(self):
+    def create_flat_image(self, image_path: str):
         """
         Create a flat image.
 
         This function creates a flat image, similar to those
         acquired by the SPARC4 cameras.
 
-
-        Returns
-        -------
-        Flat Image:
-            A FITS file with the calculated flat image
+        Parameters
+        ----------
+        image_path : str
+            The path where the FITS file will be saved.       
         """
-        self._configure_image_name()
-        flat_image = self.bgi.create_flat_image()
-        header = self.hdr.create_header()
+        flat_image = self.BGI_obj.create_flat_background()
+        header = self.HDR_obj.create_header()
+        self._create_image_name(image_path)
+        header['FILENAME'] = self.image_name
+        header['OBSTYPE'] = 'FLAT'
+        header['SHUTTER'] = 'OPEN'
 
         image_name = os.path.join(
-            self.image_dir, self.image_name + "_FLAT.fits")
+            image_path, self.image_name)
 
         fits.writeto(
             image_name,
             flat_image,
-            overwrite=True,
             header=header,
         )
 
@@ -483,8 +483,9 @@ class Artificial_Image_Simulator:
                 index = new_index
         return index
 
-    def _create_image_name(self, image_path) -> str:
+    def _create_image_name(self, image_path) -> None:
         now = datetime.datetime.now()
         index = self._find_image_index(image_path)
         self.image_name = now.strftime(
             f"%Y%m%d_s4c{self.channel_id}_{index + 1:06}.fits")
+        return

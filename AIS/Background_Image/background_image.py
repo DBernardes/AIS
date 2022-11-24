@@ -12,6 +12,7 @@ from ..Noise import Noise
 from photutils.datasets import make_noise_image
 import os
 import pandas as pd
+from numpy import ndarray
 
 
 class Background_Image:
@@ -85,7 +86,7 @@ class Background_Image:
         ss = pd.read_csv(self._SPREADSHEET_PATH)
         self.ccd_gain = ss[f'CH{self.channel}'][idx_tab]
 
-    def create_bias_background(self):
+    def create_bias_background(self) -> ndarray:
         """Create the bias background.
 
         This functions creates a bias background with a noise distribution given by a gaussian distribution over the read noise.
@@ -106,7 +107,7 @@ class Background_Image:
 
         return bias_background
 
-    def create_dark_background(self):
+    def create_dark_background(self) -> ndarray:
         """
         Create a dark background.
 
@@ -141,7 +142,7 @@ class Background_Image:
 
         return dark_background
 
-    def create_flat_background(self):
+    def create_flat_background(self) -> ndarray:
         """
         Create a flat background.
 
@@ -183,7 +184,7 @@ class Background_Image:
 
         return flat_background
 
-    def create_sky_background(self, sky_flux: float):
+    def create_sky_background(self, sky_flux: float) -> ndarray:
         """
         Create a sky background.
 
