@@ -16,6 +16,8 @@ from photutils.datasets import make_gaussian_sources_image, make_noise_image
 from numpy import ndarray
 from math import pi
 
+__all__ = ['Point_Spread_Function']
+
 
 class Point_Spread_Function:
     """

@@ -9,11 +9,9 @@ Created on Fri Apr 16 11:53:12 2021
 """
 
 
-from ast import keyword
 import astropy.io.fits as fits
 import os
 import datetime
-import numpy as np
 import pandas as pd
 import pytest
 from AIS.Header import Header
@@ -74,29 +72,77 @@ cards = [(keyword, '', comment)
 dic = ccd_operation_mode
 channel = 1
 header = fits.Header(cards)
-header["ACQMODE"] = "Single"
-header["READMODE"] = "Image"
-header["HBIN"] = dic['binn']
-header["VBIN"] = dic['binn']
-header["TRIGGER"] = "External"
+header["NAXIS1"] = dic['image_size']
+header["NAXIS2"] = dic['image_size']
+header["OBSERVER"] = 'Johannes Kepler'
+header["OBJECT"] = 'HD5980'
+header["INSTRUME"] = 'SPARC4'
+header["OBSTYPE"] = 'NONE'
+header["SERN"] = channel + 9913
+header["CHANNEL"] = channel
+
+date = datetime.datetime.now()
+date_obs = date.strftime('%Y%m%dT%H:%M:%S')
+header["DATE-OBS"] = date_obs
+header["UTDATE"] = date_obs.split('T')[0]
+header["UTTIME"] = date_obs.split('T')[1]
+
+header["NCYCLES"] = 1
+header["CYCLIND"] = 1
+header["NFRAMES"] = 1
+header["FRAMEIND"] = 1
+
 header["EXPTIME"] = dic['t_exp']
-header["TEMP"] = ccd_temp
-header["READOUT"] = dic['readout']
+header["CYCLTEXP"] = dic['t_exp']
+header["ACQMODE"] = "Kinetic"
+header["PREAMP"] = 'Gain ' + str(dic['preamp']) + 'x'
+header["READRATE"] = dic['readout']
 header["VSHIFT"] = 4.33
-header["GAIN"] = ccd_gain
+header["TRIGGER"] = "External"
 header["EMMODE"] = dic['em_mode']
 header["EMGAIN"] = dic['em_gain']
-header["PREAMP"] = str(dic['preamp']) + "x"
-header["SERN"] = 9913 + channel
-header['CHANNEL'] = channel
-date = datetime.datetime.now()
+header["HBIN"] = dic['binn']
+header["VBIN"] = dic['binn']
+header["INITLIN"] = 1
+header["INITCOL"] = 1
+header["FINALLIN"] = dic['image_size']
+header["FINALCOL"] = dic['image_size']
+header['SHUTTER'] = 'CLOSED'
+header['COOLER'] = 'ON'
+header["CCDTEMP"] = ccd_temp
+header["TGTEMP"] = ccd_temp
+header['TEMPST'] = 'TEMPERATURE_STABILIZED'
+header['FRAMETRF'] = 'ON'
+header['VCLKAMP'] = 'Normal'
 
-header["DATE-OBS"] = date.strftime('%Y%m%dT%H:%M:%S')
-header["FILENAME"] = date.strftime('%Y%m%d') + f'_s4c{channel}_000000.fits'
-header["UTDATE"] = date.strftime('%Y%m%d')
-header["UTTIME"] = date.strftime('%H:%M:%S')
+header["GAIN"] = 3.37
+header['RDNOISE'] = 6.66
+
+header['RA'] = '00:00:00'
+header['DEC'] = '00:00:00'
+header['EQUINOX'] = 2000.0
+header['TELFOCUS'] = 0.0
+header['TCSHA'] = '00:00:00'
+header['TCSDATE'] = date.strftime('%Y/%m/%d %H:%M:%S')
+
+header['EXTTEMP'] = 11.7
+header['AIRMASS'] = 1.01
+header['PRESSURE'] = 760
+header['HUMIDITY'] = 86.0
+
+header['ACSVRSN'] = '1.0.0'
+header['CTRLINTE'] = 'S4GUI'
+header['ACSMODE'] = 'Real'
+header['ICSMODE'] = 'Real'
+header['TCSMODE'] = 'Real'
 
 
-# def test_create_header(hdr):
-#     new_header = hdr.create_header()
-#     assert header == new_header
+def test_create_header(hdr):
+    new_header = hdr.create_header()
+    del new_header['DATE-OBS']
+    del new_header['UTTIME']
+    del new_header['TCSDATE']
+    del header['DATE-OBS']
+    del header['UTTIME']
+    del header['TCSDATE']
+    assert header == new_header

@@ -16,6 +16,8 @@ from math import pi
 import os
 from sys import exit
 
+__all__ = ['Source', 'Sky']
+
 
 class Spectral_Energy_Distribution:
     """Spectral Energy Distribution Class
@@ -59,7 +61,7 @@ class Spectral_Energy_Distribution:
         interpolated_spectral_distribution = splev(obj_wavelength, spl)
         return interpolated_spectral_distribution
 
-    def _calculate_photons_density(self, magnitude):
+    def _calculate_photons_density(self, magnitude) -> float:
         return self.S_0*10**(-magnitude/2.5)*self.TELESCOPE_EFFECTIVE_AREA*self.EFFECT_WAVELENGTH*1e-9/(h*c)
 
 

@@ -14,6 +14,8 @@ import datetime
 import astropy.io.fits as fits
 import pandas as pd
 
+__all__ = ['Header']
+
 
 class Header:
 

@@ -14,6 +14,8 @@ import os
 import pandas as pd
 from numpy import ndarray
 
+__all__ = ['Background_Image']
+
 
 class Background_Image:
     """

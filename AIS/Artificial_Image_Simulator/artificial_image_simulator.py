@@ -1,5 +1,4 @@
 """
-
 Artificial Images Simulator
 ============================
 
@@ -13,12 +12,8 @@ of an image of the SPARC4 cameras, as a function of its operation mode.
 import datetime
 import os
 from random import randint
-from types import UnionType
-from sys import exit
 import astropy.io.fits as fits
 import numpy as np
-import pandas as pd
-from numpy import ndarray
 
 
 from ..Background_Image import Background_Image
@@ -26,6 +21,9 @@ from ..Header import Header
 from ..Point_Spread_Function import Point_Spread_Function
 from ..Spectral_Response import Atmosphere, Telescope, Channel
 from ..Spectral_Energy_Distribution import Source, Sky
+
+
+__all__ = ['Artificial_Image_Simulator']
 
 
 class Artificial_Image_Simulator:
@@ -447,7 +445,7 @@ class Artificial_Image_Simulator:
             header=header,
         )
 
-    def create_flat_image(self, image_path: str):
+    def create_flat_image(self, image_path: str) -> None:
         """
         Create a flat image.
 
@@ -475,7 +473,7 @@ class Artificial_Image_Simulator:
             header=header,
         )
 
-    def _find_image_index(self, image_path):
+    def _find_image_index(self, image_path) -> int:
         index = 0
         for file in os.listdir(image_path):
             new_index = int(file.split("_")[-1][:-5])

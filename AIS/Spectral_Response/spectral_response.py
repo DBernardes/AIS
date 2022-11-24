@@ -15,6 +15,8 @@ import pandas as pd
 from numpy import ndarray
 from scipy.interpolate import splev, splrep
 
+__all__ = ['Atmosphere', 'Telescope', 'Channel']
+
 
 class Spectral_Response:
     """Spectral Response class
