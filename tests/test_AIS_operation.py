@@ -126,10 +126,10 @@ def test_apply_sparc4_spectral_response_photometric(ais):
                           wavelegnth_interval, temperature)
     ais.create_sky_sed(moon_phase)
     channel = Channel(channel_id)
-    channel.write_sparc4_operation_mode('photometric')
+    channel.write_sparc4_operation_mode('photometry')
     new_sed = channel.apply_spectral_response(ais.source_sed, obj_wavelength)
     new_sky_sed = channel.apply_spectral_response(ais.sky_sed, obj_wavelength)
-    ais.apply_sparc4_spectral_response('photometric')
+    ais.apply_sparc4_spectral_response('photometry')
     assert np.allclose(ais.source_sed, new_sed)
     assert np.allclose(ais.sky_sed, new_sky_sed)
 
@@ -139,10 +139,10 @@ def test_apply_sparc4_spectral_response_polarimetric(ais):
                           wavelegnth_interval, temperature)
     ais.create_sky_sed(moon_phase)
     channel = Channel(channel_id)
-    channel.write_sparc4_operation_mode('polarimetric', 'polarizer', 'quarter')
+    channel.write_sparc4_operation_mode('polarimetry', 'polarizer', 'quarter')
     new_sed = channel.apply_spectral_response(ais.source_sed, obj_wavelength)
     new_sky_sed = channel.apply_spectral_response(ais.sky_sed, obj_wavelength)
-    ais.apply_sparc4_spectral_response('polarimetric', 'polarizer', 'quarter')
+    ais.apply_sparc4_spectral_response('polarimetry', 'polarizer', 'quarter')
     assert np.allclose(ais.source_sed, new_sed)
     assert np.allclose(ais.sky_sed, new_sky_sed)
 
@@ -175,10 +175,10 @@ def test_find_image_index(ais):
 
 
 def test_create_image_name(ais):
-    image_name = ais._create_image_name(image_path)
+    ais._create_image_name(image_path)
     now = datetime.datetime.now()
     datetime_str = now.strftime('%Y%m%d_s4c1_000004.fits')
-    assert image_name == datetime_str
+    assert ais.image_name == datetime_str
 
 # --------------------------- test create artificial image ----------------
 

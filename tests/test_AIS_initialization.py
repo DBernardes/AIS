@@ -40,7 +40,6 @@ ccd_operation_mode = {
     "readout": 1,
     "binn": 1,
     "t_exp": 1,
-    "ccd_temp": -70,
     "image_size": 200,
 }
 
