@@ -15,6 +15,7 @@ import pandas as pd
 from numpy import ndarray
 from scipy.interpolate import splev, splrep
 from ._utils import POLARIZER_90_MATRIX, POLARIZER_MATRIX, calculate_retarder_matrix
+from scipy.optimize import curve_fit
 
 __all__ = ['Atmosphere', 'Telescope', 'Channel']
 
@@ -146,12 +147,12 @@ class Atmosphere(Spectral_Response):
     @staticmethod
     def _read_csv_file(csv_file_name, sky_condition):
         ss = pd.read_csv(csv_file_name)
-        return np.array(ss["Wavelength (nm)"]), np.array(ss[sky_condition]) / 100
+        return np.array(ss["Wavelength (nm)"]), np.array(ss[sky_condition])
 
     def get_spectral_response(
         self,
         obj_wavelength: ndarray,
-        air_mass: int | float,
+        air_mass: int | float = 1,
         sky_condidition="photometric",
     ) -> ndarray:
         """Return the spectral response.
@@ -161,10 +162,11 @@ class Atmosphere(Spectral_Response):
         obj_wavelength: array like
             The wavelength interval, in nm, of the object.
 
-        sky_condition: ['photometric', 'regular', 'good']
-            The condition of the sky.
-        air_mass: int, float
+            air_mass: int, float
             The air mass.
+
+        sky_condition: ['photometric', 'regular', 'good']
+            The condition of the sky.        
 
         Yields
         ------
@@ -177,9 +179,9 @@ class Atmosphere(Spectral_Response):
             csv_file_name, sky_condidition
         )
         spectral_response = 10 ** (-0.4 * extinction_coef * air_mass)
-        spectral_response = self._interpolate_spectral_response(
-            sys_wavelength, spectral_response, obj_wavelength
-        )
+        popt, _ = curve_fit(func, sys_wavelength,
+                            spectral_response)
+        spectral_response = func(obj_wavelength, *popt)
 
         return spectral_response
 
@@ -377,3 +379,7 @@ class Channel(Spectral_Response):
                 f"The SPARC4 acquisition mode should be 'photometry' or 'polarimetry': {self.acquisition_mode}."
             )
         return
+
+
+def func(x, a, b, c, d):
+    return a*x**3 + b*x**2 + c*x + d

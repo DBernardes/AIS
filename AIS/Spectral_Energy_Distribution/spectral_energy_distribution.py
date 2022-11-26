@@ -149,7 +149,7 @@ class Source(Spectral_Energy_Distribution):
 
     @staticmethod
     def _calculate_sed_blackbody(wavelength, temperature):
-        return 8 * pi * h * c / (wavelength * 1e-9) ** 5 * 1 / (np.exp(h * c / (wavelength * 1e-9 * k * temperature)) - 1)
+        return 2 * pi * h * c**2 / (wavelength*1e-9)**5 * 1 / (np.exp(h*c/(wavelength * 1e-9 * k * temperature))-1)
 
     def _read_spectral_library(self, spectral_type):
         path = os.path.join(self.SPECTRAL_LIB_PATH,
