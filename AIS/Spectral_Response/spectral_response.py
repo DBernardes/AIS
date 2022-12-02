@@ -149,6 +149,13 @@ class Atmosphere(Spectral_Response):
         ss = pd.read_csv(csv_file_name)
         return np.array(ss["Wavelength (nm)"]), np.array(ss[sky_condition])
 
+    @staticmethod
+    def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
+        popt, _ = curve_fit(func, wavelength,
+                            spectral_response)
+        spectral_response = func(obj_wavelength, *popt)
+        return spectral_response
+
     def get_spectral_response(
         self,
         obj_wavelength: ndarray,
@@ -179,10 +186,9 @@ class Atmosphere(Spectral_Response):
             csv_file_name, sky_condidition
         )
         spectral_response = 10 ** (-0.4 * extinction_coef * air_mass)
-        popt, _ = curve_fit(func, sys_wavelength,
-                            spectral_response)
-        spectral_response = func(obj_wavelength, *popt)
 
+        spectral_response = self._interpolate_spectral_response(
+            sys_wavelength, spectral_response, obj_wavelength)
         return spectral_response
 
     def apply_spectral_response(

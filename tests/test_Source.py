@@ -48,8 +48,8 @@ def test_get_sed_error(source):
 # ------------------------------------------------------------
 wv = np.linspace(350, 1100, 100)
 temperature = 5700
-sed_blackbody = 8 * pi * h * c / (wv * 1e-9) ** 5 * 1 / \
-    (np.exp(h * c / (wv * 1e-9 * k * temperature)) - 1)
+sed_blackbody = 2 * pi * h * c**2 / \
+    (wv*1e-9)**5 * 1 / (np.exp(h*c/(wv * 1e-9 * k * temperature))-1)
 
 
 def test_calculate_sed_blackbody(source):

@@ -13,6 +13,7 @@ import pytest
 import os
 import numpy as np
 
+from scipy.optimize import curve_fit
 from scipy.interpolate import splev, splrep
 import pandas as pd
 
@@ -22,9 +23,13 @@ BASE_PATH = os.path.join('AIS', 'Spectral_Response')
 spreadsheet_path = os.path.join(BASE_PATH, csv_file_name)
 ss = pd.read_csv(spreadsheet_path)
 wavelength = ss['Wavelength (nm)']
-extinction_coef_photometric = ss['photometric']/100
-extinction_coef_regular = ss['regular']/100
-extinction_coef_good = ss['good']/100
+extinction_coef_photometric = ss['photometric']
+extinction_coef_regular = ss['regular']
+extinction_coef_good = ss['good']
+
+
+def func(x, a, b, c, d):
+    return a*x**3 + b*x**2 + c*x + d
 
 
 @pytest.fixture
@@ -65,8 +70,11 @@ def test_read_csv_file_good(atm):
 
 air_mass = 1
 spectral_response = 10 ** (-0.4 * extinction_coef_photometric * air_mass)
-spl = splrep(wavelength, spectral_response)
-new_spectral_response = splev(obj_wavelength, spl)
+# spl = splrep(wavelength, spectral_response)
+# new_spectral_response = splev(obj_wavelength, spl)
+popt, _ = curve_fit(func, wavelength,
+                    spectral_response)
+new_spectral_response = func(obj_wavelength, *popt)
 
 
 def test_interpolate_spectral_response(atm):
