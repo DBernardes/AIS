@@ -3,7 +3,8 @@ Spectral Energy Distribution Class
 ==================================
 
 
-The Spectral Energy Distribtution is an abstract class that represents the sky and the source classes.
+The Spectral Energy Distribtution is an abstract class that represents the sky and the 
+source classes.
 """
 
 from numpy import ndarray

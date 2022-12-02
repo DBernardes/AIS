@@ -1,4 +1,4 @@
-.. automodule:: AIS.Channel_Creator.channel_creator
+.. automodule:: AIS.Noise.noise
    :members:
    :undoc-members:
    :show-inheritance:
