@@ -13,7 +13,7 @@ import os
 import numpy as np
 import pandas as pd
 from numpy import ndarray
-from scipy.interpolate import splev, splrep
+from scipy.interpolate import splev, splrep, interp1d
 from ._utils import POLARIZER_90_MATRIX, POLARIZER_MATRIX, calculate_retarder_matrix
 from scipy.optimize import curve_fit
 
@@ -59,9 +59,12 @@ class Spectral_Response:
 
     @staticmethod
     def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
-        spl = splrep(wavelength, spectral_response)
-        spectral_response = splev(obj_wavelength, spl)
-        return spectral_response
+        #spl = splrep(wavelength, spectral_response, k=5)
+        #spectral_response = splev(obj_wavelength, spl)
+        spl = interp1d(wavelength, spectral_response,
+                       bounds_error=False, fill_value=0, kind='cubic')
+
+        return spl(obj_wavelength)
 
     def get_spectral_response(self, obj_wavelength: ndarray) -> ndarray:
         """Return the spectral response.
@@ -149,13 +152,6 @@ class Atmosphere(Spectral_Response):
         ss = pd.read_csv(csv_file_name)
         return np.array(ss["Wavelength (nm)"]), np.array(ss[sky_condition])
 
-    @staticmethod
-    def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
-        popt, _ = curve_fit(func, wavelength,
-                            spectral_response)
-        spectral_response = func(obj_wavelength, *popt)
-        return spectral_response
-
     def get_spectral_response(
         self,
         obj_wavelength: ndarray,
@@ -225,6 +221,13 @@ class Atmosphere(Spectral_Response):
         reduced_sed = np.multiply(spectral_response, sed)
 
         return reduced_sed
+
+    @staticmethod
+    def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
+        popt, _ = curve_fit(func, wavelength,
+                            spectral_response)
+        spectral_response = func(obj_wavelength, *popt)
+        return spectral_response
 
 
 class Channel(Spectral_Response):
