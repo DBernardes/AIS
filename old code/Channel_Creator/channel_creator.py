@@ -89,8 +89,8 @@ class Abstract_Channel_Creator:
         The calculation is performed by providing the CCD operation mode to
         the ReadNoiseCalc package
         """
-        RN = Read_Noise_Calculation(self.ccd_operation_mode, self._CHANNEL_ID)
-        self.read_noise = RN.calculate_read_noise()
+        #RN = Read_Noise_Calculation(self.ccd_operation_mode, self._CHANNEL_ID)
+        #self.read_noise = RN.calculate_read_noise()
 
         return self.read_noise
 
