@@ -305,6 +305,7 @@ class Artificial_Image_Simulator:
 
     def _integrate_sed(self):
         """Integrate the star and the sky SEDs."""
+        self.wavelength *= 1e-9
         self.sky_photons_per_second = np.trapz(self.sky_sed, self.wavelength)
         self.star_photons_per_second = np.trapz(
             self.source_sed, self.wavelength)

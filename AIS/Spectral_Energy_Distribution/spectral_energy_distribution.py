@@ -9,7 +9,7 @@ source classes.
 
 from numpy import ndarray
 import numpy as np
-from scipy.interpolate import splev, splrep
+from scipy.interpolate import splev, splrep, interp1d
 import pandas as pd
 from scipy.constants import c, h, k
 from sbpy.calib import vega_fluxd
@@ -25,10 +25,12 @@ class Spectral_Energy_Distribution:
 
     The Spectral Energy Distribtution is an abstract class that represents the sky and the source classes.
     """
-    EFFECT_WAVELENGTH = 555.6  # nm
-    TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
-    S_0 = vega_fluxd.get()["Johnson V"].value*1e7  # W/(m.m2)
-    BASE_PATH = os.path.join(
+    _EFFECT_WAVELENGTH = 555.6  # nm
+    _TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
+
+    # W/(m.m2) #https://cass.ucsd.edu/archive/physics/ph162/mags.html
+    _S_0 = 3.658e-2
+    _BASE_PATH = os.path.join(
         'AIS', 'Spectral_Energy_Distribution')
 
     def __init__(self):
@@ -57,13 +59,15 @@ class Spectral_Energy_Distribution:
         return np.linspace(100, 1000, 100)
 
     @staticmethod
-    def _interpolate_spectral_distribution(wavelength, spectral_distribution, obj_wavelength):
-        spl = splrep(wavelength, spectral_distribution)
+    def _interpolate_spectral_distribution(wavelength, spectral_response, obj_wavelength):
+        # spl = interp1d(wavelength, spectral_response,
+        #               bounds_error=False, fill_value='extrapolate', kind='cubic')
+        spl = splrep(wavelength, spectral_response)
         interpolated_spectral_distribution = splev(obj_wavelength, spl)
-        return interpolated_spectral_distribution
+        return interpolated_spectral_distribution  # spl(obj_wavelength)
 
     def _calculate_photons_density(self, magnitude) -> float:
-        return self.S_0*10**(-magnitude/2.5)*self.TELESCOPE_EFFECTIVE_AREA*self.EFFECT_WAVELENGTH*1e-9/(h*c)
+        return self._S_0*10**(-magnitude/2.5)*self._TELESCOPE_EFFECTIVE_AREA*self._EFFECT_WAVELENGTH*1e-9/(h*c)
 
 
 class Source(Spectral_Energy_Distribution):
@@ -74,7 +78,7 @@ class Source(Spectral_Energy_Distribution):
 
     def __init__(self):
         self.SPECTRAL_LIB_PATH = os.path.join(
-            self.BASE_PATH, 'Spectral_Library')
+            self._BASE_PATH, 'Spectral_Library')
         return
 
     def calculate_sed(self,
@@ -134,7 +138,7 @@ class Source(Spectral_Energy_Distribution):
             sed = self._calculate_sed_blackbody(
                 wavelength, temperature)
             normalization_flux = self._interpolate_spectral_distribution(
-                wavelength, sed, self.EFFECT_WAVELENGTH)
+                wavelength, sed, self._EFFECT_WAVELENGTH)
             sed /= normalization_flux
         elif calculation_method == 'spectral_library':
             wavelength, sed = self._read_spectral_library(
@@ -184,7 +188,7 @@ class Sky(Spectral_Energy_Distribution):
         return
 
     def _read_csv(self, file_name, value_name):
-        file_name = os.path.join(self.BASE_PATH, file_name)
+        file_name = os.path.join(self._BASE_PATH, file_name)
         ss = pd.read_csv(file_name)
         wavelenght = ss["wavelength"]
         value = ss[value_name]

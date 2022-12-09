@@ -59,8 +59,6 @@ class Spectral_Response:
 
     @staticmethod
     def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
-        #spl = splrep(wavelength, spectral_response, k=5)
-        #spectral_response = splev(obj_wavelength, spl)
         spl = interp1d(wavelength, spectral_response,
                        bounds_error=False, fill_value=0, kind='cubic')
 
@@ -74,7 +72,7 @@ class Spectral_Response:
         obj_wavelength: array like
             The wavelength interval, in nm, of the object.
 
-        Yields
+        Returns
         ------
         spectral_response: array like
             The spectral response of the optical system.
@@ -123,11 +121,30 @@ class Telescope(Spectral_Response):
     """
 
     _CSV_FILE_NAME = "telescope.csv"
+    _PRIMARY_MIRROR_ADJUSTMENT = 0.933
+    _SECONDARY_MIRROR_ADJUSTMENT = 0.996
 
     def __init__(self) -> None:
         """Initialize the class."""
         super().__init__()
         return
+
+    def get_spectral_response(self, obj_wavelength: ndarray) -> ndarray:
+        """Return the spectral response.
+
+        Parameters
+        ----------
+        obj_wavelength: array like
+            The wavelength interval, in nm, of the object.
+
+        Yields
+        ------
+        spectral_response: array like
+            The spectral response of the optical system.
+        """
+        spectral_response = super().get_spectral_response(obj_wavelength)
+
+        return spectral_response**2 * self._PRIMARY_MIRROR_ADJUSTMENT * self._SECONDARY_MIRROR_ADJUSTMENT
 
 
 class Atmosphere(Spectral_Response):
@@ -323,7 +340,7 @@ class Channel(Spectral_Response):
             obj_wavelength: array like
                 The wavelength interval, in nm, of the object.
 
-        Yields
+        Returns
         ------
             reduced_sed: array like
                 The Spectral Energy Distribution (SED) of the object subtracted from the loses

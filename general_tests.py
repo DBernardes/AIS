@@ -1,43 +1,26 @@
-# Test the sparc4 spectral response
-from AIS.Spectral_Response import Channel, Atmosphere, Telescope
-import matplotlib.pyplot as plt
+from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 import numpy as np
-import os
+from math import pi
 from sys import exit
 
-sr_total = np.ones(200)
-wv = np.linspace(400, 1100, 200)
-_channel_id = 1
-channel = Channel(_channel_id)
-sr = channel.get_spectral_response(wv, 'collimator.csv')
-sr_total *= sr
-plt.plot(wv, sr, label='collimator')
-sr = channel.get_spectral_response(wv, f'Channel {_channel_id}/dichroic.csv')
-plt.plot(wv, sr, label='dichroic')
-sr_total *= sr
-sr = channel.get_spectral_response(wv, f'Channel {_channel_id}/camera.csv')
-sr_total *= sr
-plt.plot(wv, sr, label='camera')
-sr = channel.get_spectral_response(wv, f'Channel {_channel_id}/ccd.csv')
-sr_total *= sr
-plt.plot(wv, sr, label='ccd')
+ccd_operation_mode = {
+    'em_mode': 'Conv',
+    'em_gain': 1,
+    'preamp': 1,
+    'readout': 1,
+    'binn': 1,
+    't_exp': 1,
+    'image_size': 100
+}
 
-atm = Atmosphere()
-sr = atm.get_spectral_response(wv, 1, 'photometric')
-sr_total *= sr
-plt.plot(wv, sr, label='atmosphere')
+ais = Artificial_Image_Simulator(
+    ccd_operation_mode, channel_id=1, ccd_temperature=-70)
 
-tel = Telescope()
-sr = tel.get_spectral_response(wv)
-sr_total *= sr
-plt.plot(wv, sr, label='telescope')
-
-
-plt.plot(wv, sr_total, 'k', label='total')
-plt.legend()
-#plt.ylim(0, 1.1)
-plt.xlabel('Wavelength (nm)')
-plt.ylabel('Transmitance (%)')
-plt.title(f'Channel {_channel_id}')
-plt.savefig(os.path.join('notebook_figures', f'Channel {_channel_id}.png'))
-plt.show()
+ais.create_source_sed(calculation_method='blackbody',
+                      magnitude=14, wavelength_interval=(400, 1100, 1000), temperature=5700)
+ais.create_sky_sed(moon_phase='new')
+ais.apply_atmosphere_spectral_response()
+ais.apply_telescope_spectral_response()
+ais.apply_sparc4_spectral_response(acquisition_mode='photometry')
+ais.create_artificial_image(
+    image_path=r'E:\images\test', star_coordinates=(50, 50))
