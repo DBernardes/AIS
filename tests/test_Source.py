@@ -61,7 +61,7 @@ def test_calculate_sed_blackbody(source):
 # ------------------------------------------------------------
 TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
 EFFECT_WAVELENGTH = 555.6  # nm
-S_0 = vega_fluxd.get()['Johnson V'].value*1e7  # W/m2/m
+S_0 = 3.658e-2  # W/m2/m
 effective_flux = S_0*10**(-magnitude/2.5) * \
     TELESCOPE_EFFECTIVE_AREA*EFFECT_WAVELENGTH*1e-9/(h*c)
 wavelength_interval = (350, 1100, 100)

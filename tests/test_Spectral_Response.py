@@ -11,7 +11,7 @@ from AIS.Spectral_Response import Spectral_Response
 import pytest
 import os
 import numpy as np
-from scipy.interpolate import splev, splrep
+from scipy.interpolate import splev, splrep, interp1d
 import pandas as pd
 
 obj_wavelength = np.linspace(400, 1100, 100)
@@ -44,8 +44,12 @@ def test_read_csv_file(sr):
     assert np.allclose(new_transmitance, spectral_response)
 
 
-spl = splrep(wavelength, spectral_response)
-new_spectral_response = splev(obj_wavelength, spl)
+#spl = splrep(wavelength, spectral_response)
+#new_spectral_response = splev(obj_wavelength, spl)
+
+spl = interp1d(wavelength, spectral_response,
+               bounds_error=False, fill_value=0, kind='cubic')
+new_spectral_response = spl(obj_wavelength)
 
 
 def test_interpolate_spectral_response(sr):

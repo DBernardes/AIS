@@ -82,7 +82,7 @@ header["SERN"] = channel + 9913
 header["CHANNEL"] = channel
 
 date = datetime.datetime.now()
-date_obs = date.strftime('%Y%m%dT%H:%M:%S')
+date_obs = date.strftime('%Y-%m-%dT%H:%M:%S')
 header["DATE-OBS"] = date_obs
 header["UTDATE"] = date_obs.split('T')[0]
 header["UTTIME"] = date_obs.split('T')[1]

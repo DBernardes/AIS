@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from AIS.Spectral_Response import Channel
-from scipy.interpolate import splev, splrep
+from scipy.interpolate import splev, splrep, interp1d
 
 
 obj_wavelength = np.linspace(400, 1100, 100)
@@ -199,8 +199,12 @@ def test_verify_sparc4_operation_mode_polarimetric_wrong_calibration_wheel_value
 # --------------------------------------------------------------------------------------------
 
 
-spl = splrep(wv_collimator, sr_collimator)
-new_spectral_response = splev(obj_wavelength, spl)
+#spl = splrep(wv_collimator, sr_collimator)
+#new_spectral_response = splev(obj_wavelength, spl)
+
+spl = interp1d(wv_collimator, sr_collimator,
+               bounds_error=False, fill_value=0, kind='cubic')
+new_spectral_response = spl(obj_wavelength)
 
 
 def test_interpolate_spectral_response(channel):
@@ -221,17 +225,21 @@ def test_get_spectral_response(channel):
 def test_apply_phot_spectral_response(channel):
     n = len(obj_wavelength)
     esd = np.linspace(100, 360, n)
-    spl = splrep(wv_collimator, sr_collimator)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_collimator, sr_collimator,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(esd, new_spectral_response)
-    spl = splrep(wv_dichroic, sr_dichroic)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_dichroic, sr_dichroic,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-    spl = splrep(wv_camera, sr_camera)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_camera, sr_camera,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-    spl = splrep(wv_ccd, sr_ccd)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_ccd, sr_ccd,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
     class_reduced_esd = channel._apply_photometric_spectral_response(
         esd, obj_wavelength)
@@ -241,14 +249,17 @@ def test_apply_phot_spectral_response(channel):
 def test_apply_pol_spectral_response_1(channel):
     n = len(obj_wavelength)
     esd = np.linspace(100, 360, n)
-    spl = splrep(wv_depolarizer, sr_depolarizer)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_depolarizer, sr_depolarizer,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(esd, new_spectral_response)
-    spl = splrep(wv_retarder, sr_retarder)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_retarder, sr_retarder,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-    spl = splrep(wv_analyser, sr_analyser)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_analyser, sr_analyser,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
     channel.calibration_wheel = 'depolarizer'
     class_reduced_esd = channel._apply_polarimetric_spectral_response(
@@ -292,23 +303,29 @@ def test_apply_pol_spectral_response_3(channel):
 def test_apply_spectral_response(channel):
     n = len(obj_wavelength)
     esd = np.linspace(100, 360, n)
-    spl = splrep(wv_retarder, sr_retarder)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_retarder, sr_retarder,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(esd, new_spectral_response)
-    spl = splrep(wv_analyser, sr_analyser)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_analyser, sr_analyser,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-    spl = splrep(wv_collimator, sr_collimator)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_collimator, sr_collimator,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-    spl = splrep(wv_dichroic, sr_dichroic)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_dichroic, sr_dichroic,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-    spl = splrep(wv_camera, sr_camera)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_camera, sr_camera,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
-    spl = splrep(wv_ccd, sr_ccd)
-    new_spectral_response = splev(obj_wavelength, spl)
+    spl = interp1d(wv_ccd, sr_ccd,
+                   bounds_error=False, fill_value=0, kind='cubic')
+    new_spectral_response = spl(obj_wavelength)
     reduced_esd = np.multiply(reduced_esd, new_spectral_response)
     channel.calibration_wheel = 'empty'
     channel.acquisition_mode = 'polarimetry'

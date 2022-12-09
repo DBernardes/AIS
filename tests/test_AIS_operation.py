@@ -157,11 +157,11 @@ def test_integrate_sed(ais):
     src = Source()
     wv, sed2 = src.calculate_sed(
         calculation_method, magnitude, wavelegnth_interval, temperature)
-    star_photons_per_second = np.trapz(sed2, wv)
+    star_photons_per_second = np.trapz(sed2, wv*1e-9)
     ais._integrate_sed()
     sky = Sky()
     sky_sed2 = sky.calculate_sed(moon_phase, obj_wavelength)
-    sky_photons_per_second = np.trapz(sky_sed2, obj_wavelength)
+    sky_photons_per_second = np.trapz(sky_sed2, obj_wavelength*1e-9)
     assert np.allclose(ais.star_photons_per_second, star_photons_per_second)
     assert np.allclose(ais.sky_photons_per_second, sky_photons_per_second)
 
@@ -230,16 +230,34 @@ def test_create_background_image():
     os.remove(os.path.join(path, ais.image_name))
 
 
+def test_creat_background_image_error(ais):
+    ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
+    with pytest.raises(ValueError):
+        ais.create_background_image(path, 0)
+
+
 def test_creat_bias_image(ais):
     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
     ais.create_bias_image(path)
     os.remove(os.path.join(path, ais.image_name))
 
 
+def test_creat_bias_image_error(ais):
+    ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
+    with pytest.raises(ValueError):
+        ais.create_bias_image(path, 0)
+
+
 def test_creat_dark_image():
     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
     ais.create_dark_image(path)
     os.remove(os.path.join(path, ais.image_name))
+
+
+def test_creat_dark_image_error(ais):
+    ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
+    with pytest.raises(ValueError):
+        ais.create_dark_image(path, 0)
 
 
 # def test_creat_random_image():
@@ -261,3 +279,9 @@ def test_creat_flat_image():
     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
     ais.create_flat_image(path)
     os.remove(os.path.join(path, ais.image_name))
+
+
+def test_creat_flat_image_error(ais):
+    ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
+    with pytest.raises(ValueError):
+        ais.create_flat_image(path, 0)

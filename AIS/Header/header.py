@@ -101,7 +101,7 @@ class Header:
         self.header["CHANNEL"] = self.channel
 
         date = datetime.datetime.now()
-        date_obs = date.strftime('%Y%m%dT%H:%M:%S.%f')[:-3]
+        date_obs = date.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]
         self.header["DATE-OBS"] = date_obs
         self.header["UTDATE"] = date_obs.split('T')[0]
         self.header["UTTIME"] = date_obs.split('T')[1]

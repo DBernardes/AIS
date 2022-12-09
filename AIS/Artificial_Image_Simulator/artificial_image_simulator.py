@@ -346,7 +346,7 @@ class Artificial_Image_Simulator:
             header=header,
         )
 
-    def create_background_image(self, image_path: str):
+    def create_background_image(self, image_path: str, images: int = 1):
         """Create the background image.
 
         This function creates the background image, similar to those
@@ -357,25 +357,33 @@ class Artificial_Image_Simulator:
 
         image_path : str
             The path where the FITS file will be saved.
+
+        images : int, optional
+            The number of images to be created. The default is 1.
         """
-        self._integrate_sed()
-        background = self.BGI_obj.create_sky_background(
-            self.sky_photons_per_second)
-        header = self.HDR_obj.create_header()
-        self._create_image_name(image_path)
-        header['FILENAME'] = self.image_name
-        header['OBSTYPE'] = 'FLAT'  # ?
-        header['SHUTTER'] = 'OPEN'
 
-        file = os.path.join(image_path, self.image_name)
+        if images < 1:
+            raise ValueError("The number of images must be greater than 0.")
 
-        fits.writeto(
-            file,
-            background,
-            header=header
-        )
+        for _ in range(images):
+            self._integrate_sed()
+            background = self.BGI_obj.create_sky_background(
+                self.sky_photons_per_second)
+            header = self.HDR_obj.create_header()
+            self._create_image_name(image_path)
+            header['FILENAME'] = self.image_name
+            header['OBSTYPE'] = 'FLAT'  # ?
+            header['SHUTTER'] = 'OPEN'
 
-    def create_dark_image(self, image_path: str):
+            file = os.path.join(image_path, self.image_name)
+
+            fits.writeto(
+                file,
+                background,
+                header=header
+            )
+
+    def create_dark_image(self, image_path: str, images: int = 1):
         """
         Create a dark image.
 
@@ -385,23 +393,31 @@ class Artificial_Image_Simulator:
         Parameters
         ----------
         image_path : str
-            The path where the FITS file will be saved.       
+            The path where the FITS file will be saved.
+
+        images : int, optional
+            The number of dark images to be created. The default is 1.
+
         """
-        dark_image = self.BGI_obj.create_dark_background()
-        header = self.HDR_obj.create_header()
-        self._create_image_name(image_path)
-        header['FILENAME'] = self.image_name
-        header['OBSTYPE'] = 'DARK'
-        image_name = os.path.join(
-            image_path, self.image_name)
+        if images < 1:
+            raise ValueError("The number of images must be greater than 0.")
 
-        fits.writeto(
-            image_name,
-            dark_image,
-            header=header,
-        )
+        for _ in range(images):
+            dark_image = self.BGI_obj.create_dark_background()
+            header = self.HDR_obj.create_header()
+            self._create_image_name(image_path)
+            header['FILENAME'] = self.image_name
+            header['OBSTYPE'] = 'DARK'
+            image_name = os.path.join(
+                image_path, self.image_name)
 
-    def create_bias_image(self, image_path: str):
+            fits.writeto(
+                image_name,
+                dark_image,
+                header=header,
+            )
+
+    def create_bias_image(self, image_path: str, images: int = 1):
         """
         Create a bias image.
 
@@ -412,21 +428,28 @@ class Artificial_Image_Simulator:
         ----------
         image_path : str
             The path where the FITS file will be saved.       
+
+        images : int, optional
+            The number of bias images to be created. The default is 1.
         """
-        bias = self.BGI_obj.create_bias_background()
-        header = self.HDR_obj.create_header()
-        self._create_image_name(image_path)
-        header["EXPTIME"] = 1e-5
-        header['FILENAME'] = self.image_name
-        header['OBSTYPE'] = 'ZERO'
+        if images < 1:
+            raise ValueError("The number of images must be greater than 0.")
 
-        image_name = os.path.join(image_path, self.image_name)
+        for _ in range(images):
+            bias = self.BGI_obj.create_bias_background()
+            header = self.HDR_obj.create_header()
+            self._create_image_name(image_path)
+            header["EXPTIME"] = 1e-5
+            header['FILENAME'] = self.image_name
+            header['OBSTYPE'] = 'ZERO'
 
-        fits.writeto(
-            image_name,
-            bias,
-            header=header,
-        )
+            image_name = os.path.join(image_path, self.image_name)
+
+            fits.writeto(
+                image_name,
+                bias,
+                header=header,
+            )
 
     def create_random_image(self, n=10):
         """
@@ -473,7 +496,7 @@ class Artificial_Image_Simulator:
             header=header,
         )
 
-    def create_flat_image(self, image_path: str) -> None:
+    def create_flat_image(self, image_path: str, images: int = 1) -> None:
         """
         Create a flat image.
 
@@ -483,23 +506,30 @@ class Artificial_Image_Simulator:
         Parameters
         ----------
         image_path : str
-            The path where the FITS file will be saved.       
+            The path where the FITS file will be saved.    
+
+        images : int, optional
+            The number of flat images to be created. The default is 1.   
         """
-        flat_image = self.BGI_obj.create_flat_background()
-        header = self.HDR_obj.create_header()
-        self._create_image_name(image_path)
-        header['FILENAME'] = self.image_name
-        header['OBSTYPE'] = 'FLAT'
-        header['SHUTTER'] = 'OPEN'
+        if images < 1:
+            raise ValueError("The number of images must be greater than 0.")
 
-        image_name = os.path.join(
-            image_path, self.image_name)
+        for _ in range(images):
+            flat_image = self.BGI_obj.create_flat_background()
+            header = self.HDR_obj.create_header()
+            self._create_image_name(image_path)
+            header['FILENAME'] = self.image_name
+            header['OBSTYPE'] = 'FLAT'
+            header['SHUTTER'] = 'OPEN'
 
-        fits.writeto(
-            image_name,
-            flat_image,
-            header=header,
-        )
+            image_name = os.path.join(
+                image_path, self.image_name)
+
+            fits.writeto(
+                image_name,
+                flat_image,
+                header=header,
+            )
 
     def _find_image_index(self, image_path) -> int:
         index = 0
