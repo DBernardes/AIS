@@ -10,43 +10,22 @@ import os
 
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
-dic = {
-    "em_mode": "Conv",
-    "em_gain": 1,
-    "preamp": 1,
-    "hss": 1,
-    "binn": 1,
-    "t_exp": 1,
-    "ccd_temp": -70,
-    "image_size": 200,
+ccd_operation_mode = {
+    'em_mode': 'Conv',
+    'em_gain': 1,
+    'preamp': 1,
+    'readout': 1,
+    'binn': 1,
+    't_exp': 1,
+    'image_size': 100
 }
 
-
 ais = Artificial_Image_Simulator(
-    ccd_operation_mode=dic,
-    channel=3,
-    star_coordinates=(100, 100),
-    bias_level=500,
-    sparc4_operation_mode={
-        "acquisition_mode": "polarimetric",
-        "calibration_wheel": "empty",
-        "retarder": "quarter",
-    },
-    image_dir=os.path.join("FITS"),
-    wavelength_interval=(400, 1150, 50),
-    star_magnitude=18,
-    seeing=1.5,
-    air_mass=1,
-    sky_condition="photometric",
-    moon_condition="new",
-)
-
-# ais.apply_atmosphere_spectral_response()
-# ais.apply_telescope_spectral_response()
-ais.apply_sparc4_spectral_response()
-ais.create_artificial_image()
-# ais.create_background_image()
-# ais.create_bias_image()
-# ais.create_dark_image()
-# ais.create_flat_image()
-# ais.create_random_image(10)
+    ccd_operation_mode, channel_id=1, ccd_temperature=-70)
+ais.create_source_sed(calculation_method='blackbody',
+                      magnitude=15, wavelength_interval=(400, 1100, 1000), temperature=5700)
+ais.create_sky_sed(moon_phase='new')
+ais.apply_atmosphere_spectral_response()
+ais.apply_telescope_spectral_response()
+ais.apply_sparc4_spectral_response(acquisition_mode='photometry')
+ais.create_artificial_image(image_path='.', star_coordinates=(50, 50))

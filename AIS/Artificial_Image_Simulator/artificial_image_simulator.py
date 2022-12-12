@@ -274,7 +274,7 @@ class Artificial_Image_Simulator:
     def apply_sparc4_spectral_response(
         self,
         acquisition_mode: str,
-        calibration_wheel: str = "empty",
+        calibration_wheel: str = "",
         retarder_waveplate: str = "half"
     ):
         """Apply the SPARC4 spectral response.
@@ -287,13 +287,13 @@ class Artificial_Image_Simulator:
         acquisition_mode: ["photometry", "polarimetry"]
             The acquisition mode of the sparc4.
 
-        calibration_wheel: ["polarizer", "depolarizer", "empty"], optional
+        calibration_wheel: ["polarizer", "depolarizer"], optional
             The position of the calibration wheel.
-            This parameter is used only if the acquisition_mode is 'polarimetric'.
+            This parameter is used only if the acquisition_mode is 'polarimetry'.
 
         retarder_waveplate: ["half", "quarter"], optional
             The waveplate for polarimetric measurements.
-            This parameter is used only if the acquisition_mode is 'polarimetric'.
+            This parameter is used only if the acquisition_mode is 'polarimetry'.
 
         """
         self.CHNNL_obj.write_sparc4_operation_mode(
@@ -325,13 +325,19 @@ class Artificial_Image_Simulator:
             The coordinates in pixels of the star in the image.
 
         """
-
         self._integrate_sed()
+        ord_ray = self.star_photons_per_second
+        extra_ord_ray = 0
+        if type(self.star_photons_per_second) != np.float64:
+            self.sky_photons_per_second = sum(self.sky_photons_per_second)
+            ord_ray = self.star_photons_per_second[0]
+            extra_ord_ray = self.star_photons_per_second[1]
+
         background = self.BGI_obj.create_sky_background(
             self.sky_photons_per_second)
         star_psf = self.PSF_obj.create_star_image(
             star_coordinates,
-            self.star_photons_per_second)
+            ord_ray, extra_ord_ray)
         self._create_image_name(image_path)
         header = self.HDR_obj.create_header()
         header['OBSTYPE'] = 'OBJECT'

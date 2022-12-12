@@ -3,7 +3,7 @@ Spectral Respose Class
 ======================
 
 
-The Spectral Response is an abstract class that represents the optical systems in the light path. 
+The Spectral Response is an abstract class that represents the optical systems in the light path.
 Theses systems are the atmosphere, the telescope, and the SPARC4 instrument.
 """
 
@@ -13,6 +13,7 @@ import os
 import numpy as np
 import pandas as pd
 from numpy import ndarray
+from numpy import cos, pi, sin
 from scipy.interpolate import splev, splrep, interp1d
 from ._utils import POLARIZER_90_MATRIX, POLARIZER_MATRIX, calculate_retarder_matrix
 from scipy.optimize import curve_fit
@@ -186,7 +187,7 @@ class Atmosphere(Spectral_Response):
             The air mass.
 
         sky_condition: ['photometric', 'regular', 'good']
-            The condition of the sky.        
+            The condition of the sky.
 
         Yields
         ------
@@ -274,6 +275,8 @@ class Channel(Spectral_Response):
         "ccd": "ccd.csv",
     }
 
+    _POLARIZER_ANGLE = 0
+
     def __init__(self, channel_id: int | float) -> None:
         """Initialize the class.
 
@@ -298,8 +301,10 @@ class Channel(Spectral_Response):
         ----------
             obj_wavelength: array like
                 The wavelength interval, in nm, of the object.
+            csv_file_name: str
+                The name of the csv file that contains the spectral response of the optical component.
 
-        Yields
+        Returns
         ------
             spectral_response: array like
                 The spectral response of the optical system.
@@ -308,8 +313,9 @@ class Channel(Spectral_Response):
         return super().get_spectral_response(obj_wavelength)
 
     def write_sparc4_operation_mode(self, acquisition_mode: str,
-                                    calibration_wheel: str = 'empty',
-                                    retarder_waveplate: str = 'half') -> None:
+                                    calibration_wheel: str = '',
+                                    retarder_waveplate: str = 'half',
+                                    retarder_waveplate_angle: float = 0) -> None:
         """Write the operation mode of the SPARC4.
 
         Parameters
@@ -318,15 +324,20 @@ class Channel(Spectral_Response):
             The acquisition mode of the channel. If the acquisition mode is polarimetry,
             the polarimetric configuration must be provided.
 
-        calibration_wheel: ["polarizer", "depolarizer", "empty"], optional
-            The position of the calibration wheel.            
+        calibration_wheel: ["polarizer", "depolarizer"], optional
+            The position of the calibration wheel.
 
-        retarder: ["half", "quarter"], optional
+        retarder_waveplate: ["half", "quarter"], optional
             The waveplate for polarimetric measurements.
+
+        retarder_waveplate_angle: float, optional
+            The angle of the retarder waveplate in degrees.
+            If the acquisition mode of SPARC4 is polarimetry, the retarder waveplate angle should be provided.
         """
         self.acquisition_mode = acquisition_mode
         self.calibration_wheel = calibration_wheel
         self.retarder_waveplate = retarder_waveplate
+        self.retarder_waveplate_angle = retarder_waveplate_angle
         self._verify_sparc4_operation_mode()
         return
 
@@ -346,37 +357,92 @@ class Channel(Spectral_Response):
                 The Spectral Energy Distribution (SED) of the object subtracted from the loses
                 related to the spectral response of the system.
         """
-
+        self.sed = sed
+        self.obj_wavelength = obj_wavelength
         if self.acquisition_mode == "polarimetry":
-            sed = self._apply_polarimetric_spectral_response(
-                sed, obj_wavelength)
-        reduced_sed = self._apply_photometric_spectral_response(
-            sed, obj_wavelength)
+            self._resize_sed()
+            self._apply_polarimetric_spectral_response()
+        self._apply_photometric_spectral_response()
 
-        return reduced_sed
+        return self.sed
 
-    def _apply_photometric_spectral_response(self, sed: ndarray, obj_wavelength: ndarray) -> ndarray:
+    def _apply_photometric_spectral_response(self) -> None:
         for csv_file in self._PHOT_OPTICAL_COMPONENTS.values():
             if csv_file != "collimator.csv":
                 csv_file = os.path.join(
                     f"Channel {self._channel_id}", csv_file)
             spectral_response = self.get_spectral_response(
-                obj_wavelength, csv_file)
-            sed = np.multiply(spectral_response, sed)
+                self.obj_wavelength, csv_file)
+            self.sed = np.multiply(spectral_response, self.sed)
 
-        return sed
+        return
 
-    def _apply_polarimetric_spectral_response(self, sed: ndarray, obj_wavelength: ndarray) -> ndarray:
+    def _apply_polarimetric_spectral_response(self) -> None:
+        if self.calibration_wheel != '':
+            self._apply_calibration_wheel()
+        self._apply_retarder_waveplate()
+        self._apply_analyser()
+        return
+
+    def _apply_calibration_wheel(self) -> None:
+        spectral_response = self.get_spectral_response(
+            self.obj_wavelength, self._POL_OPTICAL_COMPONENTS[self.calibration_wheel])
+        self.sed[0, :] = np.multiply(spectral_response, self.sed[0])
+
+        if self.calibration_wheel == "polarizer":
+            POLARIZER_MATRIX = self._calc_polarizer_matrix(
+                self._POLARIZER_ANGLE)
+            self.sed = np.transpose([POLARIZER_MATRIX.dot(self.sed[:, i])
+                                     for i in range(self.sed.shape[1])])
+        elif self.calibration_wheel == "depolarizer":
+            sed = self.sed
+            self.sed = np.zeros((4, sed.shape[1]))
+            self.sed[0, :] = sed[0, :]
+        else:
+            raise ValueError(
+                f"The calibration wheel {self.calibration_wheel} is not valid.")
+
+        return
+
+    def _apply_retarder_waveplate(self) -> None:
+        spectral_response = self.get_spectral_response(
+            self.obj_wavelength, self._POL_OPTICAL_COMPONENTS['retarder'])
+        self.sed[0, :] = np.multiply(spectral_response, self.sed[0])
+
+        RETARDER_MATRIX = self._calc_retarder_matrix()
+        self.sed = np.transpose([RETARDER_MATRIX.dot(self.sed[:, i])
+                                 for i in range(self.sed.shape[1])])
+        return
+
+    def _apply_analyser(self) -> None:
+        spectral_response = self.get_spectral_response(
+            self.obj_wavelength, self._POL_OPTICAL_COMPONENTS['analyser'])
+        self.sed[0, :] = np.multiply(spectral_response, self.sed[0])
+
+        ORD_RAY_MATRIX = self._calc_polarizer_matrix(self._POLARIZER_ANGLE)
+        temp_1 = np.transpose([ORD_RAY_MATRIX.dot(self.sed[:, i])
+                               for i in range(self.sed.shape[1])])
+
+        EXTRA_ORD_RAY_MATRIX = self._calc_polarizer_matrix(
+            self._POLARIZER_ANGLE + 90)
+        # temp_2 esta negativo !
+        temp_2 = np.transpose([EXTRA_ORD_RAY_MATRIX.dot(self.sed[:, i])
+                               for i in range(self.sed.shape[1])])
+
+        self.sed = np.stack((temp_1[0], temp_2[0]))
+
+    def _apply_polarimetric_spectral_response_1(self, sed: ndarray, obj_wavelength: ndarray) -> ndarray:
         _dict = {}
         cal_wheel = self.calibration_wheel
-        if cal_wheel != "empty":
+        if cal_wheel != '':
             _dict[cal_wheel] = self._POL_OPTICAL_COMPONENTS[cal_wheel]
         _dict['retarder'] = self._POL_OPTICAL_COMPONENTS['retarder']
         _dict['analyser'] = self._POL_OPTICAL_COMPONENTS['analyser']
+
         for csv_file in _dict.values():
             spectral_response = self.get_spectral_response(
                 obj_wavelength, csv_file)
-            sed = np.multiply(spectral_response, sed)
+            sed[0, :] = np.multiply(spectral_response, sed[0])
 
         return sed
 
@@ -391,7 +457,7 @@ class Channel(Spectral_Response):
                 [
                     "polarizer",
                     "depolarizer",
-                    "empty",
+                    "",
                 ],
             )
 
@@ -405,6 +471,80 @@ class Channel(Spectral_Response):
                 f"The SPARC4 acquisition mode should be 'photometry' or 'polarimetry': {self.acquisition_mode}."
             )
         return
+
+    def _resize_sed(self):
+        sed = np.array(self.sed)
+        if sed.ndim == 1:
+            n = len(sed)
+            temp = sed
+            sed = np.zeros((4, n))
+            sed[0, :] = temp
+        self.sed = sed
+        return
+
+    @staticmethod
+    def _calc_polarizer_matrix(polarizer_angle: float) -> ndarray:
+        pol_angle = np.radians(polarizer_angle)
+        POLARIZER_MATRIX = 0.5 * np.asarray(
+            [
+                [1, cos(2 * pol_angle), sin(2 * pol_angle), 0],
+                [
+                    cos(2 * pol_angle),
+                    cos(2 * pol_angle) ** 2,
+                    cos(2 * pol_angle) * sin(2 * pol_angle),
+                    0,
+                ],
+                [
+                    sin(2 * pol_angle),
+                    cos(2 * pol_angle) * sin(2 * pol_angle),
+                    sin(2 * pol_angle) ** 2,
+                    0,
+                ],
+                [0, 0, 0, 0],
+            ]
+        )
+        return POLARIZER_MATRIX
+
+    def _calc_retarder_matrix(self):
+        if self.retarder_waveplate == "half":
+            phase_difference = np.radians(90)
+        elif self.retarder_waveplate == "quarter":
+            phase_difference = np.radians(45)
+        else:
+            raise ValueError(
+                f"The retarder waveplate {self.retarder_waveplate} is not valid."
+            )
+        ret_angle = np.radians(self.retarder_waveplate_angle)
+        RETARDER_MATRIX = np.asarray(
+            [
+                [1, 0, 0, 0],
+                [
+                    0,
+                    cos(2 * ret_angle) ** 2
+                    + sin(2 * ret_angle) ** 2 * cos(phase_difference),
+                    cos(2 * ret_angle)
+                    * sin(2 * ret_angle)
+                    * (1 - cos(phase_difference)),
+                    -sin(2 * ret_angle) * sin(phase_difference),
+                ],
+                [
+                    0,
+                    cos(2 * ret_angle)
+                    + sin(2 * ret_angle) * (1 - cos(phase_difference)),
+                    sin(2 * ret_angle) ** 2
+                    + cos(2 * ret_angle) ** 2 * cos(phase_difference),
+                    cos(2 * ret_angle) * sin(phase_difference),
+                ],
+                [
+                    0,
+                    sin(2 * ret_angle) * sin(phase_difference),
+                    -cos(2 * ret_angle) * sin(phase_difference),
+                    cos(phase_difference),
+                ],
+            ]
+        )
+
+        return RETARDER_MATRIX
 
 
 def func(x, a, b, c, d):
