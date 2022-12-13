@@ -277,13 +277,13 @@ class Channel(Spectral_Response):
 
     _POLARIZER_ANGLE = 0
 
-    def __init__(self, channel_id: int | float) -> None:
+    def __init__(self, channel_id: int) -> None:
         """Initialize the class.
 
         Parameters
         ----------
 
-        channel_id: str
+        channel_id: int
             The channel ID number.
         """
 
@@ -387,7 +387,7 @@ class Channel(Spectral_Response):
     def _apply_calibration_wheel(self) -> None:
         spectral_response = self.get_spectral_response(
             self.obj_wavelength, self._POL_OPTICAL_COMPONENTS[self.calibration_wheel])
-        self.sed[0, :] = np.multiply(spectral_response, self.sed[0])
+        self.sed = np.multiply(spectral_response, self.sed)
 
         if self.calibration_wheel == "polarizer":
             POLARIZER_MATRIX = self._calc_polarizer_matrix(
@@ -407,7 +407,7 @@ class Channel(Spectral_Response):
     def _apply_retarder_waveplate(self) -> None:
         spectral_response = self.get_spectral_response(
             self.obj_wavelength, self._POL_OPTICAL_COMPONENTS['retarder'])
-        self.sed[0, :] = np.multiply(spectral_response, self.sed[0])
+        self.sed = np.multiply(spectral_response, self.sed)
 
         RETARDER_MATRIX = self._calc_retarder_matrix()
         self.sed = np.transpose([RETARDER_MATRIX.dot(self.sed[:, i])
@@ -417,7 +417,7 @@ class Channel(Spectral_Response):
     def _apply_analyser(self) -> None:
         spectral_response = self.get_spectral_response(
             self.obj_wavelength, self._POL_OPTICAL_COMPONENTS['analyser'])
-        self.sed[0, :] = np.multiply(spectral_response, self.sed[0])
+        self.sed = np.multiply(spectral_response, self.sed)
 
         ORD_RAY_MATRIX = self._calc_polarizer_matrix(self._POLARIZER_ANGLE)
         temp_1 = np.transpose([ORD_RAY_MATRIX.dot(self.sed[:, i])
@@ -425,7 +425,6 @@ class Channel(Spectral_Response):
 
         EXTRA_ORD_RAY_MATRIX = self._calc_polarizer_matrix(
             self._POLARIZER_ANGLE + 90)
-        # temp_2 esta negativo !
         temp_2 = np.transpose([EXTRA_ORD_RAY_MATRIX.dot(self.sed[:, i])
                                for i in range(self.sed.shape[1])])
 

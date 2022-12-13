@@ -11,7 +11,7 @@ of an image of the SPARC4 cameras, as a function of its operation mode.
 """
 import datetime
 import os
-from random import randint
+from random import uniform, randint
 import astropy.io.fits as fits
 import numpy as np
 
@@ -326,12 +326,10 @@ class Artificial_Image_Simulator:
 
         """
         self._integrate_sed()
-        ord_ray = self.star_photons_per_second
-        extra_ord_ray = 0
+        ord_ray, extra_ord_ray = self.star_photons_per_second, 0
         if type(self.star_photons_per_second) != np.float64:
             self.sky_photons_per_second = sum(self.sky_photons_per_second)
-            ord_ray = self.star_photons_per_second[0]
-            extra_ord_ray = self.star_photons_per_second[1]
+            ord_ray, extra_ord_ray = self.star_photons_per_second
 
         background = self.BGI_obj.create_sky_background(
             self.sky_photons_per_second)
@@ -457,7 +455,7 @@ class Artificial_Image_Simulator:
                 header=header,
             )
 
-    def create_random_image(self, n=10):
+    def create_random_image(self, image_path, number_stars=10):
         """
         Create a random star image.
 
@@ -468,7 +466,10 @@ class Artificial_Image_Simulator:
         Parameters
         ----------
 
-        n: int, optional
+        image_path : str
+            The path where the FITS file will be saved.
+
+        number_stars: int, optional
             The number of stars in the image.
 
         Returns
@@ -476,29 +477,36 @@ class Artificial_Image_Simulator:
         Star Image:
             A FITS file with the calculated random artificial image.
         """
-        self._configure_image_name()
-        self._integrate_specific_photons_per_second()
-        random_image = self.bgi.create_background_image(
-            self.sky_photons_per_second)
-        for i in range(n):
-            image_size = self.image_size
+        self._integrate_sed()
+        ord_ray, extra_ord_ray = self.star_photons_per_second, 0
+        if type(self.star_photons_per_second) != np.float64:
+            self.sky_photons_per_second = sum(self.sky_photons_per_second)
+            ord_ray, extra_ord_ray = self.star_photons_per_second
+
+        image_size = self.ccd_operation_mode['image_size']
+        star_image = np.zeros((image_size, image_size))
+        for _ in range(number_stars):
             x_coord = randint(0, image_size)
             y_coord = randint(0, image_size)
-            ordinary_ray = randint(0, self.star_ordinary_ray // 1)
-            extra_ordinary_ray = 0
-            random_image += self.psf.create_star_psf(
+            ordinary_ray = uniform(0, ord_ray)
+            extra_ordinary_ray = uniform(0, extra_ord_ray)
+            star_image += self.PSF_obj.create_star_image(
                 (x_coord, y_coord),
                 ordinary_ray,
                 extra_ordinary_ray,
             )
-        header = self.hdr.create_header()
-        image_name = os.path.join(
-            self.image_dir, self.image_name + "_RAND.fits")
 
+        background = self.BGI_obj.create_sky_background(
+            self.sky_photons_per_second)
+        self._create_image_name(image_path)
+        header = self.HDR_obj.create_header()
+        header['OBSTYPE'] = 'OBJECT'
+        header['FILENAME'] = self.image_name
+        header['SHUTTER'] = 'OPEN'
+        file = os.path.join(image_path, self.image_name)
         fits.writeto(
-            image_name,
-            random_image,
-            overwrite=True,
+            file,
+            background + star_image,
             header=header,
         )
 
