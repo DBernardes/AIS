@@ -506,9 +506,9 @@ class Channel(Spectral_Response):
 
     def _calc_retarder_matrix(self):
         if self.retarder_waveplate == "half":
-            phase_difference = np.radians(90)
+            phase_difference = np.radians(180)
         elif self.retarder_waveplate == "quarter":
-            phase_difference = np.radians(45)
+            phase_difference = np.radians(90)
         else:
             raise ValueError(
                 f"The retarder waveplate {self.retarder_waveplate} is not valid."

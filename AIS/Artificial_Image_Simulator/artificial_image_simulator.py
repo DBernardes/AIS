@@ -14,7 +14,7 @@ import os
 from random import uniform, randint
 import astropy.io.fits as fits
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 from ..Background_Image import Background_Image
 from ..Header import Header
@@ -275,7 +275,8 @@ class Artificial_Image_Simulator:
         self,
         acquisition_mode: str,
         calibration_wheel: str = "",
-        retarder_waveplate: str = "half"
+        retarder_waveplate: str = "half",
+        retarder_waveplate_angle: int | float = 0,
     ):
         """Apply the SPARC4 spectral response.
 
@@ -295,9 +296,12 @@ class Artificial_Image_Simulator:
             The waveplate for polarimetric measurements.
             This parameter is used only if the acquisition_mode is 'polarimetry'.
 
+        retarder_waveplate_angle: int | float, optional
+            The angle of the retarder waveplate in degrees.
+            If the acquisition mode of SPARC4 is polarimetry, the retarder waveplate angle should be provided.
         """
         self.CHNNL_obj.write_sparc4_operation_mode(
-            acquisition_mode, calibration_wheel, retarder_waveplate)
+            acquisition_mode, calibration_wheel, retarder_waveplate, retarder_waveplate_angle)
         self.source_sed = self.CHNNL_obj.apply_spectral_response(
             self.source_sed, self.wavelength)
         self.sky_sed = self.CHNNL_obj.apply_spectral_response(
@@ -306,11 +310,12 @@ class Artificial_Image_Simulator:
     def _integrate_sed(self):
         """Integrate the star and the sky SEDs."""
         self.wavelength *= 1e-9
-        self.sky_photons_per_second = np.trapz(self.sky_sed, self.wavelength)
-        self.star_photons_per_second = np.trapz(
-            self.source_sed, self.wavelength)
+        self.sky_photons_per_second = np.clip(
+            np.trapz(self.sky_sed, self.wavelength), 0, None)
+        self.star_photons_per_second = np.clip(np.trapz(
+            self.source_sed, self.wavelength), 0, None)
 
-    def create_artificial_image(self, image_path: str, star_coordinates: tuple) -> None:
+    def create_artificial_image(self, image_path: str, star_coordinates: tuple, seeing: float = 1) -> None:
         """
         Create the artificial star image.
 
@@ -324,6 +329,9 @@ class Artificial_Image_Simulator:
         star_coordinates : tuple
             The coordinates in pixels of the star in the image.
 
+        seeing : float, optional
+            The seeing of the star.
+
         """
         self._integrate_sed()
         ord_ray, extra_ord_ray = self.star_photons_per_second, 0
@@ -335,20 +343,21 @@ class Artificial_Image_Simulator:
             self.sky_photons_per_second)
         star_psf = self.PSF_obj.create_star_image(
             star_coordinates,
-            ord_ray, extra_ord_ray)
+            ord_ray, extra_ord_ray, seeing)
         self._create_image_name(image_path)
         header = self.HDR_obj.create_header()
         header['OBSTYPE'] = 'OBJECT'
         header['FILENAME'] = self.image_name
         header['SHUTTER'] = 'OPEN'
 
-        file = os.path.join(image_path, self.image_name)
+        self.background = background
+        self.star = star_psf
 
-        fits.writeto(
-            file,
-            background + star_psf,
-            header=header,
-        )
+        # fits.writeto(
+        #     file,
+        #     background + star_psf,
+        #     header=header,
+        # )
 
     def create_background_image(self, image_path: str, images: int = 1):
         """Create the background image.
@@ -455,7 +464,7 @@ class Artificial_Image_Simulator:
                 header=header,
             )
 
-    def create_random_image(self, image_path, number_stars=10):
+    def create_random_image(self, image_path, number_stars=10, seeing: float = 1):
         """
         Create a random star image.
 
@@ -471,6 +480,9 @@ class Artificial_Image_Simulator:
 
         number_stars: int, optional
             The number of stars in the image.
+
+        seeing : float, optional
+            The seeing of the star.
 
         Returns
         -------
@@ -494,6 +506,7 @@ class Artificial_Image_Simulator:
                 (x_coord, y_coord),
                 ordinary_ray,
                 extra_ordinary_ray,
+                seeing,
             )
 
         background = self.BGI_obj.create_sky_background(
