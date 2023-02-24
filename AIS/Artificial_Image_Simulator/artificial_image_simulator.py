@@ -14,13 +14,15 @@ import os
 from random import uniform, randint
 import astropy.io.fits as fits
 import numpy as np
-import matplotlib.pyplot as plt
+from numpy import ndarray
 
 from ..Background_Image import Background_Image
 from ..Header import Header
 from ..Point_Spread_Function import Point_Spread_Function
 from ..Spectral_Response import Atmosphere, Telescope, Channel
 from ..Spectral_Energy_Distribution import Source, Sky
+
+from sys import exit
 
 
 __all__ = ['Artificial_Image_Simulator']
@@ -314,8 +316,9 @@ class Artificial_Image_Simulator:
             np.trapz(self.sky_sed, self.wavelength), 0, None)
         self.star_photons_per_second = np.clip(np.trapz(
             self.source_sed, self.wavelength), 0, None)
+        print(self.source_sed, self.star_photons_per_second), exit()
 
-    def create_artificial_image(self, image_path: str, star_coordinates: tuple, seeing: float = 1) -> None:
+    def create_artificial_image(self, image_path: str, star_coordinates: tuple, seeing: float = 1) -> ndarray:
         """
         Create the artificial star image.
 
@@ -350,14 +353,14 @@ class Artificial_Image_Simulator:
         header['FILENAME'] = self.image_name
         header['SHUTTER'] = 'OPEN'
 
-        self.background = background
-        self.star = star_psf
-
+        image = background + star_psf
+        file = os.path.join(image_path, self.image_name)
         # fits.writeto(
         #     file,
-        #     background + star_psf,
+        #     image,
         #     header=header,
         # )
+        return star_psf
 
     def create_background_image(self, image_path: str, images: int = 1):
         """Create the background image.

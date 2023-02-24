@@ -61,7 +61,7 @@ class Spectral_Response:
     @staticmethod
     def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
         spl = interp1d(wavelength, spectral_response,
-                       bounds_error=False, fill_value=0, kind='cubic')
+                       bounds_error=False, fill_value=0, kind='quadratic')
 
         return spl(obj_wavelength)
 
@@ -262,8 +262,6 @@ class Channel(Spectral_Response):
     """
 
     _POL_OPTICAL_COMPONENTS = {
-        "polarizer": "polarizer.csv",
-        "depolarizer": "depolarizer.csv",
         "retarder": "retarder.csv",
         "analyser": "analyser.csv",
     }
@@ -378,6 +376,11 @@ class Channel(Spectral_Response):
         return
 
     def _apply_polarimetric_spectral_response(self) -> None:
+        for csv_file in self._POL_OPTICAL_COMPONENTS.values():
+            spectral_response = self.get_spectral_response(
+                self.obj_wavelength, csv_file)
+            self.sed = np.multiply(spectral_response, self.sed)
+
         if self.calibration_wheel != '':
             self._apply_calibration_wheel()
         self._apply_retarder_waveplate()
@@ -386,7 +389,7 @@ class Channel(Spectral_Response):
 
     def _apply_calibration_wheel(self) -> None:
         spectral_response = self.get_spectral_response(
-            self.obj_wavelength, self._POL_OPTICAL_COMPONENTS[self.calibration_wheel])
+            self.obj_wavelength, self.calibration_wheel + '.csv')
         self.sed = np.multiply(spectral_response, self.sed)
 
         if self.calibration_wheel == "polarizer":
@@ -405,20 +408,12 @@ class Channel(Spectral_Response):
         return
 
     def _apply_retarder_waveplate(self) -> None:
-        spectral_response = self.get_spectral_response(
-            self.obj_wavelength, self._POL_OPTICAL_COMPONENTS['retarder'])
-        self.sed = np.multiply(spectral_response, self.sed)
-
         RETARDER_MATRIX = self._calc_retarder_matrix()
         self.sed = np.transpose([RETARDER_MATRIX.dot(self.sed[:, i])
                                  for i in range(self.sed.shape[1])])
         return
 
     def _apply_analyser(self) -> None:
-        spectral_response = self.get_spectral_response(
-            self.obj_wavelength, self._POL_OPTICAL_COMPONENTS['analyser'])
-        self.sed = np.multiply(spectral_response, self.sed)
-
         ORD_RAY_MATRIX = self._calc_polarizer_matrix(self._POLARIZER_ANGLE)
         temp_1 = np.transpose([ORD_RAY_MATRIX.dot(self.sed[:, i])
                                for i in range(self.sed.shape[1])])

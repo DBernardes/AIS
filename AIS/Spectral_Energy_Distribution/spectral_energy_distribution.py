@@ -28,7 +28,9 @@ class Spectral_Energy_Distribution:
     _EFFECT_WAVELENGTH = 555.6  # nm
     _TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
 
-    # W/(m.m2) #https://cass.ucsd.edu/archive/physics/ph162/mags.html
+    # W/(m.m2)
+    # https://www.astronomy.ohio-state.edu/martini.10/usefuldata.html
+    # https://cass.ucsd.edu/archive/physics/ph162/mags.html
     _S_0 = 3.658e-2
     _BASE_PATH = os.path.join(
         'AIS', 'Spectral_Energy_Distribution')
@@ -149,8 +151,11 @@ class Source(Spectral_Energy_Distribution):
 
         effective_flux = self._calculate_photons_density(
             magnitude)
-        sed = sed * effective_flux
-        return wavelength, sed
+
+        self.sed = sed * effective_flux
+        self.wavelength = wavelength
+
+        return self.wavelength, self.sed
 
     @staticmethod
     def _calculate_sed_blackbody(wavelength, temperature):
@@ -174,6 +179,32 @@ class Source(Spectral_Energy_Distribution):
         print('-------------------------\n')
         spec_types = [spec_type.split('.')[0][2:] for spec_type in spec_types]
         print(*spec_types, sep=', ')
+
+    def apply_polarization(self) -> ndarray:
+        """Apply a polarization to the SED.
+
+        This function applies a polarization to the SED calculates by the calculate_sed() function.
+
+        Paramerter
+        ----------
+
+        polarization: [linear, circular]
+            The polarization type.
+
+        degree_pol: float
+            The percentage of polarization.
+
+        pol_angle: float, optional
+            The linear polarization angle.
+
+        Returns
+        -------
+
+        polarizerd_sed: array like
+            A polarized SED.        
+        """
+
+        return self.sed
 
 
 class Sky(Spectral_Energy_Distribution):
