@@ -263,7 +263,7 @@ class Channel(Spectral_Response):
 
     _POL_OPTICAL_COMPONENTS = {
         "retarder": "retarder.csv",
-        "analyser": "analyser.csv",
+        "analyzer": "analyzer.csv",
     }
 
     _PHOT_OPTICAL_COMPONENTS = {
