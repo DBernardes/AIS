@@ -99,6 +99,9 @@ class Header:
         self.header["OBSTYPE"] = 'NONE'
         self.header["SERN"] = self.channel + 9913
         self.header["CHANNEL"] = self.channel
+        self.header['OBSLONG'] = -45.5825
+        self.header['OBSLAT'] = -22.53444444444445
+        self.header['OBSALT'] = 1864.0
 
         date = datetime.datetime.now()
         date_obs = date.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]

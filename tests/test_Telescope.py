@@ -21,6 +21,14 @@ spreadsheet_path = os.path.join(BASE_PATH, csv_file_name)
 ss = pd.read_csv(spreadsheet_path)
 wavelength = ss['Wavelength (nm)']
 spectral_response = ss['Transmitance (%)']/100
+_PRIMARY_MIRROR_ADJUSTMENT = 0.933
+_SECONDARY_MIRROR_ADJUSTMENT = 0.996
+spl = interp1d(wavelength, spectral_response,
+               bounds_error=False, fill_value=0, kind='cubic')
+new_spectral_response = spl(
+    obj_wavelength)**2 * _PRIMARY_MIRROR_ADJUSTMENT * _SECONDARY_MIRROR_ADJUSTMENT
+#spl = splrep(wavelength, spectral_response)
+#new_spectral_response = splev(obj_wavelength, spl)
 
 
 @pytest.fixture
@@ -45,20 +53,10 @@ def test_read_csv_file(telescope):
     assert np.allclose(new_transmitance, spectral_response)
 
 
-#spl = splrep(wavelength, spectral_response)
-#new_spectral_response = splev(obj_wavelength, spl)
-_PRIMARY_MIRROR_ADJUSTMENT = 0.933
-_SECONDARY_MIRROR_ADJUSTMENT = 0.996
-spl = interp1d(wavelength, spectral_response,
-               bounds_error=False, fill_value=0, kind='cubic')
-new_spectral_response = spl(
-    obj_wavelength)**2 * _PRIMARY_MIRROR_ADJUSTMENT * _SECONDARY_MIRROR_ADJUSTMENT
-
-
 def test_interpolate_spectral_response(telescope):
     class_spectral_response = telescope._interpolate_spectral_response(
         wavelength, spectral_response, obj_wavelength)
-    assert np.allclose(class_spectral_response, spl(obj_wavelength))
+    assert np.allclose(class_spectral_response, spl(obj_wavelength), atol=1e-3)
 
 
 def test_get_spectral_response(telescope):

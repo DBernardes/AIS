@@ -316,7 +316,6 @@ class Artificial_Image_Simulator:
             np.trapz(self.sky_sed, self.wavelength), 0, None)
         self.star_photons_per_second = np.clip(np.trapz(
             self.source_sed, self.wavelength), 0, None)
-        print(self.source_sed, self.star_photons_per_second), exit()
 
     def create_artificial_image(self, image_path: str, star_coordinates: tuple, seeing: float = 1) -> ndarray:
         """
@@ -355,12 +354,11 @@ class Artificial_Image_Simulator:
 
         image = background + star_psf
         file = os.path.join(image_path, self.image_name)
-        # fits.writeto(
-        #     file,
-        #     image,
-        #     header=header,
-        # )
-        return star_psf
+        fits.writeto(
+            file,
+            image,
+            header=header,
+        )
 
     def create_background_image(self, image_path: str, images: int = 1):
         """Create the background image.

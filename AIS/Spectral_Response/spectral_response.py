@@ -15,8 +15,9 @@ import pandas as pd
 from numpy import ndarray
 from numpy import cos, pi, sin
 from scipy.interpolate import splev, splrep, interp1d
-from ._utils import POLARIZER_90_MATRIX, POLARIZER_MATRIX, calculate_retarder_matrix
+from ._utils import calculate_retarder_matrix, calculate_polarizer_matrix
 from scipy.optimize import curve_fit
+from math import sqrt, atan
 
 __all__ = ['Atmosphere', 'Telescope', 'Channel']
 
@@ -61,7 +62,7 @@ class Spectral_Response:
     @staticmethod
     def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
         spl = interp1d(wavelength, spectral_response,
-                       bounds_error=False, fill_value=0, kind='quadratic')
+                       bounds_error=False, fill_value=0, kind='cubic')
 
         return spl(obj_wavelength)
 
@@ -73,13 +74,17 @@ class Spectral_Response:
         obj_wavelength: array like
             The wavelength interval, in nm, of the object.
 
+        second_column_header: string, optional
+            The header of the second column of the CSV file.
+
         Returns
         ------
         spectral_response: array like
             The spectral response of the optical system.
         """
         csv_file_name = os.path.join(self._BASE_PATH, self._CSV_FILE_NAME)
-        sys_wavelength, spectral_response = self._read_csv_file(csv_file_name)
+        sys_wavelength, spectral_response = self._read_csv_file(
+            csv_file_name)
         spectral_response = self._interpolate_spectral_response(
             sys_wavelength, spectral_response, obj_wavelength
         )
@@ -379,12 +384,13 @@ class Channel(Spectral_Response):
         for csv_file in self._POL_OPTICAL_COMPONENTS.values():
             spectral_response = self.get_spectral_response(
                 self.obj_wavelength, csv_file)
+            # precisa ser apenas para a primeira linha da SED!
             self.sed = np.multiply(spectral_response, self.sed)
 
         if self.calibration_wheel != '':
             self._apply_calibration_wheel()
         self._apply_retarder_waveplate()
-        self._apply_analyser()
+        self._apply_analyzer()
         return
 
     def _apply_calibration_wheel(self) -> None:
@@ -393,10 +399,13 @@ class Channel(Spectral_Response):
         self.sed = np.multiply(spectral_response, self.sed)
 
         if self.calibration_wheel == "polarizer":
-            POLARIZER_MATRIX = self._calc_polarizer_matrix(
-                self._POLARIZER_ANGLE)
-            self.sed = np.transpose([POLARIZER_MATRIX.dot(self.sed[:, i])
-                                     for i in range(self.sed.shape[1])])
+            contrast_ratio = self._get_polarizer_contrast_ratio(
+                self.obj_wavelength)
+            for idx, value in enumerate(contrast_ratio):
+                theta = np.rad2deg(atan(sqrt(value)))
+                polarizer_matrix = calculate_polarizer_matrix(theta)
+                self.sed[:, idx] = np.transpose(
+                    polarizer_matrix.dot(self.sed[:, idx]))
         elif self.calibration_wheel == "depolarizer":
             sed = self.sed
             self.sed = np.zeros((4, sed.shape[1]))
@@ -408,20 +417,30 @@ class Channel(Spectral_Response):
         return
 
     def _apply_retarder_waveplate(self) -> None:
-        RETARDER_MATRIX = self._calc_retarder_matrix()
+        if self.retarder_waveplate == "half":
+            phase_difference = 180
+        elif self.retarder_waveplate == "quarter":
+            phase_difference = 90
+        else:
+            raise ValueError(
+                f"The retarder waveplate {self.retarder_waveplate} is not valid."
+            )
+        ret_angle = np.radians(self.retarder_waveplate_angle)
+        RETARDER_MATRIX = calculate_retarder_matrix(
+            phase_difference, ret_angle)
         self.sed = np.transpose([RETARDER_MATRIX.dot(self.sed[:, i])
-                                 for i in range(self.sed.shape[1])])
+                                for i in range(self.sed.shape[1])])
         return
 
-    def _apply_analyser(self) -> None:
-        ORD_RAY_MATRIX = self._calc_polarizer_matrix(self._POLARIZER_ANGLE)
+    def _apply_analyzer(self) -> None:
+        ORD_RAY_MATRIX = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
         temp_1 = np.transpose([ORD_RAY_MATRIX.dot(self.sed[:, i])
-                               for i in range(self.sed.shape[1])])
+                              for i in range(self.sed.shape[1])])
 
-        EXTRA_ORD_RAY_MATRIX = self._calc_polarizer_matrix(
+        EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(
             self._POLARIZER_ANGLE + 90)
         temp_2 = np.transpose([EXTRA_ORD_RAY_MATRIX.dot(self.sed[:, i])
-                               for i in range(self.sed.shape[1])])
+                              for i in range(self.sed.shape[1])])
 
         self.sed = np.stack((temp_1[0], temp_2[0]))
 
@@ -476,69 +495,18 @@ class Channel(Spectral_Response):
         self.sed = sed
         return
 
-    @staticmethod
-    def _calc_polarizer_matrix(polarizer_angle: float) -> ndarray:
-        pol_angle = np.radians(polarizer_angle)
-        POLARIZER_MATRIX = 0.5 * np.asarray(
-            [
-                [1, cos(2 * pol_angle), sin(2 * pol_angle), 0],
-                [
-                    cos(2 * pol_angle),
-                    cos(2 * pol_angle) ** 2,
-                    cos(2 * pol_angle) * sin(2 * pol_angle),
-                    0,
-                ],
-                [
-                    sin(2 * pol_angle),
-                    cos(2 * pol_angle) * sin(2 * pol_angle),
-                    sin(2 * pol_angle) ** 2,
-                    0,
-                ],
-                [0, 0, 0, 0],
-            ]
-        )
-        return POLARIZER_MATRIX
+    def _get_polarizer_contrast_ratio(self, obj_wavelength: ndarray) -> ndarray:
+        csv_file_name = os.path.join(
+            self._BASE_PATH, 'polarizer_contrast_ratio.csv')
+        ss = pd.read_csv(csv_file_name)
+        sys_wavelength, contrast_ratio = np.asarray(
+            ss["Wavelength (nm)"]), np.asarray(ss["Contrast ratio"])
 
-    def _calc_retarder_matrix(self):
-        if self.retarder_waveplate == "half":
-            phase_difference = np.radians(180)
-        elif self.retarder_waveplate == "quarter":
-            phase_difference = np.radians(90)
-        else:
-            raise ValueError(
-                f"The retarder waveplate {self.retarder_waveplate} is not valid."
-            )
-        ret_angle = np.radians(self.retarder_waveplate_angle)
-        RETARDER_MATRIX = np.asarray(
-            [
-                [1, 0, 0, 0],
-                [
-                    0,
-                    cos(2 * ret_angle) ** 2
-                    + sin(2 * ret_angle) ** 2 * cos(phase_difference),
-                    cos(2 * ret_angle)
-                    * sin(2 * ret_angle)
-                    * (1 - cos(phase_difference)),
-                    -sin(2 * ret_angle) * sin(phase_difference),
-                ],
-                [
-                    0,
-                    cos(2 * ret_angle)
-                    + sin(2 * ret_angle) * (1 - cos(phase_difference)),
-                    sin(2 * ret_angle) ** 2
-                    + cos(2 * ret_angle) ** 2 * cos(phase_difference),
-                    cos(2 * ret_angle) * sin(phase_difference),
-                ],
-                [
-                    0,
-                    sin(2 * ret_angle) * sin(phase_difference),
-                    -cos(2 * ret_angle) * sin(phase_difference),
-                    cos(phase_difference),
-                ],
-            ]
+        contrast_ratio = self._interpolate_spectral_response(
+            sys_wavelength, contrast_ratio, obj_wavelength
         )
 
-        return RETARDER_MATRIX
+        return contrast_ratio
 
 
 def func(x, a, b, c, d):

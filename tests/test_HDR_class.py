@@ -80,6 +80,9 @@ header["INSTRUME"] = 'SPARC4'
 header["OBSTYPE"] = 'NONE'
 header["SERN"] = channel + 9913
 header["CHANNEL"] = channel
+header['OBSLONG'] = -45.5825
+header['OBSLAT'] = -22.53444444444445
+header['OBSALT'] = 1864.0
 
 date = datetime.datetime.now()
 date_obs = date.strftime('%Y-%m-%dT%H:%M:%S')
