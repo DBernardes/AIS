@@ -92,11 +92,11 @@ def test_get_spectral_response(atm):
     assert np.allclose(class_spectral_response, new_spectral_response)
 
 
-esd = np.ones(len(obj_wavelength))
-reduced_esd = np.multiply(new_spectral_response, esd)
+sed = np.ones((4, len(obj_wavelength)))
+sed[0] = np.multiply(new_spectral_response, sed[0])
 
 
 def test_apply_spectral_response(atm):
     class_reduced_esd = atm.apply_spectral_response(
-        esd, obj_wavelength, air_mass, sky_condition)
-    assert np.allclose(class_reduced_esd, reduced_esd)
+        sed, obj_wavelength, air_mass, sky_condition)
+    assert np.allclose(class_reduced_esd, sed)

@@ -76,6 +76,14 @@ def test_create_source_sed_spectral_lib(ais):
     assert np.allclose(ais.source_sed, sed2)
 
 
+def test_write_source_sed(ais):
+    n = len(wavelegnth_interval)
+    sed = np.ones((1, n))
+    ais.write_source_sed(wavelegnth_interval, sed)
+    assert np.allclose(wavelegnth_interval, ais.wavelength)
+    assert np.allclose(sed, ais.source_sed)
+
+
 wv = wavelegnth_interval
 obj_wavelength = np.linspace(wv[0], wv[1], wv[2])
 moon_phase = 'new'

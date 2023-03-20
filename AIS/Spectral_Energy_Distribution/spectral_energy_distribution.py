@@ -28,10 +28,9 @@ class Spectral_Energy_Distribution:
     _EFFECT_WAVELENGTH = 555.6  # nm
     _TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
 
-    # W/(m.m2)
     # https://www.astronomy.ohio-state.edu/martini.10/usefuldata.html
     # https://cass.ucsd.edu/archive/physics/ph162/mags.html
-    _S_0 = 3.658e-2
+    _S_0 = 3.658e-2  # W/(m.m2)
     _BASE_PATH = os.path.join(
         'AIS', 'Spectral_Energy_Distribution')
 
@@ -152,7 +151,9 @@ class Source(Spectral_Energy_Distribution):
         effective_flux = self._calculate_photons_density(
             magnitude)
 
-        self.sed = sed * effective_flux
+        n = len(sed)
+        self.sed = np.zeros((4, n))
+        self.sed[0] = sed * effective_flux
         self.wavelength = wavelength
 
         return self.wavelength, self.sed
@@ -247,6 +248,8 @@ class Sky(Spectral_Energy_Distribution):
         """
         wavelength, mags = self._read_csv(self.CSV_FILE, moon_phase)
         sed = self._calculate_photons_density(mags)
-        sed = self._interpolate_spectral_distribution(
+        temp = self._interpolate_spectral_distribution(
             wavelength, sed, object_wavelength)
+        sed = np.zeros((4, object_wavelength.shape[0]))
+        sed[0] = temp
         return sed

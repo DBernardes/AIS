@@ -65,7 +65,7 @@ class Artificial_Image_Simulator:
 
     ais.apply_sparc4_spectral_response(acquisition_mode='photometry')
 
-    ais.create_artificial_image(image_path='.', star_coordinates=(50,50)) 
+    ais.create_artificial_image(image_path=r'.\FITS', star_coordinates=(50,50)) 
 
     Notes
     -----
@@ -223,6 +223,24 @@ class Artificial_Image_Simulator:
         """
         self.wavelength, self.source_sed = self.SRC_obj.calculate_sed(calculation_method, magnitude,
                                                                       wavelength_interval, temperature, spectral_type)
+
+    def write_source_sed(self, wavelenth: ndarray, sed: ndarray):
+        """Write the source SED into the class.
+
+        Parameters
+        ----------
+            wavelength: array like
+                The wavelength interval of the source in nm.
+            sed: array like
+                Spectral Energy Distribution of the source in W/(m2.m).
+        """
+        n = sed.shape
+        self.source_sed = sed
+        if n[0] == 1:
+            self.source_sed = np.zeros((4, n[1]))
+            self.source_sed[0] = sed
+        self.wavelength = wavelenth
+        return
 
     def print_available_spectral_types(self) -> None:
         """Print the available spectral types."""

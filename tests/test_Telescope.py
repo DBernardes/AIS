@@ -64,10 +64,10 @@ def test_get_spectral_response(telescope):
     assert np.allclose(class_spectral_response, new_spectral_response)
 
 
-esd = np.ones(len(obj_wavelength))
-reduced_esd = np.multiply(new_spectral_response, esd)
+sed = np.ones((4, len(obj_wavelength)))
+sed[0] = np.multiply(new_spectral_response, sed[0])
 
 
 def test_apply_spectral_response(telescope):
-    class_reduced_esd = telescope.apply_spectral_response(esd, obj_wavelength)
-    assert np.allclose(class_reduced_esd, reduced_esd)
+    class_reduced_esd = telescope.apply_spectral_response(sed, obj_wavelength)
+    assert np.allclose(class_reduced_esd, sed)

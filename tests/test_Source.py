@@ -74,8 +74,10 @@ new_sed = sed_blackbody * effective_flux / normalization_flux
 def test_calculate_sed(source):
     class_wv, class_sed = source.calculate_sed(
         calculation_method, magnitude, wavelength_interval, temperature)
+    temp = np.zeros((4, 100))
+    temp[0] = new_sed
     assert np.allclose(class_wv, wv, rtol=0.005)
-    assert np.allclose(class_sed, new_sed, rtol=0.005)
+    assert np.allclose(temp, class_sed, rtol=0.005)
 
 
 SPECTRAL_LIB_PATH = os.path.join(
@@ -104,6 +106,9 @@ def test_get_calculate_sed_spectral_lib(source):
             'spectral_library', magnitude, spectral_type=name)
         path = os.path.join(SPECTRAL_LIB_PATH, 'uk' + name + '.csv')
         file_data = pd.read_csv(path)
+        new_sed = file_data['flux (F_lambda)']*effective_flux
+        temp = np.zeros((4, len(new_sed)))
+        temp[0] = new_sed
         assert np.allclose(wv, file_data['wavelength (nm)'], rtol=0.005)
         assert np.allclose(
-            sed, file_data['flux (F_lambda)']*effective_flux, rtol=0.005)
+            sed, temp, rtol=0.005)
