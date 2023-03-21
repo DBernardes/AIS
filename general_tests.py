@@ -23,4 +23,5 @@ ais.create_sky_sed(moon_phase='first quarter')
 ais.apply_atmosphere_spectral_response(air_mass=1.019)
 ais.apply_telescope_spectral_response()
 ais.apply_sparc4_spectral_response(
-    acquisition_mode='polarimetry')
+    acquisition_mode='photometry')
+ais.create_background_image('tests/fits')

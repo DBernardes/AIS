@@ -23,6 +23,7 @@ import pytest
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 from AIS.Spectral_Energy_Distribution import Source, Sky
 from AIS.Spectral_Response import Atmosphere, Telescope, Channel
+from copy import copy
 
 ccd_operation_mode = {
     "em_mode": "Conv",
@@ -78,7 +79,7 @@ def test_create_source_sed_spectral_lib(ais):
 
 def test_write_source_sed(ais):
     n = len(wavelegnth_interval)
-    sed = np.ones((1, n))
+    sed = np.ones((4, n))
     ais.write_source_sed(wavelegnth_interval, sed)
     assert np.allclose(wavelegnth_interval, ais.wavelength)
     assert np.allclose(sed, ais.source_sed)
@@ -146,11 +147,16 @@ def test_apply_sparc4_spectral_response_polarimetric(ais):
     ais.create_source_sed(calculation_method, magnitude,
                           wavelegnth_interval, temperature)
     ais.create_sky_sed(moon_phase)
+
     channel = Channel(channel_id)
     channel.write_sparc4_operation_mode('polarimetry', 'polarizer', 'quarter')
-    new_sed = channel.apply_spectral_response(ais.source_sed, obj_wavelength)
-    new_sky_sed = channel.apply_spectral_response(ais.sky_sed, obj_wavelength)
+    new_sed = channel.apply_spectral_response(
+        copy(ais.source_sed), obj_wavelength)
+    new_sky_sed = channel.apply_spectral_response(
+        copy(ais.sky_sed), obj_wavelength)
+
     ais.apply_sparc4_spectral_response('polarimetry', 'polarizer', 'quarter')
+
     assert np.allclose(ais.source_sed, new_sed)
     assert np.allclose(ais.sky_sed, new_sky_sed)
 
@@ -234,6 +240,7 @@ def test_create_background_image():
     ais.create_source_sed(calculation_method, magnitude,
                           wavelegnth_interval, temperature)
     ais.create_sky_sed(moon_phase)
+    ais.apply_sparc4_spectral_response('photometry')
     ais.create_background_image(path)
     os.remove(os.path.join(path, ais.image_name))
 

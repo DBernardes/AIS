@@ -18,6 +18,7 @@ from scipy.interpolate import splev, splrep, interp1d
 from ._utils import calculate_retarder_matrix, calculate_polarizer_matrix
 from scipy.optimize import curve_fit
 from math import sqrt, atan
+from copy import copy
 
 __all__ = ['Atmosphere', 'Telescope', 'Channel']
 
@@ -267,11 +268,6 @@ class Channel(Spectral_Response):
             The spectral response of the optical system.
     """
 
-    _POL_OPTICAL_COMPONENTS = {
-        "retarder": "retarder.csv",
-        "analyzer": "analyzer.csv",
-    }
-
     _PHOT_OPTICAL_COMPONENTS = {
         "collimator": "collimator.csv",
         "dichroic": "dichroic.csv",
@@ -361,10 +357,12 @@ class Channel(Spectral_Response):
                 The Spectral Energy Distribution (SED) of the object subtracted from the loses
                 related to the spectral response of the system.
         """
-        self.sed = sed
+        self.sed = sed[0]
         self.obj_wavelength = obj_wavelength
         if self.acquisition_mode == "polarimetry":
+            self.sed = sed
             self._apply_polarimetric_spectral_response()
+
         self._apply_photometric_spectral_response()
 
         return self.sed
@@ -376,27 +374,21 @@ class Channel(Spectral_Response):
                     f"Channel {self._channel_id}", csv_file)
             spectral_response = self.get_spectral_response(
                 self.obj_wavelength, csv_file)
-            self.sed[0] = np.multiply(spectral_response, self.sed[0])
+            self.sed = np.multiply(spectral_response, self.sed)
 
         return
 
     def _apply_polarimetric_spectral_response(self) -> None:
-        for csv_file in self._POL_OPTICAL_COMPONENTS.values():
-            spectral_response = self.get_spectral_response(
-                self.obj_wavelength, csv_file)
-            self.sed[0] = np.multiply(spectral_response, self.sed[0])
-
         if self.calibration_wheel != '':
             self._apply_calibration_wheel()
         self._apply_retarder_waveplate()
-        # self._apply_analyzer()
+        self._apply_analyzer()
         return
 
     def _apply_calibration_wheel(self) -> None:
         spectral_response = self.get_spectral_response(
             self.obj_wavelength, self.calibration_wheel + '.csv')
         self.sed[0] = np.multiply(spectral_response, self.sed[0])
-
         if self.calibration_wheel == "polarizer":
             contrast_ratio = self._get_polarizer_contrast_ratio(
                 self.obj_wavelength)
@@ -424,25 +416,27 @@ class Channel(Spectral_Response):
             raise ValueError(
                 f"The retarder waveplate {self.retarder_waveplate} is not valid."
             )
+
+        spectral_response = self.get_spectral_response(
+            self.obj_wavelength, 'retarder.csv')
+        self.sed[0] = np.multiply(spectral_response, self.sed[0])
+
         ret_angle = np.radians(self.retarder_waveplate_angle)
         RETARDER_MATRIX = calculate_retarder_matrix(
             phase_difference, ret_angle)
-        # self.sed = np.transpose([RETARDER_MATRIX.dot(self.sed[:, i])
-        #                         for i in range(self.sed.shape[1])])
-        self.sed = np.transpose([self.sed[i]
-                                for i in range(self.sed.shape[1])])
-
+        self.sed = self._apply_matrix(RETARDER_MATRIX, self.sed)
         return
 
     def _apply_analyzer(self) -> None:
-        ORD_RAY_MATRIX = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
-        temp_1 = np.transpose([ORD_RAY_MATRIX.dot(self.sed[:, i])
-                              for i in range(self.sed.shape[1])])
+        spectral_response = self.get_spectral_response(
+            self.obj_wavelength, 'analyzer.csv')
+        self.sed[0] = np.multiply(spectral_response, self.sed[0])
 
+        ORD_RAY_MATRIX = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
+        temp_1 = self._apply_matrix(ORD_RAY_MATRIX, copy(self.sed))
         EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(
             self._POLARIZER_ANGLE + 90)
-        temp_2 = np.transpose([EXTRA_ORD_RAY_MATRIX.dot(self.sed[:, i])
-                              for i in range(self.sed.shape[1])])
+        temp_2 = self._apply_matrix(EXTRA_ORD_RAY_MATRIX, copy(self.sed))
 
         self.sed = np.stack((temp_1[0], temp_2[0]))
 
@@ -472,16 +466,6 @@ class Channel(Spectral_Response):
             )
         return
 
-    # def _resize_sed(self):
-    #     sed = np.array(self.sed)
-    #     if sed.ndim == 1:
-    #         n = len(sed)
-    #         temp = sed
-    #         sed = np.zeros((4, n))
-    #         sed[0, :] = temp
-    #     self.sed = sed
-    #     return
-
     def _get_polarizer_contrast_ratio(self, obj_wavelength: ndarray) -> ndarray:
         csv_file_name = os.path.join(
             self._BASE_PATH, 'polarizer_contrast_ratio.csv')
@@ -494,6 +478,13 @@ class Channel(Spectral_Response):
         )
 
         return contrast_ratio
+
+    @staticmethod
+    def _apply_matrix(matrix, sed):
+        for idx, _ in enumerate(sed[0]):
+            sed[:, idx] = np.transpose(
+                matrix.dot(sed[:, idx]))
+        return sed
 
 
 def func(x, a, b, c, d):

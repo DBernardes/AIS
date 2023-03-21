@@ -357,8 +357,7 @@ class Artificial_Image_Simulator:
         ord_ray, extra_ord_ray = self.star_photons_per_second, 0
         if type(self.star_photons_per_second) != np.float64:
             self.sky_photons_per_second = sum(self.sky_photons_per_second)
-            ord_ray, extra_ord_ray = self.star_photons_per_second
-
+            ord_ray, extra_ord_ray = self.star_photons_per_second[0], self.star_photons_per_second[1]
         background = self.BGI_obj.create_sky_background(
             self.sky_photons_per_second)
         star_psf = self.PSF_obj.create_star_image(

@@ -63,10 +63,11 @@ def test_get_spectral_response(sr):
     assert np.allclose(class_spectral_response, new_spectral_response)
 
 
-esd = np.ones(len(obj_wavelength))
-reduced_esd = np.multiply(new_spectral_response, esd)
+sed = np.ones((4, len(obj_wavelength)))
+reduced_sed = sed
+reduced_sed[0] = np.multiply(new_spectral_response, sed[0])
 
 
 def test_apply_spectral_response(sr):
-    class_reduced_esd = sr.apply_spectral_response(esd, obj_wavelength)
-    assert np.allclose(class_reduced_esd, reduced_esd)
+    class_reduced_sed = sr.apply_spectral_response(sed, obj_wavelength)
+    assert np.allclose(class_reduced_sed, reduced_sed)

@@ -13,6 +13,7 @@ from AIS.Spectral_Response._utils import calculate_polarizer_matrix, calculate_r
 from numpy import cos, pi, sin
 from scipy.interpolate import splev, splrep, interp1d
 from math import atan, sqrt
+from copy import copy
 
 
 obj_wavelength = np.linspace(400, 1100, 100)
@@ -30,9 +31,30 @@ _PHOT_OPTICAL_COMPONENTS = {
 }
 
 
+csv_file_name = os.path.join(
+    BASE_PATH, 'polarizer_contrast_ratio.csv')
+ss = pd.read_csv(csv_file_name)
+sys_wavelength, contrast_ratio = np.asarray(
+    ss["Wavelength (nm)"]), np.asarray(ss["Contrast ratio"])
+
+
 @pytest.fixture
 def channel():
     return Channel(CHANNEL)
+
+
+def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
+    spl = interp1d(wavelength, spectral_response,
+                   bounds_error=False, fill_value=0, kind='cubic')
+
+    return spl(obj_wavelength)
+
+
+def _apply_matrix(matrix, sed):
+    for idx, _ in enumerate(sed[0]):
+        sed[:, idx] = np.transpose(
+            matrix.dot(sed[:, idx]))
+    return sed
 
 
 def _calc_polarizer_matrix(pol_angle: float):
@@ -91,10 +113,6 @@ def _calc_retarder_matrix(phase_difference, ret_angle):
 
     return RETARDER_MATRIX
 # ---------------------------------------------------------------------------------------------------------------
-
-
-def test_csv_file_name_pol(channel):
-    assert channel._POL_OPTICAL_COMPONENTS == _POL_OPTICAL_COMPONENTS
 
 
 def test_csv_file_name_phot(channel):
@@ -259,9 +277,8 @@ def test_verify_sparc4_operation_mode_polarimetric_wrong_calibration_wheel_value
 # spl = splrep(wv_collimator, sr_collimator)
 # new_spectral_response = splev(obj_wavelength, spl)
 
-spl = interp1d(wv_collimator, sr_collimator,
-               bounds_error=False, fill_value=0, kind='cubic')
-new_spectral_response = spl(obj_wavelength)
+new_spectral_response = _interpolate_spectral_response(
+    wv_collimator, sr_collimator, obj_wavelength)
 
 
 def test_interpolate_spectral_response(channel):
@@ -292,23 +309,6 @@ def test_get_polarizer_contrast_ratio(channel):
     assert np.allclose(contrast_ratio, spl(obj_wavelength))
 
     # ----------------------------------------------------------------------------------------------------
-
-
-# def test_resize_sed(channel):
-#     sed = np.ones(10)
-#     channel.sed = sed
-#     channel._resize_sed()
-#     temp = sed
-#     sed = np.zeros((4, 10))
-#     sed[0, :] = temp
-#     assert np.allclose(channel.sed, sed)
-
-
-# def test_resize_sed_2(channel):
-#     sed = np.ones((4, 10))
-#     channel.sed = sed
-#     channel._resize_sed()
-#     assert np.allclose(channel.sed, sed)
 
 
 def test_calc_polarizer_matrix():
@@ -377,7 +377,7 @@ def test_apply_calibration_wheel_polarizer(channel):
     reduced_sed = np.ones((4, n))
     spl = interp1d(wv_polarizer, sr_polarizer,
                    bounds_error=False, fill_value=0, kind='cubic')
-    reduced_sed = np.multiply(spl(obj_wavelength), sed)
+    reduced_sed[0] = np.multiply(spl(obj_wavelength), sed[0])
 
     contrast_ratio = channel._get_polarizer_contrast_ratio(obj_wavelength)
     for idx, value in enumerate(contrast_ratio):
@@ -417,35 +417,41 @@ def test_apply_retarder_waveplate(channel):
     retarder_waveplate_angle = 0
     n = len(obj_wavelength)
     sed = np.ones((4, n))
-    RETARDER_MATRIX = calculate_retarder_matrix(
-        phase_diff, retarder_waveplate_angle)
-    reduced_sed = np.transpose([RETARDER_MATRIX.dot(sed[:, i])
-                                for i in range(sed.shape[1])])
-
     channel.retarder_waveplate_angle = retarder_waveplate_angle
     channel.retarder_waveplate = 'half'
     channel.sed = sed
     channel.obj_wavelength = obj_wavelength
     channel._apply_retarder_waveplate()
+
+    new_spectral_response = _interpolate_spectral_response(
+        wv_retarder, sr_retarder, obj_wavelength)
+    sed[0] = np.multiply(new_spectral_response, sed[0])
+    RETARDER_MATRIX = calculate_retarder_matrix(
+        phase_diff, retarder_waveplate_angle)
+    reduced_sed = _apply_matrix(RETARDER_MATRIX, sed)
+
     assert np.allclose(channel.sed, reduced_sed)
 
 
 def test_apply_analyzer(channel):
     n = len(obj_wavelength)
     sed = np.ones((4, n))
-
-    ORD_RAY_MATRIX = calculate_polarizer_matrix(0)
-    temp_1 = np.transpose([ORD_RAY_MATRIX.dot(sed[:, i])
-                          for i in range(sed.shape[1])])
-
-    EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(90)
-    temp_2 = np.transpose([EXTRA_ORD_RAY_MATRIX.dot(sed[:, i])
-                           for i in range(sed.shape[1])])
-
-    channel.sed = sed
+    channel.sed = copy(sed)
     channel.obj_wavelength = obj_wavelength
     channel._apply_analyzer()
+
+    new_spectral_response = _interpolate_spectral_response(
+        wv_analyzer, sr_analyzer, obj_wavelength)
+    sed[0] = np.multiply(new_spectral_response, sed[0])
+
+    ORD_RAY_MATRIX = calculate_polarizer_matrix(0)
+    temp_1 = _apply_matrix(ORD_RAY_MATRIX, copy(sed))
+
+    EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(90)
+    temp_2 = _apply_matrix(EXTRA_ORD_RAY_MATRIX, copy(sed))
+
     assert np.allclose(channel.sed, np.stack((temp_1[0], temp_2[0])))
+    #assert np.allclose(channel.sed, temp_1)
 
 # ----------------------------------------------------------------------------------------------------
 
@@ -453,88 +459,68 @@ def test_apply_analyzer(channel):
 def test_apply_phot_spectral_response(channel):
     n = len(obj_wavelength)
     sed = np.zeros((4, n))
-    sed[0] = np.linspace(400, 1100, n)
+    sed = np.linspace(400, 1100, n)
     channel.sed = sed
     channel.obj_wavelength = obj_wavelength
     channel._apply_photometric_spectral_response()
 
-    spl = interp1d(wv_collimator, sr_collimator,
-                   bounds_error=False, fill_value=0, kind='cubic')
-    new_spectral_response = spl(obj_wavelength)
-    sed[0] = np.multiply(sed[0], new_spectral_response)
-    spl = interp1d(wv_dichroic, sr_dichroic,
-                   bounds_error=False, fill_value=0, kind='cubic')
-    new_spectral_response = spl(obj_wavelength)
-    sed[0] = np.multiply(sed[0], new_spectral_response)
-    spl = interp1d(wv_camera, sr_camera,
-                   bounds_error=False, fill_value=0, kind='cubic')
-    new_spectral_response = spl(obj_wavelength)
-    sed[0] = np.multiply(sed[0], new_spectral_response)
-    spl = interp1d(wv_ccd, sr_ccd,
-                   bounds_error=False, fill_value=0, kind='cubic')
-    new_spectral_response = spl(obj_wavelength)
-    sed[0] = np.multiply(sed[0], new_spectral_response)
+    new_spectral_response = _interpolate_spectral_response(
+        wv_collimator, sr_collimator, obj_wavelength)
+    sed = np.multiply(sed, new_spectral_response)
+    new_spectral_response = _interpolate_spectral_response(
+        wv_dichroic, sr_dichroic, obj_wavelength)
+    sed = np.multiply(sed, new_spectral_response)
+    new_spectral_response = _interpolate_spectral_response(
+        wv_camera, sr_camera, obj_wavelength)
+    sed = np.multiply(sed, new_spectral_response)
+    new_spectral_response = _interpolate_spectral_response(
+        wv_ccd, sr_ccd, obj_wavelength)
+    sed = np.multiply(sed, new_spectral_response)
 
     assert np.allclose(channel.sed, sed)
 
 
-def test_apply_pol_spectral_response_1(channel):
+def test_apply_pol_spectral_response(channel):
     n = len(obj_wavelength)
     sed = np.zeros((4, n))
-    sed[0] = np.ones((1, n))
+    sed[0] = np.ones(n)
     phase_diff = 180
     retarder_waveplate_angle = 0
 
     channel.calibration_wheel = 'polarizer'
     channel.retarder_waveplate_angle = retarder_waveplate_angle
     channel.retarder_waveplate = 'half'
-    channel.sed = sed
+    channel.sed = copy(sed)
     channel.obj_wavelength = obj_wavelength
     channel._apply_polarimetric_spectral_response()
 
-    spl = interp1d(wv_polarizer, sr_polarizer,
-                   bounds_error=False, fill_value=0, kind='cubic')
-    new_spectral_response = spl(obj_wavelength)
+    new_spectral_response = _interpolate_spectral_response(
+        wv_polarizer, sr_polarizer, obj_wavelength)
     sed[0] = np.multiply(sed[0], new_spectral_response)
-
-    spl = interp1d(wv_retarder, sr_retarder,
-                   bounds_error=False, fill_value=0, kind='cubic')
-    new_spectral_response = spl(obj_wavelength)
-    sed[0] = np.multiply(sed[0], new_spectral_response)
-
-    spl = interp1d(wv_analyzer, sr_analyzer,
-                   bounds_error=False, fill_value=0, kind='cubic')
-    new_spectral_response = spl(obj_wavelength)
-    sed[0] = np.multiply(sed[0], new_spectral_response)
-
-    csv_file_name = os.path.join(
-        BASE_PATH, 'polarizer_contrast_ratio.csv')
-    ss = pd.read_csv(csv_file_name)
-    sys_wavelength, contrast_ratio = np.asarray(
-        ss["Wavelength (nm)"]), np.asarray(ss["Contrast ratio"])
-    spl = interp1d(sys_wavelength, contrast_ratio,
-                   bounds_error=False, fill_value=0, kind='cubic')
-    contrast_ratio = spl(obj_wavelength)
-    for idx, value in enumerate(contrast_ratio):
+    new_contrast_ratio = _interpolate_spectral_response(
+        sys_wavelength, contrast_ratio, obj_wavelength)
+    for idx, value in enumerate(new_contrast_ratio):
         theta = np.rad2deg(atan(sqrt(value)))
         POLARIZER_MATRIX = calculate_polarizer_matrix(theta)
         sed[:, idx] = np.transpose(
             POLARIZER_MATRIX.dot(sed[:, idx]))
 
+    new_spectral_response = _interpolate_spectral_response(
+        wv_retarder, sr_retarder, obj_wavelength)
+    sed[0] = np.multiply(sed[0], new_spectral_response)
     retarder_waveplate_angle = np.radians(retarder_waveplate_angle)
     RETARDER_MATRIX = calculate_retarder_matrix(
         phase_diff, retarder_waveplate_angle)
-    #sed = np.transpose([sed for i in range(sed.shape[1])])
-    # sed = np.transpose([RETARDER_MATRIX.dot(sed[:, i])
-    #                     for i in range(sed.shape[1])])
+    sed = _apply_matrix(RETARDER_MATRIX, copy(sed))
 
-    # ORD_RAY_MATRIX = calculate_polarizer_matrix(0)
-    # temp_1 = np.transpose([ORD_RAY_MATRIX.dot(sed[:, i])
-    #                        for i in range(sed.shape[1])])
-    # EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(90)
-    # temp_2 = np.transpose([EXTRA_ORD_RAY_MATRIX.dot(sed[:, i])
-    #                        for i in range(sed.shape[1])])
+    new_spectral_response = _interpolate_spectral_response(
+        wv_analyzer, sr_analyzer, obj_wavelength)
+    sed[0] = np.multiply(sed[0], new_spectral_response)
+    ORD_RAY_MATRIX = calculate_polarizer_matrix(0)
+    temp_1 = _apply_matrix(ORD_RAY_MATRIX, copy(sed))
+    EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(90)
+    temp_2 = _apply_matrix(EXTRA_ORD_RAY_MATRIX, copy(sed))
 
-    assert np.allclose(channel.sed, sed)
-    # assert np.allclose(channel.sed,
-    #                    np.stack((temp_1[0], temp_2[0])))
+    #assert np.allclose(channel.sed, sed)
+    assert np.allclose(channel.sed,
+                       np.stack((temp_1[0], temp_2[0])))
