@@ -54,7 +54,7 @@ class Artificial_Image_Simulator:
 
     ais.create_source_sed(calculation_method='blackbody', 
                             magnitude=15, 
-                            wavelength_interval=(400, 1100, 1000), 
+                            wavelength_interval=(400, 1100, 100), 
                             temperature=5700)
 
     ais.create_sky_sed(moon_phase='new')

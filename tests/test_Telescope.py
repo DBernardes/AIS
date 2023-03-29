@@ -11,7 +11,7 @@ from AIS.Spectral_Response import Telescope
 import pytest
 import os
 import numpy as np
-from scipy.interpolate import splev, splrep, interp1d
+from scipy.interpolate import splev, splrep, PchipInterpolator
 import pandas as pd
 
 obj_wavelength = np.linspace(400, 1100, 100)
@@ -23,8 +23,7 @@ wavelength = ss['Wavelength (nm)']
 spectral_response = ss['Transmitance (%)']/100
 _PRIMARY_MIRROR_ADJUSTMENT = 0.933
 _SECONDARY_MIRROR_ADJUSTMENT = 0.996
-spl = interp1d(wavelength, spectral_response,
-               bounds_error=False, fill_value=0, kind='cubic')
+spl = PchipInterpolator(wavelength, spectral_response)
 new_spectral_response = spl(
     obj_wavelength)**2 * _PRIMARY_MIRROR_ADJUSTMENT * _SECONDARY_MIRROR_ADJUSTMENT
 #spl = splrep(wavelength, spectral_response)

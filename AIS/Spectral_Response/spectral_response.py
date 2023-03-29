@@ -13,9 +13,8 @@ import os
 import numpy as np
 import pandas as pd
 from numpy import ndarray
-from numpy import cos, pi, sin
-from scipy.interpolate import splev, splrep, interp1d
-from ._utils import calculate_retarder_matrix, calculate_polarizer_matrix
+from scipy.interpolate import splev, splrep, interp1d, PchipInterpolator
+from ._utils import calculate_retarder_matrix, calculate_polarizer_matrix, interpolation_func
 from scipy.optimize import curve_fit
 from math import sqrt, atan
 from copy import copy
@@ -115,24 +114,23 @@ class Spectral_Response:
 
 
 class Telescope(Spectral_Response):
-    """
-    Telescope class
-
-    This class extends the Spectral Response class, and it represents the spectral response of the
-    1.6 m Perkin-Elmer telescope of the Picos dos Dias observatory.
-
-    Yields
-    ------
-        spectral_response: array_like
-            The spectral response of the optical system.
-    """
 
     _CSV_FILE_NAME = "telescope.csv"
     _PRIMARY_MIRROR_ADJUSTMENT = 0.933
     _SECONDARY_MIRROR_ADJUSTMENT = 0.996
 
     def __init__(self) -> None:
-        """Initialize the class."""
+        """
+        Telescope class
+
+        This class extends the Spectral Response class, and it represents the spectral response of the
+        1.6 m Perkin-Elmer telescope of the Picos dos Dias observatory.
+
+        Yields
+        ------
+            spectral_response: array_like
+                The spectral response of the optical system.
+        """
         super().__init__()
         return
 
@@ -153,21 +151,27 @@ class Telescope(Spectral_Response):
 
         return spectral_response**2 * self._PRIMARY_MIRROR_ADJUSTMENT * self._SECONDARY_MIRROR_ADJUSTMENT
 
+    @staticmethod
+    def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
+        b = PchipInterpolator(wavelength, spectral_response)
+        spectral_response = b(obj_wavelength)
+        return spectral_response
+
 
 class Atmosphere(Spectral_Response):
-    """Atmosphere class
-
-    This class extends the Spectral Reponse class, and it represents the atmosphere spectral response
-
-    Yields
-    ------
-        spectral_response: array_like
-            The spectral response of the optical system.
-    """
 
     _CSV_FILE_NAME = "atmosphere.csv"
 
     def __init__(self) -> None:
+        """Atmosphere class
+
+        This class extends the Spectral Reponse class, and it represents the atmosphere spectral response
+
+        Yields
+        ------
+            spectral_response: array_like
+                The spectral response of the optical system.
+        """
         super().__init__()
         return
 
@@ -249,9 +253,9 @@ class Atmosphere(Spectral_Response):
 
     @staticmethod
     def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
-        popt, _ = curve_fit(func, wavelength,
+        popt, _ = curve_fit(interpolation_func, wavelength,
                             spectral_response)
-        spectral_response = func(obj_wavelength, *popt)
+        spectral_response = interpolation_func(obj_wavelength, *popt)
         return spectral_response
 
 
@@ -383,9 +387,33 @@ class Channel(Spectral_Response):
             self._apply_calibration_wheel()
         self._apply_retarder_waveplate()
         self._apply_analyzer()
+        # lembrar de sempre aplicar a transmissão depois da matriz
         return
 
     def _apply_calibration_wheel(self) -> None:
+        spectral_response = self.get_spectral_response(
+            self.obj_wavelength, self.calibration_wheel + '.csv')
+        if self.calibration_wheel == "polarizer":
+            contrast_ratio = self._get_polarizer_contrast_ratio(
+                self.obj_wavelength)
+            for idx, transmission in enumerate(spectral_response):
+                contrast = contrast_ratio[idx]
+                theta = np.rad2deg(atan(1/sqrt(contrast)))
+                total_transmission = transmission * (1 + 1/contrast)
+                polarizer_matrix = calculate_polarizer_matrix(theta)
+                self.sed[:, idx] = total_transmission*np.transpose(
+                    polarizer_matrix.dot(self.sed[:, idx]))
+        elif self.calibration_wheel == "depolarizer":
+            sed = self.sed
+            self.sed = np.zeros((4, sed.shape[1]))
+            self.sed[0] = sed[0] * spectral_response
+        else:
+            raise ValueError(
+                f"The calibration wheel {self.calibration_wheel} is not valid.")
+
+        return
+
+    def _apply_calibration_wheel_1(self) -> None:
         spectral_response = self.get_spectral_response(
             self.obj_wavelength, self.calibration_wheel + '.csv')
         self.sed[0] = np.multiply(spectral_response, self.sed[0])
@@ -400,7 +428,7 @@ class Channel(Spectral_Response):
         elif self.calibration_wheel == "depolarizer":
             sed = self.sed
             self.sed = np.zeros((4, sed.shape[1]))
-            self.sed[0, :] = sed[0, :]
+            self.sed[0] = sed[0]
         else:
             raise ValueError(
                 f"The calibration wheel {self.calibration_wheel} is not valid.")
@@ -417,28 +445,28 @@ class Channel(Spectral_Response):
                 f"The retarder waveplate {self.retarder_waveplate} is not valid."
             )
 
+        RETARDER_MATRIX = calculate_retarder_matrix(
+            phase_difference, self.retarder_waveplate_angle)
+        self.sed = self._apply_matrix(RETARDER_MATRIX, self.sed)
+
         spectral_response = self.get_spectral_response(
             self.obj_wavelength, 'retarder.csv')
-        self.sed[0] = np.multiply(spectral_response, self.sed[0])
+        self.sed = np.multiply(spectral_response, self.sed)
 
-        ret_angle = np.radians(self.retarder_waveplate_angle)
-        RETARDER_MATRIX = calculate_retarder_matrix(
-            phase_difference, ret_angle)
-        self.sed = self._apply_matrix(RETARDER_MATRIX, self.sed)
         return
 
     def _apply_analyzer(self) -> None:
-        spectral_response = self.get_spectral_response(
-            self.obj_wavelength, 'analyzer.csv')
-        self.sed[0] = np.multiply(spectral_response, self.sed[0])
 
         ORD_RAY_MATRIX = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
         temp_1 = self._apply_matrix(ORD_RAY_MATRIX, copy(self.sed))
         EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(
             self._POLARIZER_ANGLE + 90)
         temp_2 = self._apply_matrix(EXTRA_ORD_RAY_MATRIX, copy(self.sed))
-
         self.sed = np.stack((temp_1[0], temp_2[0]))
+
+        spectral_response = self.get_spectral_response(
+            self.obj_wavelength, 'analyzer.csv')
+        self.sed = np.multiply(spectral_response, self.sed)
 
     def _verify_sparc4_operation_mode(self) -> None:
 
@@ -485,7 +513,3 @@ class Channel(Spectral_Response):
             sed[:, idx] = np.transpose(
                 matrix.dot(sed[:, idx]))
         return sed
-
-
-def func(x, a, b, c, d):
-    return a*x**3 + b*x**2 + c*x + d

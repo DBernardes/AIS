@@ -377,13 +377,14 @@ def test_apply_calibration_wheel_polarizer(channel):
     reduced_sed = np.ones((4, n))
     spl = interp1d(wv_polarizer, sr_polarizer,
                    bounds_error=False, fill_value=0, kind='cubic')
-    reduced_sed[0] = np.multiply(spl(obj_wavelength), sed[0])
 
+    new_spectral_response = spl(obj_wavelength)
     contrast_ratio = channel._get_polarizer_contrast_ratio(obj_wavelength)
     for idx, value in enumerate(contrast_ratio):
-        theta = np.rad2deg(atan(sqrt(value)))
+        theta = np.rad2deg(atan(1/sqrt(value)))
+        total_transmission = new_spectral_response[idx]*(1+1/value)
         polarizer_matrix = calculate_polarizer_matrix(theta)
-        reduced_sed[:, idx] = np.transpose(
+        reduced_sed[:, idx] = total_transmission*np.transpose(
             polarizer_matrix.dot(reduced_sed[:, idx]))
 
     channel.calibration_wheel = 'polarizer'
@@ -496,13 +497,13 @@ def test_apply_pol_spectral_response(channel):
 
     new_spectral_response = _interpolate_spectral_response(
         wv_polarizer, sr_polarizer, obj_wavelength)
-    sed[0] = np.multiply(sed[0], new_spectral_response)
     new_contrast_ratio = _interpolate_spectral_response(
         sys_wavelength, contrast_ratio, obj_wavelength)
     for idx, value in enumerate(new_contrast_ratio):
-        theta = np.rad2deg(atan(sqrt(value)))
+        theta = np.rad2deg(atan(1/sqrt(value)))
+        total_transmission = new_spectral_response[idx] * (1+1/value)
         POLARIZER_MATRIX = calculate_polarizer_matrix(theta)
-        sed[:, idx] = np.transpose(
+        sed[:, idx] = total_transmission*np.transpose(
             POLARIZER_MATRIX.dot(sed[:, idx]))
 
     new_spectral_response = _interpolate_spectral_response(
