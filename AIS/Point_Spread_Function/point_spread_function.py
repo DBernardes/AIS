@@ -82,7 +82,7 @@ class Point_Spread_Function:
     def _create_table(self, star_coordinates, seeing):
         table = Table()
         binn = self.ccd_operation_mode['binn']
-        gaussian_std = seeing / self._SPARC4_PLATE_SCALE
+        gaussian_std = seeing / (self._SPARC4_PLATE_SCALE)
         x_coord = star_coordinates[0]
         y_coord = star_coordinates[1]
         table["x_mean"] = [x_coord]
@@ -160,7 +160,7 @@ class Point_Spread_Function:
             * t_exp
             * em_gain
             * binn ** 2
-            / (self.ccd_gain*2*pi)
+            / (self.ccd_gain*2*pi*self.table['x_stddev']*self.table['y_stddev'])
         )
         return gaussian_amplitude
 

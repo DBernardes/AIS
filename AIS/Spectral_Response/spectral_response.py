@@ -59,23 +59,14 @@ class Spectral_Response:
         ss = pd.read_csv(csv_file_name)
         return np.array(ss["Wavelength (nm)"]), np.array(ss["Transmitance (%)"]) / 100
 
-    @staticmethod
-    def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
+    def _interpolate_spectral_response(self, wavelength, spectral_response):
         spl = interp1d(wavelength, spectral_response,
                        bounds_error=False, fill_value=0, kind='cubic')
 
-        return spl(obj_wavelength)
+        return spl(self.obj_wavelength)
 
-    def get_spectral_response(self, obj_wavelength: ndarray) -> ndarray:
-        """Return the spectral response.
-
-        Parameters
-        ----------
-        obj_wavelength: array like
-            The wavelength interval, in nm, of the object.
-
-        second_column_header: string, optional
-            The header of the second column of the CSV file.
+    def get_spectral_response(self) -> ndarray:
+        """Return the spectral response.        
 
         Returns
         ------
@@ -86,7 +77,7 @@ class Spectral_Response:
         sys_wavelength, spectral_response = self._read_csv_file(
             csv_file_name)
         spectral_response = self._interpolate_spectral_response(
-            sys_wavelength, spectral_response, obj_wavelength
+            sys_wavelength, spectral_response
         )
 
         return spectral_response
@@ -96,19 +87,20 @@ class Spectral_Response:
 
         Parameters
         ----------
-            sed: array like in the (4, n) format
-                The Spectral Energy Distribution (SED) of the object.
-            obj_wavelength: array like
-                The wavelength interval, in nm, of the object.
+        sed: array like in the (4, n) format
+            The Spectral Energy Distribution (SED) of the object.
+        obj_wavelength: array like
+            The wavelength interval, in nm, of the object.
 
         Yields
         ------
-            reduced_sed: array like
-                The Spectral Energy Distribution (SED) of the object subtracted from the loses
-                related to the spectral response of the system.
+        reduced_sed: array like
+            The Spectral Energy Distribution (SED) of the object subtracted from the loses
+            related to the spectral response of the system.
         """
-        spectral_response = self.get_spectral_response(obj_wavelength)
-        sed[0] = np.multiply(spectral_response, sed[0])
+        self.obj_wavelength = obj_wavelength
+        spectral_response = self.get_spectral_response()
+        sed = np.multiply(spectral_response, sed)
 
         return sed
 
@@ -272,6 +264,10 @@ class Channel(Spectral_Response):
             The spectral response of the optical system.
     """
 
+    _POL_OPTICAL_COMPONENTS = {
+        "analyzer": "analyzer.csv",
+        "retarder": "retarder.csv",
+    }
     _PHOT_OPTICAL_COMPONENTS = {
         "collimator": "collimator.csv",
         "dichroic": "dichroic.csv",
@@ -297,24 +293,22 @@ class Channel(Spectral_Response):
         return
 
     def get_spectral_response(
-        self, obj_wavelength: ndarray, csv_file_name: str
+        self, csv_file_name: str
     ) -> ndarray:
         """Return the spectral response.
 
         Parameters
-        ----------
-            obj_wavelength: array like
-                The wavelength interval, in nm, of the object.
-            csv_file_name: str
-                The name of the csv file that contains the spectral response of the optical component.
+        ----------           
+        csv_file_name: str
+            The name of the csv file that contains the spectral response of the optical component.
 
         Returns
         ------
-            spectral_response: array like
-                The spectral response of the optical system.
+        spectral_response: array like
+            The spectral response of the optical system.
         """
         self._CSV_FILE_NAME = csv_file_name
-        return super().get_spectral_response(obj_wavelength)
+        return super().get_spectral_response()
 
     def write_sparc4_operation_mode(self, acquisition_mode: str,
                                     calibration_wheel: str = '',
@@ -376,26 +370,29 @@ class Channel(Spectral_Response):
             if csv_file != "collimator.csv":
                 csv_file = os.path.join(
                     f"Channel {self._channel_id}", csv_file)
-            spectral_response = self.get_spectral_response(
-                self.obj_wavelength, csv_file)
+            spectral_response = self.get_spectral_response(csv_file)
             self.sed = np.multiply(spectral_response, self.sed)
 
         return
 
     def _apply_polarimetric_spectral_response(self) -> None:
+        for csv_file in self._POL_OPTICAL_COMPONENTS.values():
+            spectral_response = self.get_spectral_response(csv_file)
+            self.sed = np.multiply(spectral_response, self.sed)
+
         if self.calibration_wheel != '':
             self._apply_calibration_wheel()
         self._apply_retarder_waveplate()
         self._apply_analyzer()
-        # lembrar de sempre aplicar a transmissão depois da matriz
+
         return
 
     def _apply_calibration_wheel(self) -> None:
         spectral_response = self.get_spectral_response(
-            self.obj_wavelength, self.calibration_wheel + '.csv')
+            self.calibration_wheel + '.csv')
         if self.calibration_wheel == "polarizer":
-            contrast_ratio = self._get_polarizer_contrast_ratio(
-                self.obj_wavelength)
+            contrast_ratio = self._get_spectral_response_custom(
+                'polarizer_contrast_ratio.csv', "Contrast ratio")
             for idx, transmission in enumerate(spectral_response):
                 contrast = contrast_ratio[idx]
                 theta = np.rad2deg(atan(1/sqrt(contrast)))
@@ -413,46 +410,15 @@ class Channel(Spectral_Response):
 
         return
 
-    def _apply_calibration_wheel_1(self) -> None:
-        spectral_response = self.get_spectral_response(
-            self.obj_wavelength, self.calibration_wheel + '.csv')
-        self.sed[0] = np.multiply(spectral_response, self.sed[0])
-        if self.calibration_wheel == "polarizer":
-            contrast_ratio = self._get_polarizer_contrast_ratio(
-                self.obj_wavelength)
-            for idx, value in enumerate(contrast_ratio):
-                theta = np.rad2deg(atan(sqrt(value)))
-                polarizer_matrix = calculate_polarizer_matrix(theta)
-                self.sed[:, idx] = np.transpose(
-                    polarizer_matrix.dot(self.sed[:, idx]))
-        elif self.calibration_wheel == "depolarizer":
-            sed = self.sed
-            self.sed = np.zeros((4, sed.shape[1]))
-            self.sed[0] = sed[0]
-        else:
-            raise ValueError(
-                f"The calibration wheel {self.calibration_wheel} is not valid.")
-
-        return
-
     def _apply_retarder_waveplate(self) -> None:
-        if self.retarder_waveplate == "half":
-            phase_difference = 180
-        elif self.retarder_waveplate == "quarter":
-            phase_difference = 90
-        else:
-            raise ValueError(
-                f"The retarder waveplate {self.retarder_waveplate} is not valid."
-            )
-
-        RETARDER_MATRIX = calculate_retarder_matrix(
-            phase_difference, self.retarder_waveplate_angle)
-        self.sed = self._apply_matrix(RETARDER_MATRIX, self.sed)
-
-        spectral_response = self.get_spectral_response(
-            self.obj_wavelength, 'retarder.csv')
-        self.sed = np.multiply(spectral_response, self.sed)
-
+        phase_difference = self._get_spectral_response_custom(
+            f'retarder_phase_diff_{self.retarder_waveplate}.csv', 'Retardance')
+        for idx, phase in enumerate(phase_difference):
+            phase = np.rad2deg(phase)
+            RETARDER_MATRIX = calculate_retarder_matrix(
+                phase, self.retarder_waveplate_angle)
+            self.sed[:, idx] = np.transpose(
+                RETARDER_MATRIX.dot(self.sed[:, idx]))
         return
 
     def _apply_analyzer(self) -> None:
@@ -463,10 +429,6 @@ class Channel(Spectral_Response):
             self._POLARIZER_ANGLE + 90)
         temp_2 = self._apply_matrix(EXTRA_ORD_RAY_MATRIX, copy(self.sed))
         self.sed = np.stack((temp_1[0], temp_2[0]))
-
-        spectral_response = self.get_spectral_response(
-            self.obj_wavelength, 'analyzer.csv')
-        self.sed = np.multiply(spectral_response, self.sed)
 
     def _verify_sparc4_operation_mode(self) -> None:
 
@@ -494,18 +456,18 @@ class Channel(Spectral_Response):
             )
         return
 
-    def _get_polarizer_contrast_ratio(self, obj_wavelength: ndarray) -> ndarray:
+    def _get_spectral_response_custom(self, csv_file: str, column_name: str) -> ndarray:
         csv_file_name = os.path.join(
-            self._BASE_PATH, 'polarizer_contrast_ratio.csv')
+            self._BASE_PATH, csv_file)
         ss = pd.read_csv(csv_file_name)
-        sys_wavelength, contrast_ratio = np.asarray(
-            ss["Wavelength (nm)"]), np.asarray(ss["Contrast ratio"])
+        sys_wavelength, spectral_response = np.asarray(
+            ss["Wavelength (nm)"]), np.asarray(ss[column_name])
 
-        contrast_ratio = self._interpolate_spectral_response(
-            sys_wavelength, contrast_ratio, obj_wavelength
+        spectral_response = self._interpolate_spectral_response(
+            sys_wavelength, spectral_response
         )
 
-        return contrast_ratio
+        return spectral_response
 
     @staticmethod
     def _apply_matrix(matrix, sed):
