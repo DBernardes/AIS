@@ -126,27 +126,21 @@ class Telescope(Spectral_Response):
         super().__init__()
         return
 
-    def get_spectral_response(self, obj_wavelength: ndarray) -> ndarray:
-        """Return the spectral response.
+    def get_spectral_response(self) -> ndarray:
+        """Return the spectral response.      
 
-        Parameters
-        ----------
-        obj_wavelength: array like
-            The wavelength interval, in nm, of the object.
-
-        Yields
+        Returns
         ------
         spectral_response: array like
             The spectral response of the optical system.
         """
-        spectral_response = super().get_spectral_response(obj_wavelength)
+        spectral_response = super().get_spectral_response()
 
         return spectral_response**2 * self._PRIMARY_MIRROR_ADJUSTMENT * self._SECONDARY_MIRROR_ADJUSTMENT
 
-    @staticmethod
-    def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
+    def _interpolate_spectral_response(self, wavelength, spectral_response):
         b = PchipInterpolator(wavelength, spectral_response)
-        spectral_response = b(obj_wavelength)
+        spectral_response = b(self.obj_wavelength)
         return spectral_response
 
 
@@ -414,7 +408,7 @@ class Channel(Spectral_Response):
         phase_difference = self._get_spectral_response_custom(
             f'retarder_phase_diff_{self.retarder_waveplate}.csv', 'Retardance')
         for idx, phase in enumerate(phase_difference):
-            phase = np.rad2deg(phase)
+            phase *= 360
             RETARDER_MATRIX = calculate_retarder_matrix(
                 phase, self.retarder_waveplate_angle)
             self.sed[:, idx] = np.transpose(

@@ -1,0 +1,166 @@
+a_i_fit: false
+alignment_complete: false
+alignment_version: false
+auto_location: +dd:mm:ss +dd:mm:ss
+auto_target_ra_dec: hh:mm:ss +dd:mm:ss
+bias_files: zero
+bin_fits: 1
+binning: 1
+burn: 1000
+burn_limit: 65536
+camera: iXon Ultra
+comparison_10_active: true
+comparison_10_aperture: 0.0
+comparison_10_r_position: 0.0
+comparison_10_u_position: 0.0
+comparison_10_x_position: 0.0
+comparison_10_y_position: 0.0
+comparison_1_active: true
+comparison_1_aperture: 0.0
+comparison_1_r_position: 0.0
+comparison_1_u_position: 0.0
+comparison_1_x_position: 0.0
+comparison_1_y_position: 0.0
+comparison_2_active: true
+comparison_2_aperture: 0.0
+comparison_2_r_position: 0.0
+comparison_2_u_position: 0.0
+comparison_2_x_position: 0.0
+comparison_2_y_position: 0.0
+comparison_3_active: true
+comparison_3_aperture: 0.0
+comparison_3_r_position: 0.0
+comparison_3_u_position: 0.0
+comparison_3_x_position: 0.0
+comparison_3_y_position: 0.0
+comparison_4_active: true
+comparison_4_aperture: 0.0
+comparison_4_r_position: 0.0
+comparison_4_u_position: 0.0
+comparison_4_x_position: 0.0
+comparison_4_y_position: 0.0
+comparison_5_active: true
+comparison_5_aperture: 0.0
+comparison_5_r_position: 0.0
+comparison_5_u_position: 0.0
+comparison_5_x_position: 0.0
+comparison_5_y_position: 0.0
+comparison_6_active: true
+comparison_6_aperture: 0.0
+comparison_6_r_position: 0.0
+comparison_6_u_position: 0.0
+comparison_6_x_position: 0.0
+comparison_6_y_position: 0.0
+comparison_7_active: true
+comparison_7_aperture: 0.0
+comparison_7_r_position: 0.0
+comparison_7_u_position: 0.0
+comparison_7_x_position: 0.0
+comparison_7_y_position: 0.0
+comparison_8_active: true
+comparison_8_aperture: 0.0
+comparison_8_r_position: 0.0
+comparison_8_u_position: 0.0
+comparison_8_x_position: 0.0
+comparison_8_y_position: 0.0
+comparison_9_active: true
+comparison_9_aperture: 0.0
+comparison_9_r_position: 0.0
+comparison_9_u_position: 0.0
+comparison_9_x_position: 0.0
+comparison_9_y_position: 0.0
+crop_fits: 1
+crop_x1: 0
+crop_x2: 0
+crop_y1: 0
+crop_y2: 0
+dark_files: dark
+darkf_files: '---'
+data_target_complete: false
+data_target_version: false
+detrending: Airmass
+eccentricity: 0.0
+exposure_time_key: EXPTIME
+filter: default
+fitting_complete: false
+fitting_version: false
+flat_files: flat
+inclination: 0.0
+iterations: 5000
+light_curve_file: Choose Light-curve file
+location: +dd:mm:ss +dd:mm:ss
+location_choice: 0
+logg: 0.0
+manual_location: +dd:mm:ss +dd:mm:ss
+manual_planet: false
+manual_target_ra_dec: hh:mm:ss +dd:mm:ss
+master_bias_method: median
+master_dark_method: median
+master_darkf_method: median
+master_flat_method: median
+max_comparisons: 10
+max_x: 0
+max_y: 0
+metallicity: 0.0
+mid_time: 0.0
+mid_time_fit:
+- -0.1
+- 0.1
+min_calibration_stars_number: 5
+min_x: 0
+min_y: 0
+observation_date_key: DATE-OBS
+observation_files: Autosave
+observation_time_key: TIME-OBS
+observatory: OPD
+observer: ''
+periastron: 0.0
+period: 0.0
+photometry_complete: false
+photometry_fov_options:
+- auto
+- auto
+- 0
+- 0
+- 0
+- 0
+- auto
+- auto
+- auto
+- auto
+photometry_version: false
+planet: Choose Planet
+profile_location: +dd:mm:ss +dd:mm:ss
+psf_threshold: 0
+reduction_complete: false
+reduction_version: false
+rotation_tolerance: 0.02
+rp_over_rs: 0.0
+rp_over_rs_fit:
+- 0.5
+- 2.0
+saturation: 0.95
+scatter: 3.0
+search_window_std: 5
+shift_tolerance_p: 10
+show_good_comparisons: true
+show_good_comparisons_percent: 40
+simbad_target_name: Target name
+sky_inner_aperture: 1.7
+sky_outer_aperture: 2.4
+sky_threshold: 0
+sma_over_rs: 0.0
+target_aperture: 0.0
+target_name: ''
+target_r_position: 0.0
+target_ra_dec: hh:mm:ss +dd:mm:ss
+target_ra_dec_choice: 0
+target_u_position: 0.0
+target_x_position: 0.0
+target_y_position: 0.0
+telescope: 1.6 PE
+temperature: 0.0
+time_stamp: exposure start
+trash: []
+use_geometric_center: false
+use_variable_aperture: false
