@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from numpy import ndarray
 from scipy.interpolate import splev, splrep, interp1d, PchipInterpolator
-from ._utils import calculate_retarder_matrix, calculate_polarizer_matrix, interpolation_func
+from ._utils import calculate_retarder_matrix, calculate_polarizer_matrix, apply_matrix
 from scipy.optimize import curve_fit
 from math import sqrt, atan
 from copy import copy
@@ -65,14 +65,20 @@ class Spectral_Response:
 
         return spl(self.obj_wavelength)
 
-    def get_spectral_response(self) -> ndarray:
-        """Return the spectral response.        
-
+    def get_spectral_response(self, obj_wavelength: ndarray) -> ndarray:
+        """Return the spectral response.    
+        
+        Parameters
+        ----------
+        obj_wavelength: array like.
+            Wavelength interval of the object in nm.            
+       
         Returns
         ------
         spectral_response: array like
             The spectral response of the optical system.
         """
+        self.obj_wavelength = obj_wavelength
         csv_file_name = os.path.join(self._BASE_PATH, self._CSV_FILE_NAME)
         sys_wavelength, spectral_response = self._read_csv_file(
             csv_file_name)
@@ -82,25 +88,24 @@ class Spectral_Response:
 
         return spectral_response
 
-    def apply_spectral_response(self, sed: ndarray, obj_wavelength: ndarray) -> ndarray:
+    def apply_spectral_response(self, obj_wavelength: ndarray, sed: ndarray) -> ndarray:
         """Apply the spectral response.
 
         Parameters
-        ----------
-        sed: array like in the (4, n) format
-            The Spectral Energy Distribution (SED) of the object.
+        ----------        
         obj_wavelength: array like
             The wavelength interval, in nm, of the object.
+        sed: array like in the (4, n) format
+            The Spectral Energy Distribution (SED) of the object.
 
         Yields
         ------
         reduced_sed: array like
             The Spectral Energy Distribution (SED) of the object subtracted from the loses
             related to the spectral response of the system.
-        """
-        self.obj_wavelength = obj_wavelength
-        spectral_response = self.get_spectral_response()
-        sed = np.multiply(spectral_response, sed)
+        """        
+        spectral_response = self.get_spectral_response(obj_wavelength)
+        sed = np.multiply(sed, spectral_response)
 
         return sed
 
@@ -126,15 +131,21 @@ class Telescope(Spectral_Response):
         super().__init__()
         return
 
-    def get_spectral_response(self) -> ndarray:
+    def get_spectral_response(self, obj_wavelength) -> ndarray:
         """Return the spectral response.      
+        
+        Parameters
+        ---------
+        obj_wavelength: array like
+            Wavelength interval of the object in nm.
 
         Returns
-        ------
+        ------        
+        
         spectral_response: array like
             The spectral response of the optical system.
-        """
-        spectral_response = super().get_spectral_response()
+        """                
+        spectral_response = super().get_spectral_response(obj_wavelength)
 
         return spectral_response**2 * self._PRIMARY_MIRROR_ADJUSTMENT * self._SECONDARY_MIRROR_ADJUSTMENT
 
@@ -146,7 +157,8 @@ class Telescope(Spectral_Response):
 
 class Atmosphere(Spectral_Response):
 
-    _CSV_FILE_NAME = "atmosphere.csv"
+    _CSV_FILE_NAME = "atmosphere_profile.csv"
+    _ATM_EXTINCTION = "atmosphere.csv"
 
     def __init__(self) -> None:
         """Atmosphere class
@@ -161,16 +173,12 @@ class Atmosphere(Spectral_Response):
         super().__init__()
         return
 
-    @staticmethod
-    def _read_csv_file(csv_file_name, sky_condition):
-        ss = pd.read_csv(csv_file_name)
-        return np.array(ss["Wavelength (nm)"]), np.array(ss[sky_condition])
 
     def get_spectral_response(
-        self,
+        self,        
         obj_wavelength: ndarray,
         air_mass: int | float = 1,
-        sky_condidition="photometric",
+        sky_condition="photometric",
     ) -> ndarray:
         """Return the spectral response.
 
@@ -179,7 +187,7 @@ class Atmosphere(Spectral_Response):
         obj_wavelength: array like
             The wavelength interval, in nm, of the object.
 
-            air_mass: int, float
+        air_mass: int, float
             The air mass.
 
         sky_condition: ['photometric', 'regular', 'good']
@@ -190,32 +198,29 @@ class Atmosphere(Spectral_Response):
         spectral_response: array like
             The spectral response of the optical system.
 
-        """
-        csv_file_name = os.path.join(self._BASE_PATH, self._CSV_FILE_NAME)
-        sys_wavelength, extinction_coef = self._read_csv_file(
-            csv_file_name, sky_condidition
-        )
-        spectral_response = 10 ** (-0.4 * extinction_coef * air_mass)
-
-        spectral_response = self._interpolate_spectral_response(
-            sys_wavelength, spectral_response, obj_wavelength)
-        return spectral_response
+        """        
+        ss = pd.read_csv(os.path.join(self._BASE_PATH, self._ATM_EXTINCTION))        
+        extinction_coef = 10**(-0.4 * air_mass * ss[sky_condition])
+        popt_M1, _ = curve_fit(self._func, ss['Wavelength (nm)'], extinction_coef)        
+        
+        return super().get_spectral_response(obj_wavelength)*popt_M1[0]
+        
 
     def apply_spectral_response(
-        self,
-        sed: ndarray,
+        self,        
         obj_wavelength: ndarray,
+        sed: ndarray,
         air_mass: int | float,
         sky_condition="photometric",
     ) -> ndarray:
         """Apply the spectral response.
 
         Parameters
-        ----------
-            sed: array like in the (4, n) format
-                The Spectral Energy Distribution (SED) of the object.
+        ----------            
             obj_wavelength: array like
                 The wavelength interval, in nm, of the object.
+            sed: array like in the (4, n) format
+                The Spectral Energy Distribution (SED) of the object.
             air_mass: int, float
                 The air mass in the light path.
             sky_condition: ['photometric', 'regular', 'good']
@@ -225,7 +230,7 @@ class Atmosphere(Spectral_Response):
             reduced_sed: array like
                 The Spectral Energy Distribution (SED) of the object subtracted from the loses
                 related to the spectral response of the system.
-        """
+        """        
         self._verify_var_in_interval(air_mass, "air_mass", var_max=3)
         self._check_var_in_a_list(sky_condition, "sky_condition", [
                                   "photometric", "regular", "good"])
@@ -233,16 +238,28 @@ class Atmosphere(Spectral_Response):
             obj_wavelength, air_mass, sky_condition
         )
 
-        sed[0] = np.multiply(spectral_response, sed[0])
+        sed = np.multiply(spectral_response, sed)
 
         return sed
 
-    @staticmethod
-    def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
-        popt, _ = curve_fit(interpolation_func, wavelength,
-                            spectral_response)
-        spectral_response = interpolation_func(obj_wavelength, *popt)
-        return spectral_response
+    
+    
+    def _func(self, x, c):
+        csv_file_name = os.path.join(self._BASE_PATH, self._CSV_FILE_NAME)
+        sys_wavelength, spectral_response = self._read_csv_file(
+            csv_file_name
+        )        
+        spl = interp1d(sys_wavelength, spectral_response,
+                       bounds_error=False, kind='cubic')
+        return spl(x)*c
+        
+   
+    
+    def _interpolate_spectral_response(self, wavelength, spectral_response):
+        spl = interp1d(wavelength, spectral_response,
+                       bounds_error=False, kind='cubic', fill_value=0)
+
+        return spl(self.obj_wavelength)        
 
 
 class Channel(Spectral_Response):
@@ -287,12 +304,15 @@ class Channel(Spectral_Response):
         return
 
     def get_spectral_response(
-        self, csv_file_name: str
+        self, obj_wavelength: ndarray, csv_file_name: str
     ) -> ndarray:
         """Return the spectral response.
 
         Parameters
-        ----------           
+        ----------  
+        obj_wavelength: array like
+            The wavelength interval, in nm, of the object.
+                     
         csv_file_name: str
             The name of the csv file that contains the spectral response of the optical component.
 
@@ -302,7 +322,7 @@ class Channel(Spectral_Response):
             The spectral response of the optical system.
         """
         self._CSV_FILE_NAME = csv_file_name
-        return super().get_spectral_response()
+        return super().get_spectral_response(obj_wavelength)
 
     def write_sparc4_operation_mode(self, acquisition_mode: str,
                                     calibration_wheel: str = '',
@@ -364,14 +384,14 @@ class Channel(Spectral_Response):
             if csv_file != "collimator.csv":
                 csv_file = os.path.join(
                     f"Channel {self._channel_id}", csv_file)
-            spectral_response = self.get_spectral_response(csv_file)
+            spectral_response = self.get_spectral_response(self.obj_wavelength, csv_file)
             self.sed = np.multiply(spectral_response, self.sed)
 
         return
 
     def _apply_polarimetric_spectral_response(self) -> None:
         for csv_file in self._POL_OPTICAL_COMPONENTS.values():
-            spectral_response = self.get_spectral_response(csv_file)
+            spectral_response = self.get_spectral_response(self.obj_wavelength, csv_file)
             self.sed = np.multiply(spectral_response, self.sed)
 
         if self.calibration_wheel != '':
@@ -382,7 +402,7 @@ class Channel(Spectral_Response):
         return
 
     def _apply_calibration_wheel(self) -> None:
-        spectral_response = self.get_spectral_response(
+        spectral_response = self.get_spectral_response(self.obj_wavelength,
             self.calibration_wheel + '.csv')
         if self.calibration_wheel == "polarizer":
             contrast_ratio = self._get_spectral_response_custom(
@@ -406,9 +426,8 @@ class Channel(Spectral_Response):
 
     def _apply_retarder_waveplate(self) -> None:
         phase_difference = self._get_spectral_response_custom(
-            f'retarder_phase_diff_{self.retarder_waveplate}.csv', 'Retardance')
+            f'retarder_phase_diff_{self.retarder_waveplate}.csv', 'Retardance')*360
         for idx, phase in enumerate(phase_difference):
-            phase *= 360
             RETARDER_MATRIX = calculate_retarder_matrix(
                 phase, self.retarder_waveplate_angle)
             self.sed[:, idx] = np.transpose(
@@ -416,12 +435,11 @@ class Channel(Spectral_Response):
         return
 
     def _apply_analyzer(self) -> None:
-
         ORD_RAY_MATRIX = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
-        temp_1 = self._apply_matrix(ORD_RAY_MATRIX, copy(self.sed))
+        temp_1 = apply_matrix(ORD_RAY_MATRIX, copy(self.sed))
         EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(
             self._POLARIZER_ANGLE + 90)
-        temp_2 = self._apply_matrix(EXTRA_ORD_RAY_MATRIX, copy(self.sed))
+        temp_2 = apply_matrix(EXTRA_ORD_RAY_MATRIX, copy(self.sed))
         self.sed = np.stack((temp_1[0], temp_2[0]))
 
     def _verify_sparc4_operation_mode(self) -> None:
@@ -463,9 +481,4 @@ class Channel(Spectral_Response):
 
         return spectral_response
 
-    @staticmethod
-    def _apply_matrix(matrix, sed):
-        for idx, _ in enumerate(sed[0]):
-            sed[:, idx] = np.transpose(
-                matrix.dot(sed[:, idx]))
-        return sed
+

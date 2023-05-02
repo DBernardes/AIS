@@ -5,6 +5,7 @@
 #
 
 import os
+from copy import copy
 import numpy as np
 import pandas as pd
 import pytest
@@ -14,6 +15,7 @@ from scipy.constants import c, h, k
 from sbpy.calib import vega_fluxd
 from math import pi
 from sys import exit
+from AIS.Spectral_Response._utils import calculate_polarizer_matrix, apply_matrix
 
 obj_wavelength = np.linspace(400, 1100, 100)
 
@@ -112,3 +114,22 @@ def test_get_calculate_sed_spectral_lib(source):
         assert np.allclose(wv, file_data['wavelength (nm)'], rtol=0.005)
         assert np.allclose(
             sed, temp, rtol=0.005)
+
+
+def test_polarize_sed(source):
+    percent_pol = 70
+    polarization_mode = 'linear'
+    pol_angle = 0    
+    
+    source.calculate_sed(calculation_method, magnitude, wavelength_interval, temperature)
+    sed = source.apply_polarization(polarization_mode, pol_angle, percent_pol)   
+    
+    percent_pol/=100
+    tmp = np.zeros((4, wv.shape[0]))
+    tmp[0] = new_sed 
+    polarizer_matrix = calculate_polarizer_matrix(pol_angle)
+    tmp2 = apply_matrix(polarizer_matrix, copy(tmp))
+    polarized_sed = tmp2 * percent_pol + (1 - percent_pol) * tmp
+    
+    
+    assert np.allclose(sed, polarized_sed, atol=1e-3)

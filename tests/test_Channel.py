@@ -239,7 +239,7 @@ def test_interpolate_spectral_response(channel):
 
 
 def test_get_spectral_response(channel):
-    class_spectral_response = channel.get_spectral_response(
+    class_spectral_response = channel.get_spectral_response(obj_wavelength, 
         _PHOT_OPTICAL_COMPONENTS["collimator"]
     )
     assert np.allclose(class_spectral_response,
@@ -313,10 +313,9 @@ def test_apply_retarder_waveplate(channel):
     channel._apply_retarder_waveplate()
 
     phase_difference = channel._get_spectral_response_custom(
-        f'retarder_phase_diff_{phase_diff}.csv', 'Retardance')
+        f'retarder_phase_diff_{phase_diff}.csv', 'Retardance')*360
 
     for idx, phase in enumerate(phase_difference):
-        phase = np.rad2deg(phase)
         RETARDER_MATRIX = calculate_retarder_matrix(
             phase, retarder_waveplate_angle)
         sed[:, idx] = np.transpose(

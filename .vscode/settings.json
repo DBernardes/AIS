@@ -8,5 +8,5 @@
     "restructuredtext.confPath": "${workspaceFolder}\\docs\\source",
     "esbonio.sphinx.confDir": "${workspaceFolder}\\docs\\source",
     "python.analysis.typeCheckingMode": "off",
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
 }

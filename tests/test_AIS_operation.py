@@ -110,7 +110,8 @@ def test_apply_atmosphere_spectral_response(ais):
                           wavelegnth_interval, temperature)
     atm = Atmosphere()
     new_sed = atm.apply_spectral_response(
-        ais.source_sed, obj_wavelength, air_mass, sky_condition)
+        obj_wavelength, copy(ais.source_sed), air_mass, sky_condition)
+    
     ais.apply_atmosphere_spectral_response(air_mass, sky_condition)
     assert np.allclose(ais.source_sed, new_sed)
 
@@ -120,8 +121,8 @@ def test_apply_telescope_spectral_response(ais):
                           wavelegnth_interval, temperature)
     ais.create_sky_sed(moon_phase)
     tel = Telescope()
-    new_sed = tel.apply_spectral_response(ais.source_sed, obj_wavelength)
-    new_sky_sed = tel.apply_spectral_response(ais.sky_sed, obj_wavelength)
+    new_sed = tel.apply_spectral_response(obj_wavelength, ais.source_sed)
+    new_sky_sed = tel.apply_spectral_response(obj_wavelength, ais.sky_sed)
     ais.apply_telescope_spectral_response()
     assert np.allclose(ais.source_sed, new_sed)
     assert np.allclose(ais.sky_sed, new_sky_sed)

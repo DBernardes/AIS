@@ -16,7 +16,8 @@ from sbpy.calib import vega_fluxd
 from math import pi
 import os
 from sys import exit
-
+from ..Spectral_Response._utils import calculate_polarizer_matrix, apply_matrix
+from copy import copy
 __all__ = ['Source', 'Sky']
 
 
@@ -75,6 +76,16 @@ class Source(Spectral_Energy_Distribution):
     """Source Class
 
     This class inherits from the Spectral_Energy_Distribution class, and it represents the astronomical object.
+    
+    Example
+    -------
+    
+    src = Source()
+    
+    wv, sed = src.calculate_sed(calculation_method='blackbody', 
+                            magnitude=12, 
+                            wavelength_interval=(400, 1100, 100), 
+                            temperature=5700)
     """
 
     def __init__(self):
@@ -158,6 +169,34 @@ class Source(Spectral_Energy_Distribution):
 
         return self.wavelength, self.sed
 
+
+    def apply_polarization(self, polarization_mode:str ='linear', pol_angle:float=0, percent_pol:float=100) -> ndarray:
+        """Apply polarization to SED.
+
+        Parameters
+        ----------
+            polarization_mode: ['linear', 'circular'], optional
+                Polarization mode.
+            pol_angle: float, optional
+                Polarization angle in degrees. If the selected polarization mode were linear, the polarization angle must be provided.
+            percent_pol: float, optional
+                Percentage of polarization.
+
+        Returns
+        -------
+            sed: ndarray
+                Polarized SED.
+        """
+        percent_pol /= 100       
+        if polarization_mode == 'linear':
+            polarizer_matrix = calculate_polarizer_matrix(pol_angle)
+            polarized_sed = apply_matrix(polarizer_matrix, copy(self.sed))
+            self.sed = percent_pol * polarized_sed + (1 - percent_pol) * self.sed
+        else:
+            raise ValueError(f'Unknow polarization mode: {polarization_mode}')
+        
+        return self.sed
+
     @staticmethod
     def _calculate_sed_blackbody(wavelength, temperature):
         return 2 * pi * h * c**2 / (wavelength*1e-9)**5 * 1 / (np.exp(h*c/(wavelength * 1e-9 * k * temperature))-1)
@@ -181,31 +220,6 @@ class Source(Spectral_Energy_Distribution):
         spec_types = [spec_type.split('.')[0][2:] for spec_type in spec_types]
         print(*spec_types, sep=', ')
 
-    def apply_polarization(self) -> ndarray:
-        """Apply a polarization to the SED.
-
-        This function applies a polarization to the SED calculates by the calculate_sed() function.
-
-        Paramerter
-        ----------
-
-        polarization: [linear, circular]
-            The polarization type.
-
-        degree_pol: float
-            The percentage of polarization.
-
-        pol_angle: float, optional
-            The linear polarization angle.
-
-        Returns
-        -------
-
-        polarizerd_sed: array like
-            A polarized SED.        
-        """
-
-        return self.sed
 
 
 class Sky(Spectral_Energy_Distribution):

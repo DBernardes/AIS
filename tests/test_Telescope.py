@@ -13,6 +13,7 @@ import os
 import numpy as np
 from scipy.interpolate import splev, splrep, PchipInterpolator
 import pandas as pd
+from copy import copy
 
 obj_wavelength = np.linspace(400, 1100, 100)
 csv_file_name = 'telescope.csv'
@@ -26,8 +27,7 @@ _SECONDARY_MIRROR_ADJUSTMENT = 0.996
 spl = PchipInterpolator(wavelength, spectral_response)
 new_spectral_response = spl(
     obj_wavelength)**2 * _PRIMARY_MIRROR_ADJUSTMENT * _SECONDARY_MIRROR_ADJUSTMENT
-#spl = splrep(wavelength, spectral_response)
-#new_spectral_response = splev(obj_wavelength, spl)
+
 
 
 @pytest.fixture
@@ -53,8 +53,9 @@ def test_read_csv_file(telescope):
 
 
 def test_interpolate_spectral_response(telescope):
+    telescope.obj_wavelength = obj_wavelength
     class_spectral_response = telescope._interpolate_spectral_response(
-        wavelength, spectral_response, obj_wavelength)
+        wavelength, spectral_response)
     assert np.allclose(class_spectral_response, spl(obj_wavelength), atol=1e-3)
 
 
@@ -64,9 +65,9 @@ def test_get_spectral_response(telescope):
 
 
 sed = np.ones((4, len(obj_wavelength)))
-sed[0] = np.multiply(new_spectral_response, sed[0])
 
 
 def test_apply_spectral_response(telescope):
-    class_reduced_esd = telescope.apply_spectral_response(sed, obj_wavelength)
-    assert np.allclose(class_reduced_esd, sed)
+    class_reduced_esd = telescope.apply_spectral_response(obj_wavelength, copy(sed))
+    new_sed = np.multiply(new_spectral_response, sed)
+    assert np.allclose(class_reduced_esd, new_sed)

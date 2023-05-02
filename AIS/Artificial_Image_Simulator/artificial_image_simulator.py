@@ -224,6 +224,21 @@ class Artificial_Image_Simulator:
         self.wavelength, self.source_sed = self.SRC_obj.calculate_sed(calculation_method, magnitude,
                                                                       wavelength_interval, temperature, spectral_type)
 
+    def apply_polarization(self, polarization_mode:str='linear', pol_angle:float=0, percent_pol:float=100):
+        """Apply polarization in SED.
+
+         Parameters
+        ----------
+        polarization_mode: ['linear', 'circular'], optional
+            Polarization mode.
+        pol_angle: float, optional
+            Polarization angle in degrees. If the selected polarization mode were linear, the polarization angle must be provided.
+        percent_pol: float, optional
+            Percentage of polarization.
+        """        
+        self.source_sed = self.SRC_obj.apply_polarization(polarization_mode, pol_angle, percent_pol)
+        
+
     def write_source_sed(self, wavelenth: ndarray, sed: ndarray):
         """Write the source SED into the class.
 
@@ -236,8 +251,8 @@ class Artificial_Image_Simulator:
         """
         n = sed.shape
         self.source_sed = sed
-        if n[0] == 1:
-            self.source_sed = np.zeros((4, n[1]))
+        if len(n) == 1:
+            self.source_sed = np.zeros((4, n[0]))
             self.source_sed[0] = sed
         self.wavelength = wavelenth
         return
@@ -278,7 +293,7 @@ class Artificial_Image_Simulator:
         """
 
         self.source_sed = self.ATM_obj.apply_spectral_response(
-            self.source_sed, self.wavelength, air_mass, sky_condition)
+            self.wavelength, self.source_sed, air_mass, sky_condition)
 
     def apply_telescope_spectral_response(self):
         """Apply the telescope spectral response.
@@ -287,9 +302,9 @@ class Artificial_Image_Simulator:
         Spectral Energy Distribution of the source and the sky.
         """
         self.source_sed = self.TEL_obj.apply_spectral_response(
-            self.source_sed, self.wavelength)
+            self.wavelength, self.source_sed)
         self.sky_sed = self.TEL_obj.apply_spectral_response(
-            self.sky_sed, self.wavelength)
+            self.wavelength, self.sky_sed)
 
     def apply_sparc4_spectral_response(
         self,
@@ -353,11 +368,11 @@ class Artificial_Image_Simulator:
             The seeing of the star.
 
         """
-        self._integrate_sed()
+        self._integrate_sed()        
         ord_ray, extra_ord_ray = self.star_photons_per_second, 0
         if type(self.star_photons_per_second) != np.float64:
             self.sky_photons_per_second = sum(self.sky_photons_per_second)
-            ord_ray, extra_ord_ray = self.star_photons_per_second[0], self.star_photons_per_second[1]
+            ord_ray, extra_ord_ray = self.star_photons_per_second[0], self.star_photons_per_second[1]        
         background = self.BGI_obj.create_sky_background(
             self.sky_photons_per_second)
         star_psf = self.PSF_obj.create_star_image(

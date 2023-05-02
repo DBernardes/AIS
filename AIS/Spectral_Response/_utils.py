@@ -3,7 +3,7 @@ import numpy as np
 from numpy import ndarray
 
 __all__ = ["calculate_polarizer_matrix",
-           "calculate_retarder_matrix"]
+           "calculate_retarder_matrix", "apply_matrix"]
 
 
 def calculate_polarizer_matrix(theta):
@@ -122,3 +122,11 @@ def calculate_retarder_matrix_1(phase_difference, theta) -> ndarray:
 
 def interpolation_func(x, a, b, c, d):
     return a*x**3 + b*x**2 + c*x + d
+
+
+    
+def apply_matrix(matrix, sed):
+    for idx, _ in enumerate(sed[0]):
+        sed[:, idx] = np.transpose(
+            matrix.dot(sed[:, idx]))
+    return sed

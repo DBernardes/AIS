@@ -13,6 +13,7 @@ import os
 import numpy as np
 from scipy.interpolate import splev, splrep, interp1d
 import pandas as pd
+from copy import copy
 
 obj_wavelength = np.linspace(400, 1100, 100)
 csv_file_name = 'csv_file.csv'
@@ -53,8 +54,9 @@ new_spectral_response = spl(obj_wavelength)
 
 
 def test_interpolate_spectral_response(sr):
+    sr.obj_wavelength = obj_wavelength
     class_spectral_response = sr._interpolate_spectral_response(
-        wavelength, spectral_response, obj_wavelength)
+        wavelength, spectral_response)
     assert np.allclose(class_spectral_response, new_spectral_response)
 
 
@@ -64,10 +66,9 @@ def test_get_spectral_response(sr):
 
 
 sed = np.ones((4, len(obj_wavelength)))
-reduced_sed = sed
-reduced_sed[0] = np.multiply(new_spectral_response, sed[0])
 
 
 def test_apply_spectral_response(sr):
-    class_reduced_sed = sr.apply_spectral_response(sed, obj_wavelength)
+    class_reduced_sed = sr.apply_spectral_response(obj_wavelength, copy(sed))
+    reduced_sed = np.multiply(new_spectral_response, sed)
     assert np.allclose(class_reduced_sed, reduced_sed)
