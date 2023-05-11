@@ -238,7 +238,6 @@ class Artificial_Image_Simulator:
         """        
         self.source_sed = self.SRC_obj.apply_polarization(polarization_mode, pol_angle, percent_pol)
         
-
     def write_source_sed(self, wavelenth: ndarray, sed: ndarray):
         """Write the source SED into the class.
 
@@ -323,9 +322,12 @@ class Artificial_Image_Simulator:
         acquisition_mode: ["photometry", "polarimetry"]
             The acquisition mode of the sparc4.
 
-        calibration_wheel: ["polarizer", "depolarizer"], optional
-            The position of the calibration wheel.
-            This parameter is used only if the acquisition_mode is 'polarimetry'.
+        calibration_wheel: ["polarizer", "ideal-polarizer", "ideal-depolarizer"], optional
+            The optical component of the calibration wheel.
+            This parameter provides to the user the options of using the real or the ideal versions
+            of the optical components of the calibration wheel. Based on the provided value, AIS
+            will apply the correspondent Stoke matrix. It should be highlighted that the transmission 
+            of the optical component still be applied.
 
         retarder_waveplate: ["half", "quarter"], optional
             The waveplate for polarimetric measurements.

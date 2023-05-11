@@ -336,8 +336,12 @@ class Channel(Spectral_Response):
             The acquisition mode of the channel. If the acquisition mode is polarimetry,
             the polarimetric configuration must be provided.
 
-        calibration_wheel: ["polarizer", "depolarizer"], optional
-            The position of the calibration wheel.
+        calibration_wheel: ["polarizer", "ideal-polarizer", "ideal-depolarizer"], optional
+            The optical component of the calibration wheel.
+            This parameter provides to the user the options of using the real or the ideal versions
+            of the optical components of the calibration wheel. Based on the provided value, AIS
+            will apply the correspondent Stoke matrix. It should be highlighted that the transmission 
+            of the optical component still be applied.
 
         retarder_waveplate: ["half", "quarter"], optional
             The waveplate for polarimetric measurements.
@@ -402,37 +406,85 @@ class Channel(Spectral_Response):
         return
 
     def _apply_calibration_wheel(self) -> None:
-        spectral_response = self.get_spectral_response(self.obj_wavelength,
-            self.calibration_wheel + '.csv')
-        if self.calibration_wheel == "polarizer":
-            contrast_ratio = self._get_spectral_response_custom(
-                'polarizer_contrast_ratio.csv', "Contrast ratio")
-            for idx, transmission in enumerate(spectral_response):
-                contrast = contrast_ratio[idx]
-                theta = np.rad2deg(atan(1/sqrt(contrast)))
-                total_transmission = transmission * (1 + 1/contrast)
-                polarizer_matrix = calculate_polarizer_matrix(theta)
-                self.sed[:, idx] = total_transmission*np.transpose(
-                    polarizer_matrix.dot(self.sed[:, idx]))
-        elif self.calibration_wheel == "depolarizer":
-            sed = self.sed
-            self.sed = np.zeros((4, sed.shape[1]))
-            self.sed[0] = sed[0] * spectral_response
+        
+        if "depolarizer" in self.calibration_wheel:
+            self._apply_depolarizer()           
+        elif "polarizer" in self.calibration_wheel:
+            self._apply_polarizer()
         else:
             raise ValueError(
                 f"The calibration wheel {self.calibration_wheel} is not valid.")
 
         return
 
+    def _apply_polarizer(self):
+        spectral_response = self.get_spectral_response(self.obj_wavelength,
+            'polarizer.csv')        
+        if self.calibration_wheel == 'ideal-polarizer':
+            self._apply_ideal_polarizer(spectral_response)
+        elif self.calibration_wheel == 'polarizer':
+            self._apply_non_polarizer(spectral_response)          
+        else:
+            raise ValueError(f'A wrong value has been provided for the polarizer: {self.calibration_wheel}')
+    
+    def _apply_ideal_polarizer(self, spectral_response):
+        self.sed = np.multiply(spectral_response, self.sed)
+        polarizer_matrix = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
+        self.sed = apply_matrix(polarizer_matrix, self.sed)  
+        
+    def _apply_non_polarizer(self, spectral_response):
+        contrast_ratio = self._get_spectral_response_custom(
+            'polarizer_contrast_ratio.csv', "Contrast ratio")
+        for idx, transmission in enumerate(spectral_response):
+            contrast = contrast_ratio[idx]
+            theta = np.rad2deg(atan(1/sqrt(contrast)))
+            total_transmission = transmission * (1 + 1/contrast)
+            polarizer_matrix = calculate_polarizer_matrix(theta)
+            self.sed[:, idx] = total_transmission*np.transpose(
+                polarizer_matrix.dot(self.sed[:, idx]))
+               
+    def _apply_depolarizer(self):
+        spectral_response = self.get_spectral_response(self.obj_wavelength,
+            'depolarizer.csv')    
+        if self.calibration_wheel == 'ideal-depolarizer':
+            sed = self.sed
+            self.sed = np.zeros((4, sed.shape[1]))
+            self.sed[0] = sed[0] * spectral_response
+        elif self.calibration_wheel == 'depolarizer':
+            pass
+        else:
+            raise ValueError(f'A wrong value has been provided for the depolarizer: {self.calibration_wheel}')
+        
+        
+        return
+
     def _apply_retarder_waveplate(self) -> None:
+        if 'ideal-' not in self.retarder_waveplate:
+            self._apply_non_ideal_waveplate()
+        else:
+            self._apply_ideal_waveplate()
+        return
+    
+    def _apply_non_ideal_waveplate(self):
         phase_difference = self._get_spectral_response_custom(
             f'retarder_phase_diff_{self.retarder_waveplate}.csv', 'Retardance')*360
-        for idx, phase in enumerate(phase_difference):
+        for idx, phase in enumerate(phase_difference):            
             RETARDER_MATRIX = calculate_retarder_matrix(
                 phase, self.retarder_waveplate_angle)
             self.sed[:, idx] = np.transpose(
                 RETARDER_MATRIX.dot(self.sed[:, idx]))
-        return
+    
+    def _apply_ideal_waveplate(self):
+        if 'half' in self.retarder_waveplate:
+            phase = 180
+        elif 'quarter' in self.retarder_waveplate:
+            phase = 90
+        else:
+            raise ValueError(f'A wrong value has been provided for the retarder waveplate: {self.retarder_waveplate}')
+        RETARDER_MATRIX = calculate_retarder_matrix(
+                phase, self.retarder_waveplate_angle)
+        self.sed = apply_matrix(RETARDER_MATRIX, self.sed)
+        
 
     def _apply_analyzer(self) -> None:
         ORD_RAY_MATRIX = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
@@ -453,14 +505,15 @@ class Channel(Spectral_Response):
                 [
                     "polarizer",
                     "depolarizer",
-                    "",
+                    "ideal-polarizer",
+                    ""
                 ],
             )
 
             self._check_var_in_a_list(
                 self.retarder_waveplate,
                 "retarder waveplate",
-                ["half", "quarter"],
+                ["half", "quarter", 'ideal-half', 'ideal-quarter'],
             )
         else:
             raise ValueError(

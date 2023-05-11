@@ -270,7 +270,6 @@ def test_apply_calibration_wheel_polarizer(channel):
 
     channel.calibration_wheel = 'polarizer'
     channel.sed = copy(sed)
-
     channel._apply_calibration_wheel()
 
     new_spectral_response = spl(obj_wavelength)
@@ -284,12 +283,28 @@ def test_apply_calibration_wheel_polarizer(channel):
             polarizer_matrix.dot(sed[:, idx]))
 
     assert np.allclose(channel.sed, sed, atol=1e-3)
-
-
-def test_apply_calibration_wheel_depolarizer(channel):
+    
+def test_apply_calibration_wheel_ideal_polarizer(channel):
     n = len(obj_wavelength)
     sed = np.ones((4, n))
-    channel.calibration_wheel = 'depolarizer'
+    spl = interp1d(wv_polarizer, sr_polarizer,
+                   bounds_error=False, fill_value=0, kind='cubic')
+
+    channel.calibration_wheel = 'ideal-polarizer'
+    channel.sed = copy(sed)
+    channel._apply_calibration_wheel()
+    
+    spectral_response = channel.get_spectral_response(obj_wavelength, 'polarizer.csv')
+    sed = np.multiply(spectral_response, sed)
+    polarizer_matrix = calculate_polarizer_matrix(0)
+    sed = _apply_matrix(polarizer_matrix, sed)
+    
+    assert np.allclose(sed, channel.sed)
+    
+def test_apply_calibration_wheel_ideal_depolarizer(channel):
+    n = len(obj_wavelength)
+    sed = np.ones((4, n))
+    channel.calibration_wheel = 'ideal-depolarizer'
     channel.sed = copy(sed)
     channel._apply_calibration_wheel()
 
@@ -301,6 +316,12 @@ def test_apply_calibration_wheel_depolarizer(channel):
 
     assert np.allclose(channel.sed, reduced_sed, atol=1e-3)
 
+def test_apply_calibration_wheel_depolarizer(channel):
+    n = len(obj_wavelength)
+    sed = np.ones((4, n))
+    channel.calibration_wheel = 'depolarizer'
+    channel.sed = copy(sed)
+    channel._apply_calibration_wheel()
 
 def test_apply_retarder_waveplate(channel):
     phase_diff = 'half'
@@ -321,6 +342,21 @@ def test_apply_retarder_waveplate(channel):
         sed[:, idx] = np.transpose(
             RETARDER_MATRIX.dot(sed[:, idx]))
 
+    assert np.allclose(channel.sed, sed)
+    
+def test_apply_ideal_retarder_waveplate(channel):
+    phase_diff = 'ideal-half'
+    retarder_waveplate_angle = 0
+    n = len(obj_wavelength)
+    sed = np.ones((4, n))
+    channel.retarder_waveplate_angle = retarder_waveplate_angle
+    channel.retarder_waveplate = phase_diff
+    channel.sed = copy(sed)
+    channel._apply_retarder_waveplate()
+   
+    RETARDER_MATRIX = calculate_retarder_matrix(
+            180, retarder_waveplate_angle)
+    sed = _apply_matrix(RETARDER_MATRIX, sed)
     assert np.allclose(channel.sed, sed)
 
 

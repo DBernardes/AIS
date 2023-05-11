@@ -190,7 +190,7 @@ class Source(Spectral_Energy_Distribution):
         percent_pol /= 100       
         if polarization_mode == 'linear':
             polarizer_matrix = calculate_polarizer_matrix(pol_angle)
-            polarized_sed = apply_matrix(polarizer_matrix, copy(self.sed))
+            polarized_sed = apply_matrix(polarizer_matrix, copy(self.sed)) * 2
             self.sed = percent_pol * polarized_sed + (1 - percent_pol) * self.sed
         else:
             raise ValueError(f'Unknow polarization mode: {polarization_mode}')
