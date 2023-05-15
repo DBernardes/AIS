@@ -224,19 +224,29 @@ class Artificial_Image_Simulator:
         self.wavelength, self.source_sed = self.SRC_obj.calculate_sed(calculation_method, magnitude,
                                                                       wavelength_interval, temperature, spectral_type)
 
-    def apply_polarization(self, polarization_mode:str='linear', pol_angle:float=0, percent_pol:float=100):
-        """Apply polarization in SED.
+    def apply_linear_polarization(self, percent_pol:float=100, pol_angle:float=0):
+        """Apply linear polarization in SED.
 
          Parameters
         ----------
-        polarization_mode: ['linear', 'circular'], optional
-            Polarization mode.
-        pol_angle: float, optional
-            Polarization angle in degrees. If the selected polarization mode were linear, the polarization angle must be provided.
         percent_pol: float, optional
             Percentage of polarization.
+        pol_angle: float, optional
+            Polarization angle in degrees. If the selected polarization mode were linear, the polarization angle must be provided.
         """        
-        self.source_sed = self.SRC_obj.apply_polarization(polarization_mode, pol_angle, percent_pol)
+        self.source_sed = self.SRC_obj.apply_linear_polarization(percent_pol, pol_angle)
+        
+    def apply_circular_polarization(self, percent_pol:float=100, orientation:str='right'):
+        """Apply ciruclar polarization in SED.
+
+         Parameters
+        ----------
+        percent_pol: float, optional
+            Percentage of polarization.
+        orientation: ['right', 'left'], optional
+            Orientation of the polarization.
+        """        
+        self.source_sed = self.SRC_obj.apply_circular_polarization(percent_pol, orientation)
         
     def write_source_sed(self, wavelenth: ndarray, sed: ndarray):
         """Write the source SED into the class.

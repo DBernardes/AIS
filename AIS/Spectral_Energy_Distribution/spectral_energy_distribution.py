@@ -13,10 +13,10 @@ from scipy.interpolate import splev, splrep, interp1d
 import pandas as pd
 from scipy.constants import c, h, k
 from sbpy.calib import vega_fluxd
-from math import pi
+from math import pi, sqrt, tan
 import os
 from sys import exit
-from ..Spectral_Response._utils import calculate_polarizer_matrix, apply_matrix
+from ..Spectral_Response._utils import calculate_polarizer_matrix, apply_matrix, calculate_retarder_matrix
 from copy import copy
 __all__ = ['Source', 'Sky']
 
@@ -170,30 +170,59 @@ class Source(Spectral_Energy_Distribution):
         return self.wavelength, self.sed
 
 
-    def apply_polarization(self, polarization_mode:str ='linear', pol_angle:float=0, percent_pol:float=100) -> ndarray:
+    def apply_linear_polarization(self, percent_pol:float=100, pol_angle:float=0) -> ndarray:
         """Apply polarization to SED.
 
         Parameters
         ----------
-            polarization_mode: ['linear', 'circular'], optional
-                Polarization mode.
-            pol_angle: float, optional
-                Polarization angle in degrees. If the selected polarization mode were linear, the polarization angle must be provided.
             percent_pol: float, optional
                 Percentage of polarization.
+            pol_angle: float, optional
+                Polarization angle in degrees. If the selected polarization mode were linear, the polarization angle must be provided.            
 
         Returns
         -------
             sed: ndarray
                 Polarized SED.
         """
-        percent_pol /= 100       
-        if polarization_mode == 'linear':
-            polarizer_matrix = calculate_polarizer_matrix(pol_angle)
-            polarized_sed = apply_matrix(polarizer_matrix, copy(self.sed)) * 2
-            self.sed = percent_pol * polarized_sed + (1 - percent_pol) * self.sed
-        else:
-            raise ValueError(f'Unknow polarization mode: {polarization_mode}')
+        if percent_pol > 100:
+            raise ValueError(f'The percentage of polarization must be in the interval of 0 up to 100: {percent_pol}')
+        if pol_angle > 180:
+            raise ValueError(f'The polarization angle must be in the interval of 0 up to 180: {pol_angle}')
+        
+        theta = np.deg2rad(pol_angle)
+        tan_value = tan(2*theta)
+        self.sed[1] = self.sed[0]*percent_pol/(100*sqrt(1 + tan_value**2))
+        self.sed[2] = self.sed[1]*tan_value        
+        
+        return self.sed
+    
+    def apply_circular_polarization(self, percent_pol:float=100, orientation:str='right') -> ndarray:
+        """Apply polarization to SED.
+
+        Parameters
+        ----------
+            percent_pol: float, optional
+                Percentage of polarization.
+            orientation: ['right', 'left'], optional
+                Orientation of the polarization.            
+
+        Returns
+        -------
+            sed: ndarray
+                Polarized SED.
+        """
+        phase_diff = 45
+        if orientation == 'left':
+            phase_diff *= -1
+        polarizer_matrix = calculate_polarizer_matrix(phase_diff)
+        polarized_sed = apply_matrix(polarizer_matrix, copy(self.sed)) * 2
+        
+        WAVEPLATE_MATRIX = calculate_retarder_matrix(90, 0)
+        polarized_sed = apply_matrix(WAVEPLATE_MATRIX, polarized_sed) * 2
+        
+        percent_pol /= 100        
+        self.sed = percent_pol * polarized_sed + (1 - percent_pol) * self.sed
         
         return self.sed
 

@@ -1,6 +1,7 @@
 from math import sin, cos, pi
 import numpy as np
 from numpy import ndarray
+import cmath
 
 __all__ = ["calculate_polarizer_matrix",
            "calculate_retarder_matrix", "apply_matrix"]
@@ -130,3 +131,6 @@ def apply_matrix(matrix, sed):
         sed[:, idx] = np.transpose(
             matrix.dot(sed[:, idx]))
     return sed
+
+
+    
