@@ -13,7 +13,7 @@ from AIS.Spectral_Energy_Distribution import Source
 from scipy.interpolate import splev, splrep
 from scipy.constants import c, h, k
 from sbpy.calib import vega_fluxd
-from math import pi
+from math import pi, sqrt, tan
 from sys import exit
 from AIS.Spectral_Response._utils import calculate_polarizer_matrix, apply_matrix
 
@@ -116,20 +116,40 @@ def test_get_calculate_sed_spectral_lib(source):
             sed, temp, rtol=0.005)
 
 
-def test_polarize_sed(source):
-    percent_pol = 70
-    polarization_mode = 'linear'
-    pol_angle = 0    
+def test_linear_polarization(source):
+    percent_pol = 70    
+    pol_angle = 10    
     
-    source.calculate_sed(calculation_method, magnitude, wavelength_interval, temperature)
-    sed = source.apply_polarization(polarization_mode, pol_angle, percent_pol)   
+    _, sed = source.calculate_sed(calculation_method, magnitude, wavelength_interval, temperature)
+    polarized_sed = source.apply_linear_polarization(percent_pol, pol_angle) 
     
-    percent_pol/=100
-    tmp = np.zeros((4, wv.shape[0]))
-    tmp[0] = new_sed 
-    polarizer_matrix = calculate_polarizer_matrix(pol_angle)
-    tmp2 = apply_matrix(polarizer_matrix, copy(tmp))
-    polarized_sed = tmp2 * percent_pol + (1 - percent_pol) * tmp
-    
+    theta = np.deg2rad(pol_angle)
+    tan_value = tan(2*theta)
+    sed[1] = sed[0]*percent_pol/(100*sqrt(1 + tan_value**2))
+    sed[2] = sed[1]*tan_value      
     
     assert np.allclose(sed, polarized_sed, atol=1e-3)
+    
+
+def test_circular_polarization(source):
+    percent_pol = 70    
+    
+    _, sed = source.calculate_sed(calculation_method, magnitude, wavelength_interval, temperature)
+    polarized_sed = source.apply_circular_polarization(percent_pol) 
+    
+    sed[3] = percent_pol * sed[0] / 100          
+    
+    assert np.allclose(sed, polarized_sed, atol=1e-3)
+    
+
+def test_polarization(source):
+    stokes = [0.1, 0.2, 0.3]
+    _, sed = source.calculate_sed(calculation_method, magnitude, wavelength_interval, temperature)
+    polarized_sed = source.apply_polarization(stokes)
+    
+    I = sed[0]
+    sed[1] = I * stokes[0]
+    sed[2] = I * stokes[1]
+    sed[3] = I * stokes[2]
+    
+    assert np.allclose(sed, polarized_sed)

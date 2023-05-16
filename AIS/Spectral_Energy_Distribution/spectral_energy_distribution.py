@@ -185,9 +185,9 @@ class Source(Spectral_Energy_Distribution):
             sed: ndarray
                 Polarized SED.
         """
-        if percent_pol > 100:
+        if not 0 < percent_pol <= 100:
             raise ValueError(f'The percentage of polarization must be in the interval of 0 up to 100: {percent_pol}')
-        if pol_angle > 180:
+        if not 0 <= pol_angle <= 180:
             raise ValueError(f'The polarization angle must be in the interval of 0 up to 180: {pol_angle}')
         
         theta = np.deg2rad(pol_angle)
@@ -197,7 +197,7 @@ class Source(Spectral_Energy_Distribution):
         
         return self.sed
     
-    def apply_circular_polarization(self, percent_pol:float=100, orientation:str='right') -> ndarray:
+    def apply_circular_polarization(self, percent_pol:float=100, orientation:str='left') -> ndarray:
         """Apply polarization to SED.
 
         Parameters
@@ -212,17 +212,49 @@ class Source(Spectral_Energy_Distribution):
             sed: ndarray
                 Polarized SED.
         """
-        phase_diff = 45
-        if orientation == 'left':
-            phase_diff *= -1
-        polarizer_matrix = calculate_polarizer_matrix(phase_diff)
-        polarized_sed = apply_matrix(polarizer_matrix, copy(self.sed)) * 2
+        if not 0 < percent_pol <= 100:
+            raise ValueError(f'The percentage of polarization must be in the interval of 0 up to 100: {percent_pol}')
+        if orientation not in ['right', 'left']:
+            raise ValueError(f'The value for the orientation must be "left" or "right": {orientation}')        
         
-        WAVEPLATE_MATRIX = calculate_retarder_matrix(90, 0)
-        polarized_sed = apply_matrix(WAVEPLATE_MATRIX, polarized_sed) * 2
+        self.sed[3] = percent_pol * self.sed[0] / 100
+        if orientation == 'right':
+            self.sed[3] *= -1        
         
-        percent_pol /= 100        
-        self.sed = percent_pol * polarized_sed + (1 - percent_pol) * self.sed
+        return self.sed
+
+    def apply_polarization(self, stokes: list = [])-> ndarray:
+        """Apply a general polarization to SED.
+        
+        Parameters
+        ----------
+            stokes (list, optional): a list of the q, u, and v Stokes parameters. Defaults to [].
+
+        Raises:
+        -------
+            ValueError: the variable stokes must have all the three Stokes parameters
+            ValueError: the provided values must be in the interval of -1 up to 1.
+            ValueError: the quadratic sum of the Stokes parameters must be equal or smaller than 1
+
+        Returns:
+        --------
+            ndarray: polarized SED, adjusted for the provided Stokes parameters 
+        """
+        if stokes == []:
+            return self.sed
+        else:        
+            stokes = np.asarray(stokes)   
+            quadratic_sum =  sqrt(sum(stokes**2))
+            if len(stokes) != 3:
+                raise ValueError(f'A wrong value has been provided for the Stokes parameters: {stokes}')
+            elif max(stokes) > 1 or min(stokes) < -1:
+                raise ValueError(f'The Stokes parameters must be in the interval -1 up to 1: {stokes}')
+            elif quadratic_sum > 1:
+                raise ValueError(f'The quadratic sum of the Stokes parameters must be equal or smaller than 1: {stokes}')
+        I = self.sed[0]
+        self.sed[1] = I * stokes[0]
+        self.sed[2] = I * stokes[1]
+        self.sed[3] = I * stokes[2]
         
         return self.sed
 

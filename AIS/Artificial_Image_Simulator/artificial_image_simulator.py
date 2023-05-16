@@ -236,7 +236,7 @@ class Artificial_Image_Simulator:
         """        
         self.source_sed = self.SRC_obj.apply_linear_polarization(percent_pol, pol_angle)
         
-    def apply_circular_polarization(self, percent_pol:float=100, orientation:str='right'):
+    def apply_circular_polarization(self, percent_pol:float=100, orientation:str='left'):
         """Apply ciruclar polarization in SED.
 
          Parameters
@@ -247,6 +247,19 @@ class Artificial_Image_Simulator:
             Orientation of the polarization.
         """        
         self.source_sed = self.SRC_obj.apply_circular_polarization(percent_pol, orientation)
+        
+    def apply_polarization(self, stokes: list = []):
+        """Apply a general polarization to SED.
+        
+        Parameters
+        ----------
+            stokes (list, optional): a list of the q, u, and v Stokes parameters. Defaults to [].      
+
+        Returns:
+        --------
+            ndarray: polarized SED, adjusted for the provided Stokes parameters 
+        """
+        self.source_sed  = self.SRC_obj.apply_polarization(stokes)
         
     def write_source_sed(self, wavelenth: ndarray, sed: ndarray):
         """Write the source SED into the class.
