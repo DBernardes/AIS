@@ -13,7 +13,7 @@ import os
 import numpy as np
 import pandas as pd
 from numpy import ndarray
-from scipy.interpolate import splev, splrep, interp1d, PchipInterpolator
+from scipy.interpolate import splev, splrep, interp1d, PchipInterpolator, UnivariateSpline
 from ._utils import calculate_retarder_matrix, calculate_polarizer_matrix, apply_matrix
 from scipy.optimize import curve_fit
 from math import sqrt, atan
@@ -60,10 +60,10 @@ class Spectral_Response:
         return np.array(ss["Wavelength (nm)"]), np.array(ss["Transmitance (%)"]) / 100
 
     def _interpolate_spectral_response(self, wavelength, spectral_response):
-        spl = interp1d(wavelength, spectral_response,
-                       bounds_error=False, fill_value=0, kind='cubic')
+        b = PchipInterpolator(wavelength, spectral_response)
+        spectral_response = b(self.obj_wavelength)
 
-        return spl(self.obj_wavelength)
+        return spectral_response
 
     def get_spectral_response(self, obj_wavelength: ndarray) -> ndarray:
         """Return the spectral response.    
@@ -149,11 +149,6 @@ class Telescope(Spectral_Response):
 
         return spectral_response**2 * self._PRIMARY_MIRROR_ADJUSTMENT * self._SECONDARY_MIRROR_ADJUSTMENT
 
-    def _interpolate_spectral_response(self, wavelength, spectral_response):
-        b = PchipInterpolator(wavelength, spectral_response)
-        spectral_response = b(self.obj_wavelength)
-        return spectral_response
-
 
 class Atmosphere(Spectral_Response):
 
@@ -198,13 +193,47 @@ class Atmosphere(Spectral_Response):
         spectral_response: array like
             The spectral response of the optical system.
 
+        """      
+        self.obj_wavelength = obj_wavelength  
+        ss = pd.read_csv(os.path.join(self._BASE_PATH, self._ATM_EXTINCTION))
+        spectral_response = 10**(-0.4 * air_mass * ss['coeff'])       
+        spectral_response = self._interpolate_spectral_response(
+            ss['Wavelength (nm)'], spectral_response
+        )
+        
+        return spectral_response
+    
+    def get_spectral_response_2(
+        self,        
+        obj_wavelength: ndarray,
+        air_mass: int | float = 1,
+        sky_condition="photometric",
+    ) -> ndarray:
+        """Return the spectral response.
+
+        Parameters
+        ----------
+        obj_wavelength: array like
+            The wavelength interval, in nm, of the object.
+
+        air_mass: int, float
+            The air mass.
+
+        sky_condition: ['photometric', 'regular', 'good']
+            The condition of the sky.
+
+        Yields
+        ------
+        spectral_response: array like
+            The spectral response of the optical system.
+
         """        
         ss = pd.read_csv(os.path.join(self._BASE_PATH, self._ATM_EXTINCTION))        
         extinction_coef = 10**(-0.4 * air_mass * ss[sky_condition])
         popt_M1, _ = curve_fit(self._func, ss['Wavelength (nm)'], extinction_coef)        
         
         return super().get_spectral_response(obj_wavelength)*popt_M1[0]
-        
+
 
     def apply_spectral_response(
         self,        
@@ -241,8 +270,6 @@ class Atmosphere(Spectral_Response):
         sed = np.multiply(spectral_response, sed)
 
         return sed
-
-    
     
     def _func(self, x, c):
         csv_file_name = os.path.join(self._BASE_PATH, self._CSV_FILE_NAME)
@@ -252,15 +279,7 @@ class Atmosphere(Spectral_Response):
         spl = interp1d(sys_wavelength, spectral_response,
                        bounds_error=False, kind='cubic')
         return spl(x)*c
-        
-   
-    
-    def _interpolate_spectral_response(self, wavelength, spectral_response):
-        spl = interp1d(wavelength, spectral_response,
-                       bounds_error=False, kind='cubic', fill_value=0)
-
-        return spl(self.obj_wavelength)        
-
+         
 
 class Channel(Spectral_Response):
     """
@@ -423,7 +442,7 @@ class Channel(Spectral_Response):
         if self.calibration_wheel == 'ideal-polarizer':
             self._apply_ideal_polarizer(spectral_response)
         elif self.calibration_wheel == 'polarizer':
-            self._apply_non_polarizer(spectral_response)          
+            self._apply_non_ideal_polarizer(spectral_response)          
         else:
             raise ValueError(f'A wrong value has been provided for the polarizer: {self.calibration_wheel}')
     
@@ -432,16 +451,17 @@ class Channel(Spectral_Response):
         polarizer_matrix = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
         self.sed = apply_matrix(polarizer_matrix, self.sed)  
         
-    def _apply_non_polarizer(self, spectral_response):
+    def _apply_non_ideal_polarizer(self, spectral_response):
         contrast_ratio = self._get_spectral_response_custom(
             'polarizer_contrast_ratio.csv', "Contrast ratio")
         for idx, transmission in enumerate(spectral_response):
             contrast = contrast_ratio[idx]
-            theta = np.rad2deg(atan(1/sqrt(contrast)))
-            total_transmission = transmission * (1 + 1/contrast)
-            polarizer_matrix = calculate_polarizer_matrix(theta)
-            self.sed[:, idx] = total_transmission*np.transpose(
+            #theta = np.rad2deg(atan(1/sqrt(contrast)))
+            #total_transmission = transmission * (1 + 1/contrast)            
+            polarizer_matrix = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
+            self.sed[:, idx] = transmission*np.transpose(
                 polarizer_matrix.dot(self.sed[:, idx]))
+            self.sed[1, idx] *= 1-1/contrast
                
     def _apply_depolarizer(self):
         spectral_response = self.get_spectral_response(self.obj_wavelength,
@@ -485,7 +505,6 @@ class Channel(Spectral_Response):
                 phase, self.retarder_waveplate_angle)
         self.sed = apply_matrix(RETARDER_MATRIX, self.sed)
         
-
     def _apply_analyzer(self) -> None:
         ORD_RAY_MATRIX = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
         temp_1 = apply_matrix(ORD_RAY_MATRIX, copy(self.sed))
@@ -534,4 +553,8 @@ class Channel(Spectral_Response):
 
         return spectral_response
 
-
+    def _interpolate_spectral_response(self, wavelength, spectral_response):                 
+        spl = splrep(wavelength, spectral_response,)        
+        spectral_response = splev(self.obj_wavelength, spl)
+        spectral_response[spectral_response<0] = 0
+        return spectral_response
