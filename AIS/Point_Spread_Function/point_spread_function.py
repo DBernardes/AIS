@@ -6,15 +6,16 @@ The Point Spread Function (PSF) class models the star flux distribution
 as a gaussian 2D distribution
 """
 
+import os
 from array import array
 from functools import cached_property
-import os
-import pandas as pd
-import numpy as np
-from astropy.table import Table
-from photutils.datasets import make_gaussian_sources_image, make_noise_image
-from numpy import ndarray
 from math import pi
+
+import numpy as np
+import pandas as pd
+from astropy.table import Table
+from numpy import ndarray
+from photutils.datasets import make_gaussian_sources_image, make_noise_image
 
 __all__ = ['Point_Spread_Function']
 

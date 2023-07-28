@@ -7,12 +7,14 @@ This is the Background Image Class used to generate a background image.
 """
 
 
-import numpy as np
-from ..Noise import Noise
-from photutils.datasets import make_noise_image
 import os
+
+import numpy as np
 import pandas as pd
 from numpy import ndarray
+from photutils.datasets import make_noise_image
+
+from ..Noise import Noise
 
 __all__ = ['Background_Image']
 

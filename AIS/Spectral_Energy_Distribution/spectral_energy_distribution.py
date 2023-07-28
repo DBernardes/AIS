@@ -7,17 +7,25 @@ The Spectral Energy Distribtution is an abstract class that represents the sky a
 source classes.
 """
 
-from numpy import ndarray
-import numpy as np
-from scipy.interpolate import splev, splrep, interp1d
-import pandas as pd
-from scipy.constants import c, h, k
-from sbpy.calib import vega_fluxd
-from math import pi, sqrt, tan
 import os
-from sys import exit
-from ..Spectral_Response._utils import calculate_polarizer_matrix, apply_matrix, calculate_retarder_matrix
 from copy import copy
+
+# from sbpy.calib import vega_fluxd
+from math import pi, sqrt, tan
+from sys import exit
+
+import numpy as np
+import pandas as pd
+from numpy import ndarray
+from scipy.constants import c, h, k
+from scipy.interpolate import interp1d, splev, splrep
+
+from ..Spectral_Response._utils import (
+    apply_matrix,
+    calculate_polarizer_matrix,
+    calculate_retarder_matrix,
+)
+
 __all__ = ['Source', 'Sky']
 
 

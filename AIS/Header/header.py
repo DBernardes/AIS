@@ -7,9 +7,9 @@ This class creates the header that will be written in the images created by
 the AIS.
 """
 
+import datetime
 import os
 from cmath import exp
-import datetime
 
 import astropy.io.fits as fits
 import pandas as pd

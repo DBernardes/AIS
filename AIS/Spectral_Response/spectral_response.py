@@ -9,15 +9,22 @@ Theses systems are the atmosphere, the telescope, and the SPARC4 instrument.
 
 
 import os
+from copy import copy
+from math import atan, sqrt
 
 import numpy as np
 import pandas as pd
 from numpy import ndarray
-from scipy.interpolate import splev, splrep, interp1d, PchipInterpolator, UnivariateSpline
-from ._utils import calculate_retarder_matrix, calculate_polarizer_matrix, apply_matrix
+from scipy.interpolate import (
+    PchipInterpolator,
+    UnivariateSpline,
+    interp1d,
+    splev,
+    splrep,
+)
 from scipy.optimize import curve_fit
-from math import sqrt, atan
-from copy import copy
+
+from ._utils import apply_matrix, calculate_polarizer_matrix, calculate_retarder_matrix
 
 __all__ = ['Atmosphere', 'Telescope', 'Channel']
 

@@ -11,7 +11,9 @@ of an image of the SPARC4 cameras, as a function of its operation mode.
 """
 import datetime
 import os
-from random import uniform, randint
+from random import randint, uniform
+from sys import exit
+
 import astropy.io.fits as fits
 import numpy as np
 from numpy import ndarray
@@ -19,11 +21,8 @@ from numpy import ndarray
 from ..Background_Image import Background_Image
 from ..Header import Header
 from ..Point_Spread_Function import Point_Spread_Function
-from ..Spectral_Response import Atmosphere, Telescope, Channel
-from ..Spectral_Energy_Distribution import Source, Sky
-
-from sys import exit
-
+from ..Spectral_Energy_Distribution import Sky, Source
+from ..Spectral_Response import Atmosphere, Channel, Telescope
 
 __all__ = ["Artificial_Image_Simulator"]
 
