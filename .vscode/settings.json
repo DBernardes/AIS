@@ -9,4 +9,8 @@
     "esbonio.sphinx.confDir": "${workspaceFolder}\\docs\\source",
     "python.analysis.typeCheckingMode": "off",
     "git.ignoreLimitWarning": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none",
 }

@@ -153,7 +153,7 @@ class Telescope(Spectral_Response):
 class Atmosphere(Spectral_Response):
 
     _CSV_FILE_NAME = "atmosphere_profile.csv"
-    _ATM_EXTINCTION = "atmosphere.csv"
+    _ATM_EXTINCTION = "willton.csv"
 
     def __init__(self) -> None:
         """Atmosphere class
@@ -169,7 +169,7 @@ class Atmosphere(Spectral_Response):
         return
 
 
-    def get_spectral_response(
+    def get_spectral_response_2(
         self,        
         obj_wavelength: ndarray,
         air_mass: int | float = 1,
@@ -203,7 +203,7 @@ class Atmosphere(Spectral_Response):
         
         return spectral_response
     
-    def get_spectral_response_2(
+    def get_spectral_response(
         self,        
         obj_wavelength: ndarray,
         air_mass: int | float = 1,
