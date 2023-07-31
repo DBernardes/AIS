@@ -4,7 +4,7 @@ from numpy import ndarray
 import cmath
 
 __all__ = ["calculate_polarizer_matrix",
-           "calculate_retarder_matrix", "apply_matrix"]
+           "calculate_retarder_matrix", "apply_matrix", 'calculate_depolarizer_matrix']
 
 
 def calculate_polarizer_matrix(theta):
@@ -119,6 +119,34 @@ def calculate_retarder_matrix_1(phase_difference, theta) -> ndarray:
     )
 
     return retarder_matrix
+
+
+def calculate_depolarizer_matrix(wavelength:float):
+    """Calculate the depolarizer matrix
+
+    Parameters
+    ----------
+        wavelength (float): wavelength in nm
+
+    Returns
+    -------
+        DEPOLARIZER_MATRIX (ndarray): depolarizer matrix for the provided wavelength
+    """
+
+    phase_shift = _calculate_phase_shift(wavelength)
+    DEPOLARIZER_MATRIX = np.asarray([
+        [1, 0, 0, 0],
+        [0, cos(2*phase_shift), sin(2*phase_shift)*sin(phase_shift), sin(2*phase_shift)*cos(phase_shift)],
+        [0, 0, cos(phase_shift), -sin(phase_shift)],
+        [0, -sin(2*phase_shift), cos(2*phase_shift)*sin(phase_shift), cos(2*phase_shift)*sin(phase_shift)]
+    ])
+    return DEPOLARIZER_MATRIX
+
+
+def _calculate_phase_shift(wavelength:float):
+    b, a = 47741685.0394, -34883937007874
+    phase_shift = a * wavelength * 1e-9 + b
+    return phase_shift
 
 
 def interpolation_func(x, a, b, c, d):

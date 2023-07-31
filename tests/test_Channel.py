@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from AIS.Spectral_Response import Channel
-from AIS.Spectral_Response._utils import calculate_polarizer_matrix, calculate_retarder_matrix
+from AIS.Spectral_Response._utils import calculate_polarizer_matrix, calculate_retarder_matrix, calculate_depolarizer_matrix
 from numpy import cos, pi, sin
 from scipy.interpolate import splev, splrep, interp1d
 from math import atan, sqrt
@@ -328,6 +328,15 @@ def test_apply_calibration_wheel_depolarizer(channel):
     channel.calibration_wheel = 'depolarizer'
     channel.sed = copy(sed)
     channel._apply_calibration_wheel()
+
+    new_spectral_response = _interpolate_spectral_response(wv_depolarizer, sr_depolarizer, obj_wavelength)
+    sed = np.multiply(new_spectral_response, sed)
+    for idx, wavelength in enumerate(obj_wavelength):
+        depolarizer_matrix = calculate_depolarizer_matrix(wavelength)           
+        sed[:, idx] = np.transpose(
+            depolarizer_matrix.dot(sed[:, idx]))
+    
+    assert np.allclose(channel.sed, sed, atol=1e-3)
 
 def test_apply_retarder_waveplate(channel):
     phase_diff = 'half'

@@ -24,7 +24,7 @@ from scipy.interpolate import (
 )
 from scipy.optimize import curve_fit
 
-from ._utils import apply_matrix, calculate_polarizer_matrix, calculate_retarder_matrix
+from ._utils import apply_matrix, calculate_polarizer_matrix, calculate_retarder_matrix, calculate_depolarizer_matrix
 
 __all__ = ['Atmosphere', 'Telescope', 'Channel']
 
@@ -474,17 +474,27 @@ class Channel(Spectral_Response):
         spectral_response = self.get_spectral_response(self.obj_wavelength,
             'depolarizer.csv')    
         if self.calibration_wheel == 'ideal-depolarizer':
-            sed = self.sed
-            self.sed = np.zeros((4, sed.shape[1]))
-            self.sed[0] = sed[0] * spectral_response
+            self._apply_ideal_depolarizer(spectral_response)
         elif self.calibration_wheel == 'depolarizer':
-            pass
+            self._apply_non_ideal_depolarizer(spectral_response)
         else:
             raise ValueError(f'A wrong value has been provided for the depolarizer: {self.calibration_wheel}')
         
         
         return
 
+    def _apply_ideal_depolarizer(self, spectral_response):
+        sed = self.sed
+        self.sed = np.zeros((4, sed.shape[1]))
+        self.sed[0] = sed[0] * spectral_response
+
+    def _apply_non_ideal_depolarizer(self, spectral_response):
+        self.sed = np.multiply(spectral_response, self.sed)
+        for idx, wavelength in enumerate(self.obj_wavelength):
+            depolarizer_matrix = calculate_depolarizer_matrix(wavelength)           
+            self.sed[:, idx] = np.transpose(
+                depolarizer_matrix.dot(self.sed[:, idx]))
+           
     def _apply_retarder_waveplate(self) -> None:
         if 'ideal-' not in self.retarder_waveplate:
             self._apply_non_ideal_waveplate()
@@ -532,6 +542,7 @@ class Channel(Spectral_Response):
                     "polarizer",
                     "depolarizer",
                     "ideal-polarizer",
+                    'ideal-depolarizer',
                     ""
                 ],
             )
