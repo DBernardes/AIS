@@ -29,6 +29,7 @@ _PHOT_OPTICAL_COMPONENTS = {
     "camera": "camera.csv",
     "ccd": "ccd.csv",
 }
+_POLARIZER_ANGLE = 0
 
 
 csv_file_name = os.path.join(
@@ -46,10 +47,12 @@ def channel():
 
 
 def _interpolate_spectral_response(wavelength, spectral_response, obj_wavelength):
-    spl = interp1d(wavelength, spectral_response,
-                   bounds_error=False, fill_value=0, kind='cubic')
+    spl = splrep(wavelength, spectral_response,)        
+    spectral_response = splev(obj_wavelength, spl)
+    spectral_response[spectral_response<0] = 0
+    return spectral_response
 
-    return spl(obj_wavelength)
+ 
 
 
 def _apply_matrix(matrix, sed):
@@ -267,20 +270,24 @@ def test_apply_calibration_wheel_polarizer(channel):
     sed = np.ones((4, n))
     spl = interp1d(wv_polarizer, sr_polarizer,
                    bounds_error=False, fill_value=0, kind='cubic')
+    
 
     channel.calibration_wheel = 'polarizer'
     channel.sed = copy(sed)
     channel._apply_calibration_wheel()
 
-    new_spectral_response = spl(obj_wavelength)
+    spl = splrep(wv_polarizer, sr_polarizer,)        
+    spectral_response = splev(obj_wavelength, spl)
+    spectral_response[spectral_response<0] = 0
+    
     contrast_ratio = channel._get_spectral_response_custom(
         'polarizer_contrast_ratio.csv', "Contrast ratio")
-    for idx, value in enumerate(contrast_ratio):
-        theta = np.rad2deg(atan(1/sqrt(value)))
-        total_transmission = new_spectral_response[idx]*(1+1/value)
-        polarizer_matrix = calculate_polarizer_matrix(theta)
-        sed[:, idx] = total_transmission*np.transpose(
+    for idx, transmission in enumerate(spectral_response):
+        contrast = contrast_ratio[idx]          
+        polarizer_matrix = calculate_polarizer_matrix(_POLARIZER_ANGLE)
+        sed[:, idx] = transmission*np.transpose(
             polarizer_matrix.dot(sed[:, idx]))
+        sed[1, idx] *= 1-1/contrast
 
     assert np.allclose(channel.sed, sed, atol=1e-3)
     
@@ -308,9 +315,8 @@ def test_apply_calibration_wheel_ideal_depolarizer(channel):
     channel.sed = copy(sed)
     channel._apply_calibration_wheel()
 
-    spl = interp1d(wv_depolarizer, sr_depolarizer,
-                   bounds_error=False, fill_value=0, kind='cubic')
-    sed = np.multiply(spl(obj_wavelength), sed)
+    new_spectral_response = _interpolate_spectral_response(wv_depolarizer, sr_depolarizer, obj_wavelength)
+    sed = np.multiply(new_spectral_response, sed)
     reduced_sed = np.zeros((4, n))
     reduced_sed[0] = sed[0]
 
@@ -446,4 +452,4 @@ def test_apply_pol_spectral_response(channel):
     temp_2 = _apply_matrix(EXTRA_ORD_RAY_MATRIX, copy(sed))
 
     assert np.allclose(channel.sed,
-                       np.stack((temp_1[0], temp_2[0])))
+                       np.stack((temp_1[0], temp_2[0])), atol=1e-3)

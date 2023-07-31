@@ -14,14 +14,14 @@ import os
 import numpy as np
 from copy import copy
 from scipy.optimize import curve_fit
-from scipy.interpolate import splev, splrep, interp1d
+from scipy.interpolate import splev, splrep, interp1d, PchipInterpolator
 import pandas as pd
 
 
 obj_wavelength = np.linspace(400, 1100, 100)
 _BASE_PATH = os.path.join('AIS', 'Spectral_Response')
 csv_file_name = 'atmosphere_profile.csv'
-_ATM_EXTINCTION = 'atmosphere.csv'
+_ATM_EXTINCTION = 'willton.csv'
 air_mass = 1
 sky_condition = 'photometric'
 
@@ -61,14 +61,17 @@ def test_read_csv_file(atm):
     assert np.allclose(new_wavelength, wavelength)
     assert np.allclose(new_transmitance, spectral_response)
 
-spl = interp1d(wavelength, spectral_response,
-                       bounds_error=False, fill_value=0, kind='cubic')
+# spl = interp1d(wavelength, spectral_response,
+#                        bounds_error=False, fill_value=0, kind='cubic')
+
+b = PchipInterpolator(wavelength, spectral_response)
+# spectral_response = b(obj_wavelength)
 
 def test_interpolate_spectral_response(atm):
     atm.obj_wavelength = obj_wavelength
     class_spectral_response = atm._interpolate_spectral_response(
         wavelength, spectral_response)    
-    assert np.allclose(class_spectral_response, spl(obj_wavelength))
+    assert np.allclose(class_spectral_response, b(obj_wavelength))
 
 extinction_ss = pd.read_csv(os.path.join(_BASE_PATH, _ATM_EXTINCTION))        
 extinction_coef = 10**(-0.4 * air_mass * extinction_ss[sky_condition])
@@ -77,7 +80,7 @@ popt_M1, _ = curve_fit(_func, extinction_ss['Wavelength (nm)'], extinction_coef)
 def test_get_spectral_response(atm):
     class_spectral_response = atm.get_spectral_response(
         obj_wavelength, air_mass, sky_condition)       
-    new_spectral_response = spl(obj_wavelength)*popt_M1[0]        
+    new_spectral_response = b(obj_wavelength)*popt_M1[0]        
         
     assert np.allclose(class_spectral_response, new_spectral_response)
 
@@ -90,7 +93,7 @@ def test_apply_spectral_response(atm):
     class_reduced_esd = atm.apply_spectral_response(
         obj_wavelength, copy(sed), air_mass, sky_condition)
     
-    new_spectral_response = spl(obj_wavelength)*popt_M1[0]  
+    new_spectral_response = b(obj_wavelength)*popt_M1[0]  
     new_sed = np.multiply(new_spectral_response, sed)
     
     assert np.allclose(class_reduced_esd, new_sed)
