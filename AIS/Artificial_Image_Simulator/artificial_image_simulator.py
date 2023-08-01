@@ -17,12 +17,14 @@ from sys import exit
 import astropy.io.fits as fits
 import numpy as np
 from numpy import ndarray
+from math import sqrt
 
 from ..Background_Image import Background_Image
 from ..Header import Header
 from ..Point_Spread_Function import Point_Spread_Function
 from ..Spectral_Energy_Distribution import Sky, Source
 from ..Spectral_Response import Atmosphere, Channel, Telescope
+from ..Noise import Noise
 
 __all__ = ["Artificial_Image_Simulator"]
 
@@ -111,6 +113,7 @@ class Artificial_Image_Simulator:
         """
         self.ccd_operation_mode = ccd_operation_mode
         self.channel_id = channel_id
+        self.ccd_temperature = ccd_temperature
         self._verify_ccd_operation_mode()
         self.BGI_obj = Background_Image(
             self.ccd_operation_mode, channel_id, ccd_temperature
@@ -392,6 +395,40 @@ class Artificial_Image_Simulator:
             np.trapz(self.source_sed, self.wavelength), 0, None
         )
 
+    def calculate_exposure_time(self, snr:float=100, seeing:float=1.5) -> float:
+        """Calculate the exposure time required for a given SNR.
+
+        Parameters
+        ----------
+            snr (float, optional): signal-to-noise ratio. Defaults to 100.
+            seeing (float, optional): seeing of the object. Defaults to 1.5.
+
+        Returns
+        -------
+            float: minimum exposure time required to meet SNR
+        """
+        n_pix = self.PSF_obj.calculate_npix_star(seeing)
+        noise_obj = Noise(self.channel_id)
+        dark_noise = noise_obj.calculate_dark_current(self.ccd_temperature)
+        read_noise = noise_obj.calculate_read_noise(self.ccd_operation_mode)
+
+        noise_factor = 1
+        em_gain = 1
+        binn = self.ccd_operation_mode['binn']
+        if self.ccd_operation_mode['em_mode'] == 'EM':
+            noise_factor = 1.4
+            em_gain = self.ccd_operation_mode['em_gain']
+        
+        self._integrate_sed()
+        a = self.star_photons_per_second ** 2
+        b = snr ** 2 * noise_factor ** 2 * (self.star_photons_per_second + n_pix * (self.sky_photons_per_second + dark_noise))
+        c = snr ** 2 * n_pix * (read_noise / em_gain / binn) ** 2
+
+        texp_list = self._solve_second_degree_eq(a, -b, -c)
+        min_t_exp = min([texp for texp in texp_list if texp > 0])
+    
+        return min_t_exp
+
     def create_artificial_image(
         self, image_path: str, star_coordinates: tuple, seeing: float = 1
     ) -> ndarray:
@@ -645,3 +682,10 @@ class Artificial_Image_Simulator:
             f"%Y%m%d_s4c{self.channel_id}_{index + 1:06}.fits"
         )
         return
+
+    @staticmethod
+    def _solve_second_degree_eq(a, b, c):
+        delta = (b ** 2) - (4 * a * c)
+        x1 = (-b - sqrt(delta)) / (2 * a)
+        x2 = (-b + sqrt(delta)) / (2 * a)
+        return [x1, x2]

@@ -83,13 +83,13 @@ class Point_Spread_Function:
     def _create_table(self, star_coordinates, seeing):
         table = Table()
         binn = self.ccd_operation_mode['binn']
-        gaussian_std = seeing / (self._SPARC4_PLATE_SCALE)
+        gaussian_std = seeing / (self._SPARC4_PLATE_SCALE * binn * 2)
         x_coord = star_coordinates[0]
         y_coord = star_coordinates[1]
         table["x_mean"] = [x_coord]
         table["y_mean"] = [y_coord]
-        table["x_stddev"] = [gaussian_std / binn]
-        table["y_stddev"] = [gaussian_std / binn]
+        table["x_stddev"] = [gaussian_std]
+        table["y_stddev"] = [gaussian_std]
         table["theta"] = np.radians(np.array([0]))
         self.table = table
 
@@ -173,3 +173,20 @@ class Point_Spread_Function:
         self.table["amplitude"] = 1
         noise_image *= make_gaussian_sources_image(self.shape, self.table)
         return noise_image
+
+    def calculate_npix_star(self, seeing:float):
+        """Calculate the number of pixel of PSF of the object.
+
+        Parameters
+        ----------
+            seeing (float): seeing of the object.
+
+        Returns
+        -------
+            npix: number of pixels of PSF of the object.
+        """
+        gaussian_std = seeing / (self._SPARC4_PLATE_SCALE * self.ccd_operation_mode['binn'] * 2)
+        fwhm = 2.355 * gaussian_std
+        psf_radius = 3 * fwhm
+        npix = pi * psf_radius**2
+        return npix

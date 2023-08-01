@@ -195,3 +195,11 @@ def test_creat_star_image(psf):
         star_coordinates, ordinary_ray, ordinary_ray)
     assert np.allclose(star_image, tmp_image_1 + tmp_image_2, atol=5 *
                        np.sqrt(gaussian_amplitude))
+
+
+def test_calculate_npix_star(psf):
+    gaussian_std = seeing / (_SPARC4_PLATE_SCALE * ccd_operation_mode['binn'] * 2)
+    fwhm = 2.355 * gaussian_std
+    psf_star = 3 * fwhm
+    npix = pi * psf_star**2
+    assert psf.calculate_npix_star(seeing) == npix

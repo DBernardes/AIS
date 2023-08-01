@@ -24,6 +24,8 @@ from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 from AIS.Spectral_Energy_Distribution import Source, Sky
 from AIS.Spectral_Response import Atmosphere, Telescope, Channel
 from copy import copy
+from AIS.Noise import Noise
+from AIS.Point_Spread_Function import Point_Spread_Function
 
 ccd_operation_mode = {
     "em_mode": "Conv",
@@ -301,3 +303,45 @@ def test_creat_flat_image_error(ais):
     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
     with pytest.raises(ValueError):
         ais.create_flat_image(path, 0)
+
+    
+def test_solve_second_degree_equation(ais):
+    roots = ais._solve_second_degree_eq(1, -4, 4)
+    assert roots == [2, 2]
+
+
+def test_calculate_exposure_time():
+    ais = Artificial_Image_Simulator(ccd_operation_mode, channel_id=1, ccd_temperature=-70)
+    ais.create_source_sed(calculation_method='spectral_library',
+                            magnitude=15, wavelength_interval=(400, 1100, 100), spectral_type='A0v')
+    ais.create_sky_sed(moon_phase='new')
+    ais.apply_atmosphere_spectral_response()
+    ais.apply_telescope_spectral_response()
+    ais.apply_sparc4_spectral_response(acquisition_mode='photometry')
+    ais_texp = ais.calculate_exposure_time()
+
+    snr = 100
+    psf_obj = Point_Spread_Function(ccd_operation_mode, channel_id)
+    n_pix = psf_obj.calculate_npix_star(seeing=1.5)
+    noise_obj = Noise(channel_id)
+    dark_noise = noise_obj.calculate_dark_current(-70)
+    read_noise = noise_obj.calculate_read_noise(ccd_operation_mode)
+    noise_factor = 1
+    em_gain = 1
+    binn = ccd_operation_mode['binn']
+    if ccd_operation_mode['em_mode'] == 'EM':
+        noise_factor = 1.4
+        em_gain = ccd_operation_mode['em_gain']
+    star_photons_per_second = ais.star_photons_per_second
+    sky_photons_per_second = ais.sky_photons_per_second
+    
+ 
+    a = star_photons_per_second ** 2
+    b = snr ** 2 * noise_factor ** 2 * (star_photons_per_second + n_pix * (sky_photons_per_second + dark_noise))
+    c = snr ** 2 * n_pix * (read_noise / em_gain / binn) ** 2
+
+    texp_list = ais._solve_second_degree_eq(a, -b, -c)
+    min_t_exp = min([texp for texp in texp_list if texp >0])
+
+
+    assert min_t_exp == ais_texp
