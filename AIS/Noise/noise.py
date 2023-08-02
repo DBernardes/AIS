@@ -126,7 +126,7 @@ class Noise:
         dark_current: float
             Dark current, in e-/pix/s, for the respective SPARC4 channel;
         """
-        if not (-70 < temp < -30):
+        if not (-70 <= temp <= -30):
             raise ValueError(f'Expected value for the CCD temperature is outside the range [-70, -30]: {temp}.')
 
         if self.channel == 1:
