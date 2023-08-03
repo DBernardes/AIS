@@ -20,14 +20,15 @@ def noise():
 
 # ------------------------ Initialize the class --------------------------
 
+
 def test_channel(noise):
     assert noise.channel == 1
 
 
 def test_spreadsheet_path(noise):
-    assert noise.spreadsheet_path == os.path.join("AIS",
-                                                  "Noise",
-                                                  'spreadsheet', "Channel 1")
+    assert noise.spreadsheet_path == os.path.join(
+        "AIS", "Noise", "spreadsheet", "Channel 1"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -46,7 +47,9 @@ def test_spreadsheet_path(noise):
         ("Conv", 1, 1, 2, 2, 4.79),
     ],
 )
-def test_calc_read_noise_conv(noise, em_mode, em_gain, readout, preamp, binn, read_noise):
+def test_calc_read_noise_conv(
+    noise, em_mode, em_gain, readout, preamp, binn, read_noise
+):
     noise.em_mode = em_mode
     noise.em_gain = em_gain
     noise.readout = readout
@@ -95,8 +98,13 @@ def test_calc_read_noise_EM(noise, em_mode, em_gain, readout, preamp, binn, read
     ],
 )
 def test_calc_read_noise(noise, em_mode, em_gain, readout, preamp, binn, read_noise):
-    ccd_operation_mode = {"em_mode": em_mode, "em_gain": em_gain,
-                          "binn": binn, "preamp": preamp, "readout": readout}
+    ccd_operation_mode = {
+        "em_mode": em_mode,
+        "em_gain": em_gain,
+        "binn": binn,
+        "preamp": preamp,
+        "readout": readout,
+    }
     rn = noise.calculate_read_noise(ccd_operation_mode)
     assert round(rn, 2) == read_noise
 

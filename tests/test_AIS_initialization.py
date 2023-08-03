@@ -46,11 +46,11 @@ ccd_operation_mode = {
 
 @pytest.fixture
 def ais():
-    return Artificial_Image_Simulator(
-        ccd_operation_mode, channel_id, temperature)
+    return Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
 
 
 # # -------------------- Testing the AIS class --------------------------------
+
 
 def test_ccd_operation_mode(ais):
     assert ais.ccd_operation_mode == ccd_operation_mode

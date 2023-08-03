@@ -10,13 +10,12 @@ import os
 for file in os.listdir():
     if file.endswith(".dat"):
         print(file)
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             lines = f.readlines()
-        with open('csv//' + file.split('.dat')[0]+'.csv', 'w') as f:
-            f.write('wavelength (nm),flux (F_lambda)\n')
+        with open("csv//" + file.split(".dat")[0] + ".csv", "w") as f:
+            f.write("wavelength (nm),flux (F_lambda)\n")
             for line in lines:
-                if line == '':
+                if line == "":
                     continue
-                wv = float(line[:7].replace(' ', ''))/10
-                f.write(str(wv) + ',' +
-                        line[7:17].replace(' ', '') + '\n')
+                wv = float(line[:7].replace(" ", "")) / 10
+                f.write(str(wv) + "," + line[7:17].replace(" ", "") + "\n")

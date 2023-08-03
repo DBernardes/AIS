@@ -16,11 +16,11 @@ import pandas as pd
 from copy import copy
 
 obj_wavelength = np.linspace(400, 1100, 100)
-csv_file_name = 'csv_file.csv'
-BASE_PATH = os.path.join('AIS', 'Spectral_Response')
+csv_file_name = "csv_file.csv"
+BASE_PATH = os.path.join("AIS", "Spectral_Response")
 ss = pd.read_csv(os.path.join(BASE_PATH, csv_file_name))
-wavelength = ss['Wavelength (nm)']
-spectral_response = ss['Transmitance (%)']/100
+wavelength = ss["Wavelength (nm)"]
+spectral_response = ss["Transmitance (%)"] / 100
 
 
 @pytest.fixture
@@ -34,6 +34,7 @@ def test_csv_file_name(sr):
 
 def test_base_path(sr):
     assert sr._BASE_PATH == BASE_PATH
+
 
 # --------------------------------------------------------------------------------------------
 
@@ -52,7 +53,8 @@ new_spectral_response = b(obj_wavelength)
 def test_interpolate_spectral_response(sr):
     sr.obj_wavelength = obj_wavelength
     class_spectral_response = sr._interpolate_spectral_response(
-        wavelength, spectral_response)
+        wavelength, spectral_response
+    )
     assert np.allclose(class_spectral_response, new_spectral_response)
 
 

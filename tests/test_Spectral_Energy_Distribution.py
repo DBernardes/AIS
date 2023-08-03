@@ -38,7 +38,8 @@ def test_interpolate(sed_obj):
     spl = splrep(wv, sed)
     interpolated_sed = splev(obj_wavelength, spl)
     class_interpolated_sed = sed_obj._interpolate_spectral_distribution(
-        wv, sed, obj_wavelength)
+        wv, sed, obj_wavelength
+    )
     assert np.allclose(class_interpolated_sed, interpolated_sed)
 
 
@@ -50,8 +51,14 @@ magnitude = 10
 TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
 EFFECT_WAVELENGTH = 555.6  # nm
 S_0 = 3.658e-2  # W/m2/m
-effective_flux = S_0*10**(-magnitude/2.5) * \
-    TELESCOPE_EFFECTIVE_AREA*EFFECT_WAVELENGTH*1e-9/(h*c)
+effective_flux = (
+    S_0
+    * 10 ** (-magnitude / 2.5)
+    * TELESCOPE_EFFECTIVE_AREA
+    * EFFECT_WAVELENGTH
+    * 1e-9
+    / (h * c)
+)
 
 
 def test_calculate_effective_flux(sed_obj):

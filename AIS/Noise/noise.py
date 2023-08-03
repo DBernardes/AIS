@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
 
-__all__ = ['Noise']
+__all__ = ["Noise"]
 
 
 class Noise:
@@ -34,12 +34,12 @@ class Noise:
         ----------
 
         channel: integer
-            The channel related to the camera.   
+            The channel related to the camera.
         """
         self.channel = channel
-        self.spreadsheet_path = os.path.join("AIS",
-                                             "Noise",
-                                             'spreadsheet', f"Channel {channel}")
+        self.spreadsheet_path = os.path.join(
+            "AIS", "Noise", "spreadsheet", f"Channel {channel}"
+        )
 
     def calculate_read_noise(self, ccd_operation_mode: dict) -> float:
         """Calculate the read noise of the CCD.
@@ -49,7 +49,7 @@ class Noise:
 
         For the EM mode, the read noise is obtained through an interpolation of
         the values presente by the respective spreadsheet, as a function of the
-        CCD EM gain.  
+        CCD EM gain.
 
         Parameters
         ----------
@@ -65,7 +65,7 @@ class Noise:
             preamp : [1, 2]
                 Pre-amplifier gain.
             binn : [1, 2]
-                Binning of the pixels.             
+                Binning of the pixels.
         """
         self.em_mode = ccd_operation_mode["em_mode"]
         self.em_gain = ccd_operation_mode["em_gain"]
@@ -95,15 +95,16 @@ class Noise:
         self.read_noise = float(spreadsheet["Noise"][idx_tab])
 
     def _calculate_read_noise_em_mode(self):
-        tab_name = os.path.join(self.spreadsheet_path,
-                                "RN_PA"
-                                + str(int(self.preamp))
-                                + "B"
-                                + str(int(self.binn))
-                                + "HSS"
-                                + str(int(self.readout))
-                                + ".csv",
-                                )
+        tab_name = os.path.join(
+            self.spreadsheet_path,
+            "RN_PA"
+            + str(int(self.preamp))
+            + "B"
+            + str(int(self.binn))
+            + "HSS"
+            + str(int(self.readout))
+            + ".csv",
+        )
         spreadsheet = pd.read_csv(tab_name, dtype=np.float64)
         column_em_gain = spreadsheet["EM Gain"]
         column_noise = spreadsheet["Noise (e-)"]
@@ -118,7 +119,7 @@ class Noise:
         Parameters
         ----------
         temp: float
-            Temperature, in celsius degree, of the CCD. 
+            Temperature, in celsius degree, of the CCD.
             The provided temperature must be in the intevalo of -70 ºC up to -30 ºC.
 
         Returns
@@ -127,16 +128,18 @@ class Noise:
             Dark current, in e-/pix/s, for the respective SPARC4 channel;
         """
         if not (-70 <= temp <= -30):
-            raise ValueError(f'Expected value for the CCD temperature is outside the range [-70, -30]: {temp}.')
+            raise ValueError(
+                f"Expected value for the CCD temperature is outside the range [-70, -30]: {temp}."
+            )
 
         if self.channel == 1:
-            dark_current = 24.66 * np.exp(0.0015 * temp ** 2 + 0.29 * temp)
+            dark_current = 24.66 * np.exp(0.0015 * temp**2 + 0.29 * temp)
         elif self.channel == 2:
-            dark_current = 35.26 * np.exp(0.0019 * temp ** 2 + 0.31 * temp)
+            dark_current = 35.26 * np.exp(0.0019 * temp**2 + 0.31 * temp)
         elif self.channel == 3:
-            dark_current = 9.67 * np.exp(0.0012 * temp ** 2 + 0.25 * temp)
+            dark_current = 9.67 * np.exp(0.0012 * temp**2 + 0.25 * temp)
         elif self.channel == 4:
-            dark_current = 5.92 * np.exp(0.0005 * temp ** 2 + 0.18 * temp)
+            dark_current = 5.92 * np.exp(0.0005 * temp**2 + 0.18 * temp)
         else:
             pass
         return dark_current
