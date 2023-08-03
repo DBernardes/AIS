@@ -69,8 +69,8 @@ def test_create_table(psf):
     table = Table()
     table["x_mean"] = [x_coord]
     table["y_mean"] = [y_coord]
-    table["x_stddev"] = [gaussian_std / binn]
-    table["y_stddev"] = [gaussian_std / binn]
+    table["x_stddev"] = [gaussian_std / binn / 2]
+    table["y_stddev"] = [gaussian_std / binn / 2]
     table["theta"] = np.radians(np.array([0]))
     psf._create_table(star_coordinates, seeing)
     assert psf.table == table

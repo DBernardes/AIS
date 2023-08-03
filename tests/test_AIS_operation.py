@@ -40,13 +40,14 @@ ccd_operation_mode = {
 calculation_method = "blackbody"
 magnitude = 15
 wavelegnth_interval = (400, 1100, 100)
-temperature = 5700
+star_temperature = 5700
+ccd_temperature = -70
 channel_id = 1
 
 
 @pytest.fixture
 def ais():
-    return Artificial_Image_Simulator(ccd_operation_mode, channel_id, temperature)
+    return Artificial_Image_Simulator(ccd_operation_mode, channel_id, ccd_temperature)
 
 
 # ------------------------------------------------------------
@@ -58,11 +59,11 @@ def test_print_available_spectral_types(ais):
 
 def test_create_source_sed_blackbody(ais):
     ais.create_source_sed(
-        calculation_method, magnitude, wavelegnth_interval, temperature
+        calculation_method, magnitude, wavelegnth_interval, star_temperature
     )
     src = Source()
     wv2, sed2 = src.calculate_sed(
-        calculation_method, magnitude, wavelegnth_interval, temperature
+        calculation_method, magnitude, wavelegnth_interval, star_temperature
     )
     assert np.allclose(ais.wavelength, wv2)
     assert np.allclose(ais.source_sed, sed2)
@@ -94,7 +95,7 @@ moon_phase = "new"
 
 
 def test_create_sky_sed(ais):
-    ais.create_source_sed("blackbody", magnitude, wavelegnth_interval, temperature)
+    ais.create_source_sed("blackbody", magnitude, wavelegnth_interval, star_temperature)
     ais.create_sky_sed(moon_phase)
     sky = Sky()
     sed2 = sky.calculate_sed(moon_phase, obj_wavelength)
@@ -109,7 +110,7 @@ sky_condition = "photometric"
 
 def test_apply_atmosphere_spectral_response(ais):
     ais.create_source_sed(
-        calculation_method, magnitude, wavelegnth_interval, temperature
+        calculation_method, magnitude, wavelegnth_interval, star_temperature
     )
     atm = Atmosphere()
     new_sed = atm.apply_spectral_response(
@@ -122,7 +123,7 @@ def test_apply_atmosphere_spectral_response(ais):
 
 def test_apply_telescope_spectral_response(ais):
     ais.create_source_sed(
-        calculation_method, magnitude, wavelegnth_interval, temperature
+        calculation_method, magnitude, wavelegnth_interval, star_temperature
     )
     ais.create_sky_sed(moon_phase)
     tel = Telescope()
@@ -138,7 +139,7 @@ def test_apply_telescope_spectral_response(ais):
 
 def test_apply_sparc4_spectral_response_photometric(ais):
     ais.create_source_sed(
-        calculation_method, magnitude, wavelegnth_interval, temperature
+        calculation_method, magnitude, wavelegnth_interval, star_temperature
     )
     ais.create_sky_sed(moon_phase)
     channel = Channel(channel_id)
@@ -152,7 +153,7 @@ def test_apply_sparc4_spectral_response_photometric(ais):
 
 def test_apply_sparc4_spectral_response_polarimetric(ais):
     ais.create_source_sed(
-        calculation_method, magnitude, wavelegnth_interval, temperature
+        calculation_method, magnitude, wavelegnth_interval, star_temperature
     )
     ais.create_sky_sed(moon_phase)
 
@@ -172,12 +173,12 @@ def test_apply_sparc4_spectral_response_polarimetric(ais):
 
 def test_integrate_sed(ais):
     ais.create_source_sed(
-        calculation_method, magnitude, wavelegnth_interval, temperature
+        calculation_method, magnitude, wavelegnth_interval, star_temperature
     )
     ais.create_sky_sed(moon_phase)
     src = Source()
     wv, sed2 = src.calculate_sed(
-        calculation_method, magnitude, wavelegnth_interval, temperature
+        calculation_method, magnitude, wavelegnth_interval, star_temperature
     )
     star_photons_per_second = np.trapz(sed2, wv * 1e-9)
     ais._integrate_sed()
@@ -214,7 +215,7 @@ path = os.path.join("tests", "fits")
 
 def test_create_artificial_image_phot(ais):
     ais.create_source_sed(
-        calculation_method, magnitude, wavelegnth_interval, temperature
+        calculation_method, magnitude, wavelegnth_interval, star_temperature
     )
     ais.create_sky_sed(moon_phase)
     ais.create_artificial_image(path, star_coordinates)
@@ -248,7 +249,7 @@ def test_create_artificial_image_phot(ais):
 def test_create_background_image():
     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
     ais.create_source_sed(
-        calculation_method, magnitude, wavelegnth_interval, temperature
+        calculation_method, magnitude, wavelegnth_interval, star_temperature
     )
     ais.create_sky_sed(moon_phase)
     ais.apply_sparc4_spectral_response("photometry")
