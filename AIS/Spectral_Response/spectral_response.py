@@ -54,23 +54,23 @@ class Spectral_Response:
         return
 
     @staticmethod
-    def _check_var_in_a_list(var, var_name, _list):
+    def _check_var_in_a_list(var, var_name, _list) -> None:
         if var not in _list:
             raise ValueError(f"The allowed values for the {var_name} are: {_list}")
 
     @staticmethod
-    def _verify_var_in_interval(var, var_name, var_min=0, var_max=2**32):
+    def _verify_var_in_interval(var, var_name, var_min=0, var_max=2**32) -> None:
         if var <= var_min or var >= var_max:
             raise ValueError(
                 f"The {var_name} must be in the interval [{var_min},{var_max}]: {var}."
             )
 
     @staticmethod
-    def _read_csv_file(csv_file_name):
+    def _read_csv_file(csv_file_name) -> tuple[ndarray]:
         ss = pd.read_csv(csv_file_name)
         return np.array(ss["Wavelength (nm)"]), np.array(ss["Transmitance (%)"]) / 100
 
-    def _interpolate_spectral_response(self, wavelength, spectral_response):
+    def _interpolate_spectral_response(self, wavelength, spectral_response) -> ndarray:
         b = PchipInterpolator(wavelength, spectral_response)
         spectral_response = b(self.obj_wavelength)
 
@@ -282,7 +282,7 @@ class Atmosphere(Spectral_Response):
 
         return sed
 
-    def _func(self, x, c):
+    def _func(self, x, c) -> ndarray:
         csv_file_name = os.path.join(self._BASE_PATH, self._CSV_FILE_NAME)
         sys_wavelength, spectral_response = self._read_csv_file(csv_file_name)
         spl = interp1d(
@@ -452,7 +452,7 @@ class Channel(Spectral_Response):
 
         return
 
-    def _apply_polarizer(self):
+    def _apply_polarizer(self) -> None:
         spectral_response = self.get_spectral_response(
             self.obj_wavelength, "polarizer.csv"
         )
@@ -465,12 +465,12 @@ class Channel(Spectral_Response):
                 f"A wrong value has been provided for the polarizer: {self.calibration_wheel}"
             )
 
-    def _apply_ideal_polarizer(self, spectral_response):
+    def _apply_ideal_polarizer(self, spectral_response) -> None:
         self.sed = np.multiply(spectral_response, self.sed)
         polarizer_matrix = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
         self.sed = apply_matrix(polarizer_matrix, self.sed)
 
-    def _apply_non_ideal_polarizer(self, spectral_response):
+    def _apply_non_ideal_polarizer(self, spectral_response) -> None:
         contrast_ratio = self._get_spectral_response_custom(
             "polarizer_contrast_ratio.csv", "Contrast ratio"
         )
@@ -484,7 +484,7 @@ class Channel(Spectral_Response):
             )
             self.sed[1, idx] *= 1 - 1 / contrast
 
-    def _apply_depolarizer(self):
+    def _apply_depolarizer(self) -> None:
         spectral_response = self.get_spectral_response(
             self.obj_wavelength, "depolarizer.csv"
         )
@@ -499,12 +499,12 @@ class Channel(Spectral_Response):
 
         return
 
-    def _apply_ideal_depolarizer(self, spectral_response):
+    def _apply_ideal_depolarizer(self, spectral_response) -> None:
         sed = self.sed
         self.sed = np.zeros((4, sed.shape[1]))
         self.sed[0] = sed[0] * spectral_response
 
-    def _apply_non_ideal_depolarizer(self, spectral_response):
+    def _apply_non_ideal_depolarizer(self, spectral_response) -> None:
         self.sed = np.multiply(spectral_response, self.sed)
         for idx, wavelength in enumerate(self.obj_wavelength):
             depolarizer_matrix = calculate_depolarizer_matrix(wavelength)
@@ -517,7 +517,7 @@ class Channel(Spectral_Response):
             self._apply_ideal_waveplate()
         return
 
-    def _apply_non_ideal_waveplate(self):
+    def _apply_non_ideal_waveplate(self) -> None:
         phase_difference = (
             self._get_spectral_response_custom(
                 f"retarder_phase_diff_{self.retarder_waveplate}.csv", "Retardance"
@@ -530,7 +530,7 @@ class Channel(Spectral_Response):
             )
             self.sed[:, idx] = np.transpose(RETARDER_MATRIX.dot(self.sed[:, idx]))
 
-    def _apply_ideal_waveplate(self):
+    def _apply_ideal_waveplate(self) -> None:
         if "half" in self.retarder_waveplate:
             phase = 180
         elif "quarter" in self.retarder_waveplate:
@@ -591,7 +591,7 @@ class Channel(Spectral_Response):
 
         return spectral_response
 
-    def _interpolate_spectral_response(self, wavelength, spectral_response):
+    def _interpolate_spectral_response(self, wavelength, spectral_response) -> ndarray:
         spl = splrep(
             wavelength,
             spectral_response,

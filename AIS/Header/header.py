@@ -71,7 +71,7 @@ class Header:
 
         return
 
-    def _find_index_tab(self):
+    def _find_index_tab(self) -> int:
         idx_tab = 0
         readout = self.ccd_operation_mode["readout"]
         if self.ccd_operation_mode["em_mode"] == "EM":
@@ -82,11 +82,11 @@ class Header:
         return idx_tab
 
     @staticmethod
-    def _read_spreadsheet(file):
+    def _read_spreadsheet(file) -> pd.DataFrame:
         ss = pd.read_csv(file, sep="\t")
         return ss
 
-    def create_header(self):
+    def create_header(self) -> fits.Header:
         """Create the image header.
 
         This functions returns a astropy.io.fits.Header class with all the information used

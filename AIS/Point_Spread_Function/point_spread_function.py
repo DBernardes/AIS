@@ -60,7 +60,7 @@ class Point_Spread_Function:
     _SPARC4_PLATE_SCALE = 0.35  # arcsec/pix
     _SPREADSHEET_PATH = os.path.join("AIS", "Point_Spread_Function", "preamp_gains.csv")
 
-    def __init__(self, ccd_operation_mode: dict, channel: int):
+    def __init__(self, ccd_operation_mode: dict, channel: int) -> None:
         """Initialize the class."""
         self.ccd_operation_mode = ccd_operation_mode
         image_size = self.ccd_operation_mode["image_size"]
@@ -68,7 +68,7 @@ class Point_Spread_Function:
         self.channel = channel
         self.get_ccd_gain()
 
-    def get_ccd_gain(self):
+    def get_ccd_gain(self) -> None:
         idx_tab = 0
         readout = self.ccd_operation_mode["readout"]
         if self.ccd_operation_mode["em_mode"] == "EM":
@@ -79,7 +79,7 @@ class Point_Spread_Function:
         ss = pd.read_csv(self._SPREADSHEET_PATH)
         self.ccd_gain = ss[f"CH{self.channel}"][idx_tab]
 
-    def _create_table(self, star_coordinates, seeing):
+    def _create_table(self, star_coordinates, seeing) -> Table:
         table = Table()
         binn = self.ccd_operation_mode["binn"]
         gaussian_std = seeing / (self._SPARC4_PLATE_SCALE * binn * 2)
@@ -128,7 +128,7 @@ class Point_Spread_Function:
             star_image += self._create_image_extra_ordinary_ray(extra_ordinary_ray)
         return star_image
 
-    def _create_image_ordinary_ray(self, ordinary_ray):
+    def _create_image_ordinary_ray(self, ordinary_ray) -> ndarray:
         gaussian_amplitude = self._calculate_gaussian_amplitude(ordinary_ray)
         self.table["amplitude"] = gaussian_amplitude
 
@@ -136,7 +136,7 @@ class Point_Spread_Function:
         star_image += self._make_noise_image()
         return star_image
 
-    def _create_image_extra_ordinary_ray(self, extra_ordinary_ray):
+    def _create_image_extra_ordinary_ray(self, extra_ordinary_ray) -> ndarray:
         gaussian_amplitude = self._calculate_gaussian_amplitude(extra_ordinary_ray)
         self.table["amplitude"] = gaussian_amplitude
         self.table["x_mean"] -= self._SPARC4_POL_SEPARATION
@@ -147,7 +147,7 @@ class Point_Spread_Function:
 
         return star_image
 
-    def _calculate_gaussian_amplitude(self, photons_per_second):
+    def _calculate_gaussian_amplitude(self, photons_per_second) -> float:
         t_exp = self.ccd_operation_mode["t_exp"]
         em_gain = self.ccd_operation_mode["em_gain"]
         binn = self.ccd_operation_mode["binn"]
@@ -161,14 +161,14 @@ class Point_Spread_Function:
         )
         return gaussian_amplitude
 
-    def _make_noise_image(self):
+    def _make_noise_image(self) -> ndarray:
         amplitude = self.table["amplitude"]
         noise_image = make_noise_image(self.shape, "poisson", amplitude) - amplitude
         self.table["amplitude"] = 1
         noise_image *= make_gaussian_sources_image(self.shape, self.table)
         return noise_image
 
-    def calculate_npix_star(self, seeing: float):
+    def calculate_npix_star(self, seeing: float) -> int:
         """Calculate the number of pixel of PSF of the object.
 
         Parameters
@@ -177,12 +177,12 @@ class Point_Spread_Function:
 
         Returns
         -------
-            npix: number of pixels of PSF of the object.
+            npix (int): number of pixels of PSF of the object.
         """
         gaussian_std = seeing / (
             self._SPARC4_PLATE_SCALE * self.ccd_operation_mode["binn"] * 2
         )
         fwhm = 2.355 * gaussian_std
         psf_radius = 3 * fwhm
-        npix = pi * psf_radius**2
+        npix = round(pi * psf_radius**2)
         return npix

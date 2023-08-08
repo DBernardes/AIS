@@ -43,7 +43,7 @@ class Spectral_Energy_Distribution:
     _S_0 = 3.658e-2  # W/(m.m2)
     _BASE_PATH = os.path.join("AIS", "Spectral_Energy_Distribution")
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the Spectral Energy Distribution Class."""
         self.sed = np.linspace(100, 1000, 100)
         return
@@ -52,11 +52,11 @@ class Spectral_Energy_Distribution:
         """Get the Spectral Energy Distribution."""
         return self.sed
 
-    def write_sed(self, sed: ndarray):
+    def write_sed(self, sed: ndarray) -> None:
         """Write the Spectral Energy Distribution to the class."""
         self.sed = sed
 
-    def calculate_sed(self):
+    def calculate_sed(self) -> ndarray:
         """Calculate the Spectral Energy Distribution.
 
         This method is an abstract method that must be implemented in the child classes.
@@ -71,7 +71,7 @@ class Spectral_Energy_Distribution:
     @staticmethod
     def _interpolate_spectral_distribution(
         wavelength, spectral_response, obj_wavelength
-    ):
+    ) -> ndarray:
         # spl = interp1d(wavelength, spectral_response,
         #               bounds_error=False, fill_value='extrapolate', kind='cubic')
         spl = splrep(wavelength, spectral_response)
@@ -105,7 +105,7 @@ class Source(Spectral_Energy_Distribution):
                             temperature=5700)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.SPECTRAL_LIB_PATH = os.path.join(self._BASE_PATH, "Spectral_Library")
         return
 
@@ -293,7 +293,7 @@ class Source(Spectral_Energy_Distribution):
         return self.sed
 
     @staticmethod
-    def _calculate_sed_blackbody(wavelength, temperature):
+    def _calculate_sed_blackbody(wavelength, temperature) -> float:
         return (
             2
             * pi
@@ -304,7 +304,7 @@ class Source(Spectral_Energy_Distribution):
             / (np.exp(h * c / (wavelength * 1e-9 * k * temperature)) - 1)
         )
 
-    def _read_spectral_library(self, spectral_type):
+    def _read_spectral_library(self, spectral_type) -> tuple[ndarray]:
         path = os.path.join(self.SPECTRAL_LIB_PATH, "uk" + spectral_type + ".csv")
         try:
             sed = pd.read_csv(path)
@@ -314,7 +314,7 @@ class Source(Spectral_Energy_Distribution):
             self.print_available_spectral_types()
             raise FileNotFoundError
 
-    def print_available_spectral_types(self):
+    def print_available_spectral_types(self) -> None:
         """Print the available spectral types."""
         spec_types = os.listdir(self.SPECTRAL_LIB_PATH)
         print("\nAvailable spectral types:")
@@ -331,11 +331,11 @@ class Sky(Spectral_Energy_Distribution):
 
     CSV_FILE = "moon_magnitude.csv"
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the Sky class."""
         return
 
-    def _read_csv(self, file_name, value_name):
+    def _read_csv(self, file_name, value_name) -> tuple[ndarray]:
         file_name = os.path.join(self._BASE_PATH, file_name)
         ss = pd.read_csv(file_name)
         wavelenght = ss["wavelength"]

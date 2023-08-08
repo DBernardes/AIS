@@ -62,7 +62,7 @@ class Background_Image:
         channel: int,
         ccd_temp: float | int = -70,
         bias_level: int = 500,
-    ):
+    ) -> None:
         """Initialize the class."""
         self.bias_level = bias_level
         self.channel = channel
@@ -79,7 +79,7 @@ class Background_Image:
         )
         self.get_ccd_gain()
 
-    def get_ccd_gain(self):
+    def get_ccd_gain(self) -> None:
         idx_tab = 0
         readout = self.ccd_operation_mode["readout"]
         if self.ccd_operation_mode["em_mode"] == "EM":

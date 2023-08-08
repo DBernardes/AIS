@@ -12,7 +12,6 @@ of an image of the SPARC4 cameras, as a function of its operation mode.
 import datetime
 import os
 from random import randint, uniform
-from sys import exit
 
 import astropy.io.fits as fits
 import numpy as np
@@ -128,8 +127,8 @@ class Artificial_Image_Simulator:
         return
 
     @staticmethod
-    def _verify_var_in_interval(var, var_name, var_min=0, var_max=2**32):
-        if var <= var_min or var >= var_max:
+    def _verify_var_in_interval(var, var_name, var_min=0, var_max=2**32) -> None:
+        if not var_min <= var <= var_max:
             raise ValueError(
                 f"The {var_name} must be in the interval [{var_min},{var_max}]: {var}."
             )
@@ -146,12 +145,12 @@ class Artificial_Image_Simulator:
         ]
         for key in self.ccd_operation_mode.keys():
             if key not in dic_keywords_list:
-                raise ValueError(f"The name provided is not a CCD parameter: {key}")
+                raise ValueError(f"The provided name is not a CCD parameter: {key}")
 
         keyvalues = list(self.ccd_operation_mode.keys())
         keyvalues.sort()
         if keyvalues != dic_keywords_list:
-            raise ValueError("There is a missing parameter of the CCD operation mode")
+            raise ValueError("There is a missing parameter for the CCD operation mode")
 
         em_mode = self.ccd_operation_mode["em_mode"]
         em_gain = self.ccd_operation_mode["em_gain"]
@@ -184,7 +183,7 @@ class Artificial_Image_Simulator:
         return
 
     @staticmethod
-    def _check_var_in_a_list(var, var_name, _list):
+    def _check_var_in_a_list(var, var_name, _list) -> None:
         if var not in _list:
             raise ValueError(f"The allowed values for the {var_name} are: {_list}")
 
@@ -195,7 +194,7 @@ class Artificial_Image_Simulator:
         wavelength_interval: tuple = (),
         temperature: int | float = 0,
         spectral_type: str = "",
-    ):
+    ) -> None:
         """Create the Spectral Energy Distribution of the source.
 
         Parameters
@@ -230,7 +229,9 @@ class Artificial_Image_Simulator:
             spectral_type,
         )
 
-    def apply_linear_polarization(self, percent_pol: float = 100, pol_angle: float = 0):
+    def apply_linear_polarization(
+        self, percent_pol: float = 100, pol_angle: float = 0
+    ) -> None:
         """Apply linear polarization in SED.
 
          Parameters
@@ -244,7 +245,7 @@ class Artificial_Image_Simulator:
 
     def apply_circular_polarization(
         self, percent_pol: float = 100, orientation: str = "left"
-    ):
+    ) -> None:
         """Apply ciruclar polarization in SED.
 
          Parameters
@@ -258,7 +259,7 @@ class Artificial_Image_Simulator:
             percent_pol, orientation
         )
 
-    def apply_polarization(self, stokes: list = []):
+    def apply_polarization(self, stokes: list = []) -> None:
         """Apply a general polarization to SED.
 
         Parameters
@@ -271,7 +272,7 @@ class Artificial_Image_Simulator:
         """
         self.source_sed = self.SRC_obj.apply_polarization(stokes)
 
-    def write_source_sed(self, wavelenth: ndarray, sed: ndarray):
+    def write_source_sed(self, wavelenth: ndarray, sed: ndarray) -> None:
         """Write the source SED into the class.
 
         Parameters
@@ -294,7 +295,7 @@ class Artificial_Image_Simulator:
         self.SRC_obj.print_available_spectral_types()
         return
 
-    def create_sky_sed(self, moon_phase: str):
+    def create_sky_sed(self, moon_phase: str) -> None:
         """Create the Spectral Energy Distribution of the sky.
 
         Parameters
@@ -306,7 +307,7 @@ class Artificial_Image_Simulator:
 
     def apply_atmosphere_spectral_response(
         self, air_mass: int | float = 1.0, sky_condition: str = "photometric"
-    ):
+    ) -> None:
         """Apply the atmosphere spectral response.
 
         This functions applies the atmosphere spectral response on the
@@ -327,7 +328,7 @@ class Artificial_Image_Simulator:
             self.wavelength, self.source_sed, air_mass, sky_condition
         )
 
-    def apply_telescope_spectral_response(self):
+    def apply_telescope_spectral_response(self) -> None:
         """Apply the telescope spectral response.
 
         This functions applies the telescope spectral response on the
@@ -346,7 +347,7 @@ class Artificial_Image_Simulator:
         calibration_wheel: str = "",
         retarder_waveplate: str = "half",
         retarder_waveplate_angle: int | float = 0,
-    ):
+    ) -> None:
         """Apply the SPARC4 spectral response.
 
         This functions applies the SPARC4 spectral response on the
@@ -385,7 +386,7 @@ class Artificial_Image_Simulator:
             self.sky_sed, self.wavelength
         )
 
-    def _integrate_sed(self):
+    def _integrate_sed(self) -> None:
         """Integrate the star and the sky SEDs."""
         self.wavelength *= 1e-9
         self.sky_photons_per_second = np.clip(
@@ -412,8 +413,8 @@ class Artificial_Image_Simulator:
         dark_noise = noise_obj.calculate_dark_current(self.ccd_temperature)
         read_noise = noise_obj.calculate_read_noise(self.ccd_operation_mode)
 
-        noise_factor = 1
-        em_gain = 1
+        noise_factor = 1.0
+        em_gain = 1.0
         binn = self.ccd_operation_mode["binn"]
         if self.ccd_operation_mode["em_mode"] == "EM":
             noise_factor = 1.4
@@ -438,7 +439,7 @@ class Artificial_Image_Simulator:
 
     def create_artificial_image(
         self, image_path: str, star_coordinates: tuple, seeing: float = 1
-    ) -> ndarray:
+    ):
         """
         Create the artificial star image.
 
@@ -482,7 +483,7 @@ class Artificial_Image_Simulator:
             header=header,
         )
 
-    def create_background_image(self, image_path: str, images: int = 1):
+    def create_background_image(self, image_path: str, images: int = 1) -> None:
         """Create the background image.
 
         This function creates the background image, similar to those
@@ -514,7 +515,7 @@ class Artificial_Image_Simulator:
 
             fits.writeto(file, background, header=header)
 
-    def create_dark_image(self, image_path: str, images: int = 1):
+    def create_dark_image(self, image_path: str, images: int = 1) -> None:
         """
         Create a dark image.
 
@@ -547,7 +548,7 @@ class Artificial_Image_Simulator:
                 header=header,
             )
 
-    def create_bias_image(self, image_path: str, images: int = 1):
+    def create_bias_image(self, image_path: str, images: int = 1) -> None:
         """
         Create a bias image.
 
@@ -581,7 +582,9 @@ class Artificial_Image_Simulator:
                 header=header,
             )
 
-    def create_random_image(self, image_path, number_stars=10, seeing: float = 1):
+    def create_random_image(
+        self, image_path, number_stars=10, seeing: float = 1
+    ) -> None:
         """
         Create a random star image.
 
@@ -691,7 +694,7 @@ class Artificial_Image_Simulator:
         return
 
     @staticmethod
-    def _solve_second_degree_eq(a, b, c):
+    def _solve_second_degree_eq(a, b, c) -> list[float]:
         delta = (b**2) - (4 * a * c)
         x1 = (-b - sqrt(delta)) / (2 * a)
         x2 = (-b + sqrt(delta)) / (2 * a)

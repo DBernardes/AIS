@@ -27,7 +27,7 @@ class Noise:
 
     """
 
-    def __init__(self, channel: int):
+    def __init__(self, channel: int) -> None:
         """Initialize the class.
 
         Parameters
@@ -79,7 +79,7 @@ class Noise:
             self._calculate_read_noise_em_mode()
         return self.read_noise
 
-    def _calculate_read_noise_conventional_mode(self):
+    def _calculate_read_noise_conventional_mode(self) -> None:
         idx_tab = 1
         if self.readout == 0.1:
             idx_tab += 4
@@ -94,7 +94,7 @@ class Noise:
         spreadsheet = pd.read_csv(ss_name)
         self.read_noise = float(spreadsheet["Noise"][idx_tab])
 
-    def _calculate_read_noise_em_mode(self):
+    def _calculate_read_noise_em_mode(self) -> None:
         tab_name = os.path.join(
             self.spreadsheet_path,
             "RN_PA"
