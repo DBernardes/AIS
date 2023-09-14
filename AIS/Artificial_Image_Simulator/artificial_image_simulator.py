@@ -117,7 +117,7 @@ class Artificial_Image_Simulator:
         self.BGI_obj = Background_Image(
             self.ccd_operation_mode, channel_id, ccd_temperature
         )
-        self.SRC_obj = Source()
+        self.SRC_obj = Source()  # TODO isto eh injeção de dependencia
         self.SKY_obj = Sky()
         self.ATM_obj = Atmosphere()
         self.TEL_obj = Telescope()
