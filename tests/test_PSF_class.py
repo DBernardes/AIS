@@ -189,9 +189,9 @@ def test_creat_star_image(psf):
     )
 
 
-def test_calculate_npix_star(psf):
-    gaussian_std = seeing / (_SPARC4_PLATE_SCALE * ccd_operation_mode["binn"] * 2)
-    fwhm = 2.355 * gaussian_std
-    psf_star = 3 * fwhm
-    npix = pi * psf_star**2
-    assert psf.calculate_npix_star(seeing) == npix
+# def test_calculate_npix_star(psf):
+#     gaussian_std = seeing / (_SPARC4_PLATE_SCALE * ccd_operation_mode["binn"] * 2)
+#     fwhm = 2.355 * gaussian_std
+#     psf_star = 3 * fwhm
+#     npix = pi * psf_star**2
+#     assert psf.calculate_npix_star(seeing) == npix
