@@ -46,8 +46,8 @@ class Spectral_Response:
             The spectral response of the optical system.
     """
 
-    _BASE_PATH = os.path.join("AIS", "Spectral_Response")
-    _CSV_FILE_NAME = "csv_file.csv"
+    BASE_PATH = os.path.join("AIS", "Spectral_Response")
+    CSV_FILE_NAME = "csv_file.csv"
 
     def __init__(self) -> None:
         """Initialize the class."""
@@ -90,7 +90,7 @@ class Spectral_Response:
             The spectral response of the optical system.
         """
         self.obj_wavelength = obj_wavelength
-        csv_file_name = os.path.join(self._BASE_PATH, self._CSV_FILE_NAME)
+        csv_file_name = os.path.join(self.BASE_PATH, self.CSV_FILE_NAME)
         sys_wavelength, spectral_response = self._read_csv_file(csv_file_name)
         spectral_response = self._interpolate_spectral_response(
             sys_wavelength, spectral_response
@@ -121,9 +121,9 @@ class Spectral_Response:
 
 
 class Telescope(Spectral_Response):
-    _CSV_FILE_NAME = "telescope.csv"
-    _PRIMARY_MIRROR_ADJUSTMENT = 0.933
-    _SECONDARY_MIRROR_ADJUSTMENT = 0.996
+    CSV_FILE_NAME = "telescope.csv"
+    PRIMARY_MIRROR_ADJUSTMENT = 0.933
+    SECONDARY_MIRROR_ADJUSTMENT = 0.996
 
     def __init__(self) -> None:
         """
@@ -158,14 +158,14 @@ class Telescope(Spectral_Response):
 
         return (
             spectral_response**2
-            * self._PRIMARY_MIRROR_ADJUSTMENT
-            * self._SECONDARY_MIRROR_ADJUSTMENT
+            * self.PRIMARY_MIRROR_ADJUSTMENT
+            * self.SECONDARY_MIRROR_ADJUSTMENT
         )
 
 
 class Atmosphere(Spectral_Response):
-    _CSV_FILE_NAME = "atmosphere_profile.csv"
-    _ATM_EXTINCTION = "willton.csv"
+    CSV_FILE_NAME = "atmosphere_profile.csv"
+    ATM_EXTINCTION_FILE = "willton.csv"
 
     def __init__(self) -> None:
         """Atmosphere class
@@ -206,7 +206,7 @@ class Atmosphere(Spectral_Response):
 
         """
         self.obj_wavelength = obj_wavelength
-        ss = pd.read_csv(os.path.join(self._BASE_PATH, self._ATM_EXTINCTION))
+        ss = pd.read_csv(os.path.join(self.BASE_PATH, self.ATM_EXTINCTION))
         spectral_response = 10 ** (-0.4 * air_mass * ss["coeff"])
         spectral_response = self._interpolate_spectral_response(
             ss["Wavelength (nm)"], spectral_response
@@ -239,7 +239,7 @@ class Atmosphere(Spectral_Response):
             The spectral response of the optical system.
 
         """
-        ss = pd.read_csv(os.path.join(self._BASE_PATH, self._ATM_EXTINCTION))
+        ss = pd.read_csv(os.path.join(self.BASE_PATH, self.ATM_EXTINCTION_FILE))
         extinction_coef = 10 ** (-0.4 * air_mass * ss[sky_condition])
         popt_M1, _ = curve_fit(self._func, ss["Wavelength (nm)"], extinction_coef)
 
@@ -282,13 +282,27 @@ class Atmosphere(Spectral_Response):
 
         return sed
 
-    def _func(self, x, c) -> ndarray:
-        csv_file_name = os.path.join(self._BASE_PATH, self._CSV_FILE_NAME)
+    def _func(self, wavelength_interv:ndarray, C:float) -> ndarray:
+        """Profile for the atmosphere spectral response
+
+        Parameters
+        ----------
+        wavelength_interv : ndarray
+            wavelength interval
+        C : float
+            Adjustment constant
+
+        Returns
+        -------
+        ndarray
+            Adjusted profile
+        """
+        csv_file_name = os.path.join(self.BASE_PATH, self.CSV_FILE_NAME)
         sys_wavelength, spectral_response = self._read_csv_file(csv_file_name)
         spl = interp1d(
             sys_wavelength, spectral_response, bounds_error=False, kind="cubic"
         )
-        return spl(x) * c
+        return spl(wavelength_interv) * C
 
 
 class Channel(Spectral_Response):
@@ -304,18 +318,18 @@ class Channel(Spectral_Response):
             The spectral response of the optical system.
     """
 
-    _POL_OPTICAL_COMPONENTS = {
+    POL_OPTICAL_COMPONENTS = {
         "analyzer": "analyzer.csv",
         "retarder": "retarder.csv",
     }
-    _PHOT_OPTICAL_COMPONENTS = {
+    PHOT_OPTICAL_COMPONENTS = {
         "collimator": "collimator.csv",
         "dichroic": "dichroic.csv",
         "camera": "camera.csv",
         "ccd": "ccd.csv",
     }
 
-    _POLARIZER_ANGLE = 0
+    POLARIZER_ANGLE = 0
 
     def __init__(self, channel_id: int) -> None:
         """Initialize the class.
@@ -328,8 +342,8 @@ class Channel(Spectral_Response):
         """
 
         super().__init__()
-        self._channel_id = channel_id
-        self._BASE_PATH = os.path.join(self._BASE_PATH, "channel")
+        self.channel_id = channel_id
+        self.BASE_PATH = os.path.join(self.BASE_PATH, "channel")
         return
 
     def get_spectral_response(
@@ -350,7 +364,7 @@ class Channel(Spectral_Response):
         spectral_response: array like
             The spectral response of the optical system.
         """
-        self._CSV_FILE_NAME = csv_file_name
+        self.CSV_FILE_NAME = csv_file_name
         return super().get_spectral_response(obj_wavelength)
 
     def write_sparc4_operation_mode(
@@ -416,7 +430,7 @@ class Channel(Spectral_Response):
         return self.sed
 
     def _apply_photometric_spectral_response(self) -> None:
-        for csv_file in self._PHOT_OPTICAL_COMPONENTS.values():
+        for csv_file in self.PHOT_OPTICAL_COMPONENTS.values():
             if csv_file != "collimator.csv":
                 csv_file = os.path.join(f"Channel {self._channel_id}", csv_file)
             spectral_response = self.get_spectral_response(
@@ -579,7 +593,7 @@ class Channel(Spectral_Response):
         return
 
     def _get_spectral_response_custom(self, csv_file: str, column_name: str) -> ndarray:
-        csv_file_name = os.path.join(self._BASE_PATH, csv_file)
+        csv_file_name = os.path.join(self.BASE_PATH, csv_file)
         ss = pd.read_csv(csv_file_name)
         sys_wavelength, spectral_response = np.asarray(
             ss["Wavelength (nm)"]
