@@ -13,6 +13,7 @@ from AIS.Spectral_Response._utils import (
     calculate_polarizer_matrix,
     calculate_retarder_matrix,
     calculate_depolarizer_matrix,
+    apply_matrix,
 )
 from numpy import cos, pi, sin
 from scipy.interpolate import splev, splrep, interp1d, PchipInterpolator
@@ -23,7 +24,8 @@ from copy import copy
 class Test_Channel(unittest.TestCase):
     CHANNEL = 1
     OBJ_WAVELENGTH = np.linspace(400, 1100, 100)
-    SED = np.ones(100)
+    SED = np.zeros((4, 100))
+    SED[0, :] = 1
     BASE_PATH = os.path.join("AIS", "Spectral_Response")
     CSV_FILE_NAME = "polarizer.csv"
     BASE_PATH = os.path.join("AIS", "Spectral_Response", "channel")
@@ -179,213 +181,182 @@ class Test_Channel(unittest.TestCase):
 
         assert np.allclose(contrast_ratio, new_contrast_ratio)
 
-    #     # ----------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------------
 
-    # def test_apply_calibration_wheel_polarizer(channel):
-    #     n = len(obj_wavelength)
-    #     sed = np.ones((4, n))
-    #     spl = interp1d(
-    #         wv_polarizer, sr_polarizer, bounds_error=False, fill_value=0, kind="cubic"
-    #     )
+    def test_apply_ideal_polarizer(self):
+        spectral_response = self.channel.get_spectral_response(
+            self.OBJ_WAVELENGTH, "polarizer.csv"
+        )
+        self.channel.write_sparc4_operation_mode("polarimetry", "ideal-polarizer")
+        self.channel.sed = self.SED
+        sed = np.multiply(spectral_response, self.SED)
+        polarizer_matrix = calculate_polarizer_matrix(self.POLARIZER_ANGLE)
+        sed = apply_matrix(polarizer_matrix, sed)
 
-    #     channel.calibration_wheel = "polarizer"
-    #     channel.sed = copy(sed)
-    #     channel._apply_calibration_wheel()
+        self.channel._apply_ideal_polarizer(spectral_response)
+        assert np.allclose(sed, self.channel.sed)
 
-    #     spl = splrep(
-    #         wv_polarizer,
-    #         sr_polarizer,
-    #     )
-    #     spectral_response = splev(obj_wavelength, spl)
-    #     spectral_response[spectral_response < 0] = 0
+    def test_apply_real_polarizer(self):
+        spectral_response = self.channel.get_spectral_response(
+            self.OBJ_WAVELENGTH, "polarizer.csv"
+        )
+        contrast_ratio = self.channel._get_spectral_response_custom(
+            "polarizer_contrast_ratio.csv", "Contrast ratio"
+        )
+        sed = self.SED
+        for idx, transmission in enumerate(spectral_response):
+            contrast = contrast_ratio[idx]
+            polarizer_matrix = calculate_polarizer_matrix(self.POLARIZER_ANGLE)
+            sed[:, idx] = transmission * np.transpose(polarizer_matrix.dot(sed[:, idx]))
+            sed[1, idx] *= 1 - 1 / contrast
 
-    #     contrast_ratio = channel._get_spectral_response_custom(
-    #         "polarizer_contrast_ratio.csv", "Contrast ratio"
-    #     )
-    #     for idx, transmission in enumerate(spectral_response):
-    #         contrast = contrast_ratio[idx]
-    #         polarizer_matrix = calculate_polarizer_matrix(POLARIZER_ANGLE)
-    #         sed[:, idx] = transmission * np.transpose(polarizer_matrix.dot(sed[:, idx]))
-    #         sed[1, idx] *= 1 - 1 / contrast
+        self.channel.write_sparc4_operation_mode("polarimetry", "polarizer")
+        self.channel.sed = self.SED
+        self.channel._apply_real_polarizer(spectral_response)
+        assert np.allclose(sed, self.channel.sed)
 
-    #     assert np.allclose(channel.sed, sed, atol=1e-3)
+    def test_apply_polarizer(self):
+        spectral_response = self.channel.get_spectral_response(
+            self.OBJ_WAVELENGTH, "polarizer.csv"
+        )
+        self.channel.sed = self.SED
+        self.channel._apply_real_polarizer(spectral_response)
+        sed = self.channel.sed
 
-    # def test_apply_calibration_wheel_ideal_polarizer(channel):
-    #     n = len(obj_wavelength)
-    #     sed = np.ones((4, n))
-    #     spl = interp1d(
-    #         wv_polarizer, sr_polarizer, bounds_error=False, fill_value=0, kind="cubic"
-    #     )
+        self.channel.sed = self.SED
+        self.channel.obj_wavelength = self.OBJ_WAVELENGTH
+        self.channel.write_sparc4_operation_mode("polarimetry", "polarizer")
+        self.channel._apply_polarizer()
 
-    #     channel.calibration_wheel = "ideal-polarizer"
-    #     channel.sed = copy(sed)
-    #     channel._apply_calibration_wheel()
+        assert np.allclose(sed, self.channel.sed)
 
-    #     spectral_response = channel.get_spectral_response(obj_wavelength, "polarizer.csv")
-    #     sed = np.multiply(spectral_response, sed)
-    #     polarizer_matrix = calculate_polarizer_matrix(0)
-    #     sed = _apply_matrix(polarizer_matrix, sed)
+    def test_apply_ideal_depolarizer(self):
+        spectral_response = self.channel.get_spectral_response(
+            self.OBJ_WAVELENGTH, "depolarizer.csv"
+        )
 
-    #     assert np.allclose(sed, channel.sed)
+        tmp = self.SED
+        sed = np.zeros((4, self.SED.shape[1]))
+        sed[0] = tmp[0] * spectral_response
 
-    # def test_apply_calibration_wheel_ideal_depolarizer(channel):
-    #     n = len(obj_wavelength)
-    #     sed = np.ones((4, n))
-    #     channel.calibration_wheel = "ideal-depolarizer"
-    #     channel.sed = copy(sed)
-    #     channel._apply_calibration_wheel()
+        self.channel.sed = self.SED
+        self.channel._apply_ideal_depolarizer(spectral_response)
+        assert np.allclose(sed, self.channel.sed)
 
-    #     new_spectral_response = _interpolate_spectral_response(
-    #         wv_depolarizer, sr_depolarizer, obj_wavelength
-    #     )
-    #     sed = np.multiply(new_spectral_response, sed)
-    #     reduced_sed = np.zeros((4, n))
-    #     reduced_sed[0] = sed[0]
+    def test_apply_real_depolarizer(self):
+        spectral_response = self.channel.get_spectral_response(
+            self.OBJ_WAVELENGTH, "depolarizer.csv"
+        )
+        sed = np.multiply(spectral_response, self.SED)
+        for idx, wavelength in enumerate(self.OBJ_WAVELENGTH):
+            depolarizer_matrix = calculate_depolarizer_matrix(wavelength)
+            sed[:, idx] = np.transpose(depolarizer_matrix.dot(sed[:, idx]))
 
-    #     assert np.allclose(channel.sed, reduced_sed, atol=1e-3)
+        self.channel.sed = self.SED
+        self.channel._apply_real_depolarizer(spectral_response)
+        assert np.allclose(sed, self.channel.sed)
 
-    # def test_apply_calibration_wheel_depolarizer(channel):
-    #     n = len(obj_wavelength)
-    #     sed = np.ones((4, n))
-    #     channel.calibration_wheel = "depolarizer"
-    #     channel.sed = copy(sed)
-    #     channel._apply_calibration_wheel()
+    def test_apply_depolarizer(self):
+        spectral_response = self.channel.get_spectral_response(
+            self.OBJ_WAVELENGTH, "depolarizer.csv"
+        )
+        self.channel.sed = self.SED
+        self.channel._apply_real_depolarizer(spectral_response)
+        sed = self.channel.sed
 
-    #     new_spectral_response = _interpolate_spectral_response(
-    #         wv_depolarizer, sr_depolarizer, obj_wavelength
-    #     )
-    #     sed = np.multiply(new_spectral_response, sed)
-    #     for idx, wavelength in enumerate(obj_wavelength):
-    #         depolarizer_matrix = calculate_depolarizer_matrix(wavelength)
-    #         sed[:, idx] = np.transpose(depolarizer_matrix.dot(sed[:, idx]))
+        self.channel.sed = self.SED
+        self.channel.obj_wavelength = self.OBJ_WAVELENGTH
+        self.channel.write_sparc4_operation_mode("polarimetry", "depolarizer")
+        self.channel._apply_depolarizer()
 
-    #     assert np.allclose(channel.sed, sed, atol=1e-3)
+        assert np.allclose(sed, self.channel.sed)
 
-    # def test_apply_retarder_waveplate(channel):
-    #     phase_diff = "half"
-    #     retarder_waveplate_angle = 0
-    #     n = len(obj_wavelength)
-    #     sed = np.ones((4, n))
-    #     channel.retarder_waveplate_angle = retarder_waveplate_angle
-    #     channel.retarder_waveplate = phase_diff
-    #     channel.sed = copy(sed)
-    #     channel._apply_retarder_waveplate()
+    def test_apply_ideal_retarder_waveplate_half(self):
+        RETARDER_MATRIX = calculate_retarder_matrix(180, 0)
+        sed = apply_matrix(RETARDER_MATRIX, self.SED)
 
-    #     phase_difference = (
-    #         channel._get_spectral_response_custom(
-    #             f"retarder_phase_diff_{phase_diff}.csv", "Retardance"
-    #         )
-    #         * 360
-    #     )
+        self.channel.sed = self.SED
+        self.channel.write_sparc4_operation_mode("polarimetry")
+        self.channel._apply_ideal_waveplate()
 
-    #     for idx, phase in enumerate(phase_difference):
-    #         RETARDER_MATRIX = calculate_retarder_matrix(phase, retarder_waveplate_angle)
-    #         sed[:, idx] = np.transpose(RETARDER_MATRIX.dot(sed[:, idx]))
+        assert np.allclose(sed, self.channel.sed)
 
-    #     assert np.allclose(channel.sed, sed)
+    def test_apply_real_retarder_waveplate_half(self):
+        self.channel.obj_wavelength = self.OBJ_WAVELENGTH
+        phase_difference = (
+            self.channel._get_spectral_response_custom(
+                "retarder_phase_diff_half.csv", "Retardance"
+            )
+            * 360
+        )
+        sed = self.SED
+        for idx, phase in enumerate(phase_difference):
+            RETARDER_MATRIX = calculate_retarder_matrix(phase, 0)
+            sed[:, idx] = np.transpose(RETARDER_MATRIX.dot(sed[:, idx]))
 
-    # def test_apply_ideal_retarder_waveplate(channel):
-    #     phase_diff = "ideal-half"
-    #     retarder_waveplate_angle = 0
-    #     n = len(obj_wavelength)
-    #     sed = np.ones((4, n))
-    #     channel.retarder_waveplate_angle = retarder_waveplate_angle
-    #     channel.retarder_waveplate = phase_diff
-    #     channel.sed = copy(sed)
-    #     channel._apply_retarder_waveplate()
+        self.channel.write_sparc4_operation_mode("polarimetry")
+        self.channel.sed = self.SED
+        self.channel._apply_real_waveplate()
 
-    #     RETARDER_MATRIX = calculate_retarder_matrix(180, retarder_waveplate_angle)
-    #     sed = _apply_matrix(RETARDER_MATRIX, sed)
-    #     assert np.allclose(channel.sed, sed)
+        assert np.allclose(sed, self.channel.sed)
 
-    # def test_apply_analyzer(channel):
-    #     n = len(obj_wavelength)
-    #     sed = np.ones((4, n))
-    #     channel.sed = copy(sed)
-    #     channel._apply_analyzer()
+    def test_apply_retarder_waveplate(self):
+        self.channel.sed = self.SED
+        self.channel.obj_wavelength = self.OBJ_WAVELENGTH
+        self.channel.write_sparc4_operation_mode("polarimetry")
+        self.channel._apply_real_waveplate()
+        sed = self.channel.sed
 
-    #     ORD_RAY_MATRIX = calculate_polarizer_matrix(0)
-    #     temp_1 = _apply_matrix(ORD_RAY_MATRIX, copy(sed))
+        self.channel.sed = self.SED
+        self.channel._apply_retarder_waveplate()
 
-    #     EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(90)
-    #     temp_2 = _apply_matrix(EXTRA_ORD_RAY_MATRIX, copy(sed))
+        assert np.allclose(sed, self.channel.sed)
 
-    #     assert np.allclose(channel.sed, np.stack((temp_1[0], temp_2[0])))
+    def test_apply_analyzer(self):
+        ORD_RAY_MATRIX = calculate_polarizer_matrix(0)
+        temp_1 = apply_matrix(ORD_RAY_MATRIX, self.SED)
+        EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(90)
+        temp_2 = apply_matrix(EXTRA_ORD_RAY_MATRIX, self.SED)
 
-    # # ----------------------------------------------------------------------------------------------------
+        self.channel.sed = self.SED
+        self.channel._apply_analyzer()
 
-    # def test_apply_phot_spectral_response(channel):
-    #     n = len(obj_wavelength)
-    #     sed = np.zeros((4, n))
-    #     sed = np.linspace(400, 1100, n)
-    #     channel.sed = sed
-    #     channel._apply_photometric_spectral_response()
+        assert np.allclose(self.channel.sed, np.stack((temp_1[0], temp_2[0])))
 
-    #     new_spectral_response = _interpolate_spectral_response(
-    #         wv_collimator, sr_collimator, obj_wavelength
-    #     )
-    #     sed = np.multiply(sed, new_spectral_response)
-    #     new_spectral_response = _interpolate_spectral_response(
-    #         wv_dichroic, sr_dichroic, obj_wavelength
-    #     )
-    #     sed = np.multiply(sed, new_spectral_response)
-    #     new_spectral_response = _interpolate_spectral_response(
-    #         wv_camera, sr_camera, obj_wavelength
-    #     )
-    #     sed = np.multiply(sed, new_spectral_response)
-    #     new_spectral_response = _interpolate_spectral_response(
-    #         wv_ccd, sr_ccd, obj_wavelength
-    #     )
-    #     sed = np.multiply(sed, new_spectral_response)
+    # ----------------------------------------------------------------------------------------------------
 
-    #     assert np.allclose(channel.sed, sed)
+    def test_apply_phot_spectral_response(self):
+        sed = self.SED
+        for csv_file in self.PHOT_OPTICAL_COMPONENTS.values():
+            if csv_file != "collimator.csv":
+                csv_file = os.path.join(f"Channel {self.CHANNEL}", csv_file)
+            spectral_response = self.channel.get_spectral_response(
+                self.OBJ_WAVELENGTH, csv_file
+            )
+            sed = np.multiply(spectral_response, sed)
 
-    # def test_apply_pol_spectral_response(channel):
-    #     n = len(obj_wavelength)
-    #     sed = np.zeros((4, n))
-    #     sed[0] = np.ones(n)
-    #     phase_diff = "half"
-    #     retarder_waveplate_angle = 0
+        self.channel.sed = self.SED
+        self.channel._apply_photometric_spectral_response()
 
-    #     channel.calibration_wheel = "polarizer"
-    #     channel.retarder_waveplate_angle = retarder_waveplate_angle
-    #     channel.retarder_waveplate = phase_diff
-    #     channel.sed = copy(sed)
-    #     channel._apply_polarimetric_spectral_response()
+        assert np.allclose(self.channel.sed, sed)
 
-    #     new_spectral_response = _interpolate_spectral_response(
-    #         wv_polarizer, sr_polarizer, obj_wavelength
-    #     )
-    #     new_contrast_ratio = _interpolate_spectral_response(
-    #         sys_wavelength, contrast_ratio, obj_wavelength
-    #     )
-    #     for idx, value in enumerate(new_contrast_ratio):
-    #         theta = np.rad2deg(atan(1 / sqrt(value)))
-    #         total_transmission = new_spectral_response[idx] * (1 + 1 / value)
-    #         POLARIZER_MATRIX = calculate_polarizer_matrix(theta)
-    #         sed[:, idx] = total_transmission * np.transpose(
-    #             POLARIZER_MATRIX.dot(sed[:, idx])
-    #         )
+    def test_apply_pol_spectral_response(self):
+        sed = self.SED
+        for csv_file in self.POL_OPTICAL_COMPONENTS.values():
+            spectral_response = self.channel.get_spectral_response(
+                self.OBJ_WAVELENGTH, csv_file
+            )
+            sed = np.multiply(spectral_response, sed)
 
-    #     new_spectral_response = _interpolate_spectral_response(
-    #         wv_retarder, sr_retarder, obj_wavelength
-    #     )
-    #     sed = np.multiply(sed, new_spectral_response)
-    #     phase_difference = channel._get_spectral_response_custom(
-    #         f"retarder_phase_diff_{phase_diff}.csv", "Retardance"
-    #     )
-    #     for idx, phase in enumerate(phase_difference):
-    #         phase = np.rad2deg(phase)
-    #         RETARDER_MATRIX = calculate_retarder_matrix(phase, retarder_waveplate_angle)
-    #         sed[:, idx] = np.transpose(RETARDER_MATRIX.dot(sed[:, idx]))
+        self.channel.sed = sed
+        self.channel.write_sparc4_operation_mode("polarimetry", "polarizer")
+        self.channel._apply_calibration_wheel()
+        self.channel._apply_retarder_waveplate()
+        self.channel._apply_analyzer()
+        sed = self.channel.sed
 
-    #     new_spectral_response = _interpolate_spectral_response(
-    #         wv_analyzer, sr_analyzer, obj_wavelength
-    #     )
-    #     sed = np.multiply(sed, new_spectral_response)
-    #     ORD_RAY_MATRIX = calculate_polarizer_matrix(0)
-    #     temp_1 = _apply_matrix(ORD_RAY_MATRIX, copy(sed))
-    #     EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(90)
-    #     temp_2 = _apply_matrix(EXTRA_ORD_RAY_MATRIX, copy(sed))
+        self.channel.sed = self.SED
+        self.channel.obj_wavelength = self.OBJ_WAVELENGTH
+        self.channel._apply_polarimetric_spectral_response()
 
-    #     assert np.allclose(channel.sed, np.stack((temp_1[0], temp_2[0])), atol=1e-3)
+        assert np.allclose(sed, self.channel.sed)

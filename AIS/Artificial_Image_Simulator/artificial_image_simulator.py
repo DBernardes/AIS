@@ -168,18 +168,14 @@ class Artificial_Image_Simulator:
                 )
         else:
             self._verify_var_in_interval(em_gain, "EM Gain", 2, 300)
-
         self._check_var_in_a_list(readout, "readout rate", [0.1, 1, 10, 20, 30])
-
         self._check_var_in_a_list(preamp, "pre-amplification", [1, 2])
-
         self._check_var_in_a_list(binn, "binning", [1, 2])
-
-        self._verify_var_in_interval(image_size, "image size", 0, 1025)
+        self._verify_var_in_interval(image_size, "image size", 1, 1024)
         self.image_size = image_size
-
         self._verify_var_in_interval(t_exp, "exposure time", 1e-5, 84600)
         self.t_exp = t_exp
+        self._verify_var_in_interval(self.ccd_temperature, "ccd temperature", -70, -30)
         return
 
     @staticmethod

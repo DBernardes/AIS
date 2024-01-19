@@ -53,8 +53,8 @@ class Background_Image:
         The bias level of the image in ADU.
     """
 
-    _PIXEL_SENSIBILITY = 0.03
-    _SPREADSHEET_PATH = os.path.join("AIS", "Background_Image", "preamp_gains.csv")
+    PIXEL_SENSIBILITY = 0.03
+    SPREADSHEET_PATH = os.path.join("AIS", "Background_Image", "preamp_gains.csv")
 
     def __init__(
         self,
@@ -72,7 +72,7 @@ class Background_Image:
         if ccd_operation_mode["em_mode"] == "EM":
             self._NOISE_FACTOR = 1.4
 
-        noise = Noise(channel)
+        noise = Noise(channel)  # ? Injeção de dependência
         self.read_noise = noise.calculate_read_noise(ccd_operation_mode)
         self.dark_noise = (
             noise.calculate_dark_current(ccd_temp) * ccd_operation_mode["t_exp"]
@@ -87,7 +87,7 @@ class Background_Image:
         else:
             idx_tab = [1, 0.1].index(readout) * 2 + 8
         idx_tab += self.ccd_operation_mode["preamp"] - 1
-        ss = pd.read_csv(self._SPREADSHEET_PATH)
+        ss = pd.read_csv(self.SPREADSHEET_PATH)
         self.ccd_gain = ss[f"CH{self.channel}"][idx_tab]
 
     def create_bias_background(self) -> ndarray:
@@ -167,17 +167,17 @@ class Background_Image:
         em_gain = self.ccd_operation_mode["em_gain"]
         binn = self.ccd_operation_mode["binn"]
         image_size = self.ccd_operation_mode["image_size"]
-        _FLAT_LEVEL = 2**15  # ADU
+        FLAT_LEVEL = 2**15  # ADU
         if self.ccd_operation_mode["preamp"] == 1:
-            _FLAT_LEVEL /= 2
+            FLAT_LEVEL /= 2
 
-        poisson_noise = _FLAT_LEVEL / self.ccd_gain
+        poisson_noise = FLAT_LEVEL / self.ccd_gain
         shape = (image_size, image_size)
 
         noise = (
             np.sqrt(
                 self.read_noise**2
-                + (poisson_noise * (1 + self._PIXEL_SENSIBILITY) + self.dark_noise)
+                + (poisson_noise * (1 + self.PIXEL_SENSIBILITY) + self.dark_noise)
                 * self._NOISE_FACTOR**2
                 * em_gain**2
                 * binn**2
@@ -186,7 +186,7 @@ class Background_Image:
         )
 
         flat_background = make_noise_image(
-            shape, distribution="gaussian", mean=_FLAT_LEVEL, stddev=noise
+            shape, distribution="gaussian", mean=FLAT_LEVEL, stddev=noise
         )
 
         return flat_background

@@ -56,9 +56,9 @@ class Point_Spread_Function:
         The channel related to the camera.
     """
 
-    _SPARC4_POL_SEPARATION = 20  # pix
-    _SPARC4_PLATE_SCALE = 0.35  # arcsec/pix
-    _SPREADSHEET_PATH = os.path.join("AIS", "Point_Spread_Function", "preamp_gains.csv")
+    SPARC4_POL_SEPARATION = 20  # pix
+    SPARC4_PLATE_SCALE = 0.35  # arcsec/pix
+    SPREADSHEET_PATH = os.path.join("AIS", "Point_Spread_Function", "preamp_gains.csv")
 
     def __init__(self, ccd_operation_mode: dict, channel: int) -> None:
         """Initialize the class."""
@@ -76,13 +76,13 @@ class Point_Spread_Function:
         else:
             idx_tab = [1, 0.1].index(readout) * 2 + 8
         idx_tab += self.ccd_operation_mode["preamp"] - 1
-        ss = pd.read_csv(self._SPREADSHEET_PATH)
+        ss = pd.read_csv(self.SPREADSHEET_PATH)
         self.ccd_gain = ss[f"CH{self.channel}"][idx_tab]
 
     def _create_table(self, star_coordinates, seeing) -> Table:
         table = Table()
         binn = self.ccd_operation_mode["binn"]
-        gaussian_std = seeing / (self._SPARC4_PLATE_SCALE * binn * 2)
+        gaussian_std = seeing / (self.SPARC4_PLATE_SCALE * binn * 2)
         x_coord = star_coordinates[0]
         y_coord = star_coordinates[1]
         table["x_mean"] = [x_coord]
@@ -139,8 +139,8 @@ class Point_Spread_Function:
     def _create_image_extra_ordinary_ray(self, extra_ordinary_ray) -> ndarray:
         gaussian_amplitude = self._calculate_gaussian_amplitude(extra_ordinary_ray)
         self.table["amplitude"] = gaussian_amplitude
-        self.table["x_mean"] -= self._SPARC4_POL_SEPARATION
-        self.table["y_mean"] -= self._SPARC4_POL_SEPARATION
+        self.table["x_mean"] -= self.SPARC4_POL_SEPARATION
+        self.table["y_mean"] -= self.SPARC4_POL_SEPARATION
 
         star_image = make_gaussian_sources_image(self.shape, self.table)
         star_image += self._make_noise_image()
@@ -180,9 +180,9 @@ class Point_Spread_Function:
             npix (int): number of pixels of PSF of the object.
         """
         gaussian_std = seeing / (
-            self._SPARC4_PLATE_SCALE * self.ccd_operation_mode["binn"] * 2
+            self.SPARC4_PLATE_SCALE * self.ccd_operation_mode["binn"] * 2
         )
         fwhm = 2.355 * gaussian_std
         psf_radius = 3 * fwhm
-        npix = round(pi * psf_radius**2)
+        npix = pi * psf_radius**2
         return npix

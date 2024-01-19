@@ -282,7 +282,7 @@ class Atmosphere(Spectral_Response):
 
         return sed
 
-    def _func(self, wavelength_interv:ndarray, C:float) -> ndarray:
+    def _func(self, wavelength_interv: ndarray, C: float) -> ndarray:
         """Profile for the atmosphere spectral response
 
         Parameters
@@ -389,7 +389,7 @@ class Channel(Spectral_Response):
             will apply the correspondent Stoke matrix. It should be highlighted that the transmission
             of the optical component still be applied.
 
-        retarder_waveplate: ["half", "quarter"], optional
+        retarder_waveplate: ["ideal-half", "half", "ideal-quarter", "quarter"], optional
             The waveplate for polarimetric measurements.
 
         retarder_waveplate_angle: float, optional
@@ -432,7 +432,7 @@ class Channel(Spectral_Response):
     def _apply_photometric_spectral_response(self) -> None:
         for csv_file in self.PHOT_OPTICAL_COMPONENTS.values():
             if csv_file != "collimator.csv":
-                csv_file = os.path.join(f"Channel {self._channel_id}", csv_file)
+                csv_file = os.path.join(f"Channel {self.channel_id}", csv_file)
             spectral_response = self.get_spectral_response(
                 self.obj_wavelength, csv_file
             )
@@ -441,7 +441,7 @@ class Channel(Spectral_Response):
         return
 
     def _apply_polarimetric_spectral_response(self) -> None:
-        for csv_file in self._POL_OPTICAL_COMPONENTS.values():
+        for csv_file in self.POL_OPTICAL_COMPONENTS.values():
             spectral_response = self.get_spectral_response(
                 self.obj_wavelength, csv_file
             )
@@ -473,7 +473,7 @@ class Channel(Spectral_Response):
         if self.calibration_wheel == "ideal-polarizer":
             self._apply_ideal_polarizer(spectral_response)
         elif self.calibration_wheel == "polarizer":
-            self._apply_non_ideal_polarizer(spectral_response)
+            self._apply_real_polarizer(spectral_response)
         else:
             raise ValueError(
                 f"A wrong value has been provided for the polarizer: {self.calibration_wheel}"
@@ -481,10 +481,10 @@ class Channel(Spectral_Response):
 
     def _apply_ideal_polarizer(self, spectral_response) -> None:
         self.sed = np.multiply(spectral_response, self.sed)
-        polarizer_matrix = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
+        polarizer_matrix = calculate_polarizer_matrix(self.POLARIZER_ANGLE)
         self.sed = apply_matrix(polarizer_matrix, self.sed)
 
-    def _apply_non_ideal_polarizer(self, spectral_response) -> None:
+    def _apply_real_polarizer(self, spectral_response) -> None:
         contrast_ratio = self._get_spectral_response_custom(
             "polarizer_contrast_ratio.csv", "Contrast ratio"
         )
@@ -492,7 +492,7 @@ class Channel(Spectral_Response):
             contrast = contrast_ratio[idx]
             # theta = np.rad2deg(atan(1/sqrt(contrast)))
             # total_transmission = transmission * (1 + 1/contrast)
-            polarizer_matrix = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
+            polarizer_matrix = calculate_polarizer_matrix(self.POLARIZER_ANGLE)
             self.sed[:, idx] = transmission * np.transpose(
                 polarizer_matrix.dot(self.sed[:, idx])
             )
@@ -505,7 +505,7 @@ class Channel(Spectral_Response):
         if self.calibration_wheel == "ideal-depolarizer":
             self._apply_ideal_depolarizer(spectral_response)
         elif self.calibration_wheel == "depolarizer":
-            self._apply_non_ideal_depolarizer(spectral_response)
+            self._apply_real_depolarizer(spectral_response)
         else:
             raise ValueError(
                 f"A wrong value has been provided for the depolarizer: {self.calibration_wheel}"
@@ -514,11 +514,11 @@ class Channel(Spectral_Response):
         return
 
     def _apply_ideal_depolarizer(self, spectral_response) -> None:
-        sed = self.sed
-        self.sed = np.zeros((4, sed.shape[1]))
-        self.sed[0] = sed[0] * spectral_response
+        tmp = self.sed
+        self.sed = np.zeros((4, tmp.shape[1]))
+        self.sed[0] = tmp[0] * spectral_response
 
-    def _apply_non_ideal_depolarizer(self, spectral_response) -> None:
+    def _apply_real_depolarizer(self, spectral_response) -> None:
         self.sed = np.multiply(spectral_response, self.sed)
         for idx, wavelength in enumerate(self.obj_wavelength):
             depolarizer_matrix = calculate_depolarizer_matrix(wavelength)
@@ -526,12 +526,12 @@ class Channel(Spectral_Response):
 
     def _apply_retarder_waveplate(self) -> None:
         if "ideal-" not in self.retarder_waveplate:
-            self._apply_non_ideal_waveplate()
+            self._apply_real_waveplate()
         else:
             self._apply_ideal_waveplate()
         return
 
-    def _apply_non_ideal_waveplate(self) -> None:
+    def _apply_real_waveplate(self) -> None:
         phase_difference = (
             self._get_spectral_response_custom(
                 f"retarder_phase_diff_{self.retarder_waveplate}.csv", "Retardance"
@@ -559,9 +559,9 @@ class Channel(Spectral_Response):
         self.sed = apply_matrix(RETARDER_MATRIX, self.sed)
 
     def _apply_analyzer(self) -> None:
-        ORD_RAY_MATRIX = calculate_polarizer_matrix(self._POLARIZER_ANGLE)
+        ORD_RAY_MATRIX = calculate_polarizer_matrix(self.POLARIZER_ANGLE)
         temp_1 = apply_matrix(ORD_RAY_MATRIX, copy(self.sed))
-        EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(self._POLARIZER_ANGLE + 90)
+        EXTRA_ORD_RAY_MATRIX = calculate_polarizer_matrix(self.POLARIZER_ANGLE + 90)
         temp_2 = apply_matrix(EXTRA_ORD_RAY_MATRIX, copy(self.sed))
         self.sed = np.stack((temp_1[0], temp_2[0]))
 

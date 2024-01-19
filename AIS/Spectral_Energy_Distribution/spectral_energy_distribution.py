@@ -35,26 +35,18 @@ class Spectral_Energy_Distribution:
     The Spectral Energy Distribtution is an abstract class that represents the sky and the source classes.
     """
 
-    _EFFECT_WAVELENGTH = 555.6  # nm
-    _TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
+    EFFECT_WAVELENGTH = 555.6  # nm
+    TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
 
     # https://www.astronomy.ohio-state.edu/martini.10/usefuldata.html
     # https://cass.ucsd.edu/archive/physics/ph162/mags.html
-    _S_0 = 3.658e-2  # W/(m.m2)
-    _BASE_PATH = os.path.join("AIS", "Spectral_Energy_Distribution")
+    S_0 = 3.658e-2  # W/(m.m2)
+    BASE_PATH = os.path.join("AIS", "Spectral_Energy_Distribution")
 
     def __init__(self) -> None:
         """Initialize the Spectral Energy Distribution Class."""
         self.sed = np.linspace(100, 1000, 100)
         return
-
-    def get_sed(self) -> ndarray:
-        """Get the Spectral Energy Distribution."""
-        return self.sed
-
-    def write_sed(self, sed: ndarray) -> None:
-        """Write the Spectral Energy Distribution to the class."""
-        self.sed = sed
 
     def calculate_sed(self) -> ndarray:
         """Calculate the Spectral Energy Distribution.
@@ -80,10 +72,10 @@ class Spectral_Energy_Distribution:
 
     def _calculate_photons_density(self, magnitude) -> float:
         return (
-            self._S_0
+            self.S_0
             * 10 ** (-magnitude / 2.5)
-            * self._TELESCOPE_EFFECTIVE_AREA
-            * self._EFFECT_WAVELENGTH
+            * self.TELESCOPE_EFFECTIVE_AREA
+            * self.EFFECT_WAVELENGTH
             * 1e-9
             / (h * c)
         )
@@ -106,7 +98,7 @@ class Source(Spectral_Energy_Distribution):
     """
 
     def __init__(self) -> None:
-        self.SPECTRAL_LIB_PATH = os.path.join(self._BASE_PATH, "Spectral_Library")
+        self.SPECTRAL_LIB_PATH = os.path.join(self.BASE_PATH, "Spectral_Library")
         return
 
     def calculate_sed(
@@ -167,7 +159,7 @@ class Source(Spectral_Energy_Distribution):
             wavelength = np.linspace(wv[0], wv[1], wv[2])
             sed = self._calculate_sed_blackbody(wavelength, temperature)
             normalization_flux = self._interpolate_spectral_distribution(
-                wavelength, sed, self._EFFECT_WAVELENGTH
+                wavelength, sed, self.EFFECT_WAVELENGTH
             )
             sed /= normalization_flux
         elif calculation_method == "spectral_library":
@@ -307,8 +299,8 @@ class Source(Spectral_Energy_Distribution):
     def _read_spectral_library(self, spectral_type) -> tuple[ndarray]:
         path = os.path.join(self.SPECTRAL_LIB_PATH, "uk" + spectral_type + ".csv")
         try:
-            sed = pd.read_csv(path)
-            return sed["wavelength (nm)"], sed["flux (F_lambda)"]
+            ss = pd.read_csv(path)
+            return ss["wavelength (nm)"], ss["flux (F_lambda)"]
         except FileNotFoundError:
             print(f"\nThe spectral type {spectral_type} is not available.")
             self.print_available_spectral_types()
@@ -336,7 +328,7 @@ class Sky(Spectral_Energy_Distribution):
         return
 
     def _read_csv(self, file_name, value_name) -> tuple[ndarray]:
-        file_name = os.path.join(self._BASE_PATH, file_name)
+        file_name = os.path.join(self.BASE_PATH, file_name)
         ss = pd.read_csv(file_name)
         wavelenght = ss["wavelength"]
         value = ss[value_name]
