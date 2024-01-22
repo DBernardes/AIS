@@ -5,20 +5,23 @@
 #
 
 import os
+import unittest
+from copy import copy
+from math import atan, sqrt
+
 import numpy as np
 import pandas as pd
-import pytest, unittest
+import pytest
+from numpy import cos, pi, sin
+from scipy.interpolate import PchipInterpolator, interp1d, splev, splrep
+
 from AIS.Spectral_Response import Channel
 from AIS.Spectral_Response._utils import (
+    apply_matrix,
+    calculate_depolarizer_matrix,
     calculate_polarizer_matrix,
     calculate_retarder_matrix,
-    calculate_depolarizer_matrix,
-    apply_matrix,
 )
-from numpy import cos, pi, sin
-from scipy.interpolate import splev, splrep, interp1d, PchipInterpolator
-from math import atan, sqrt
-from copy import copy
 
 
 class Test_Channel(unittest.TestCase):

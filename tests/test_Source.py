@@ -5,17 +5,20 @@
 #
 
 import os
+import unittest
 from copy import copy
-import numpy as np
-import pandas as pd
-import unittest, pytest
-from AIS.Spectral_Energy_Distribution import Source
-from scipy.interpolate import splev, splrep
-from scipy.constants import c, h, k
-from sbpy.calib import vega_fluxd
 from math import pi, sqrt, tan
 from sys import exit
-from AIS.Spectral_Response._utils import calculate_polarizer_matrix, apply_matrix
+
+import numpy as np
+import pandas as pd
+import pytest
+from sbpy.calib import vega_fluxd
+from scipy.constants import c, h, k
+from scipy.interpolate import splev, splrep
+
+from AIS.Spectral_Energy_Distribution import Source
+from AIS.Spectral_Response._utils import apply_matrix, calculate_polarizer_matrix
 
 
 class Test_Source(unittest.TestCase):

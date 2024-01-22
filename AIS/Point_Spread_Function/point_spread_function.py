@@ -98,6 +98,7 @@ class Point_Spread_Function:
         ordinary_ray: float,
         extra_ordinary_ray: float = 0,
         seeing: float = 1,
+        seed: float = 1,
     ) -> ndarray:
         """Create the star image.
 
@@ -116,12 +117,16 @@ class Point_Spread_Function:
         seeing: float, optional
             The size of the seeing disk.
 
+        seed: float, optional
+            The seed used for the creation of the noise images. Default value to 1.
+
         Returns
         -------
 
         star_image: ndarray
             The Point Spred Function of the star for the respective CCD operation mode.
         """
+        self.seed = seed
         self._create_table(star_coordinates, seeing)
         star_image = self._create_image_ordinary_ray(ordinary_ray)
         if extra_ordinary_ray != 0:
@@ -163,7 +168,10 @@ class Point_Spread_Function:
 
     def _make_noise_image(self) -> ndarray:
         amplitude = self.table["amplitude"]
-        noise_image = make_noise_image(self.shape, "poisson", amplitude) - amplitude
+        noise_image = (
+            make_noise_image(self.shape, "poisson", amplitude, seed=self.seed)
+            - amplitude
+        )
         self.table["amplitude"] = 1
         noise_image *= make_gaussian_sources_image(self.shape, self.table)
         return noise_image

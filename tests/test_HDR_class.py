@@ -9,11 +9,13 @@ Created on Fri Apr 16 11:53:12 2021
 """
 
 
-import astropy.io.fits as fits
-import os
 import datetime
+import os
+
+import astropy.io.fits as fits
 import pandas as pd
 import pytest
+
 from AIS.Header import Header
 
 ccd_operation_mode = {

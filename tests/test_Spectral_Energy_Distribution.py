@@ -5,13 +5,15 @@
 #
 
 import os
+import unittest
+
 import numpy as np
 import pandas as pd
-import unittest
-from AIS.Spectral_Energy_Distribution import Spectral_Energy_Distribution
-from scipy.interpolate import splev, splrep
 from sbpy.calib import vega_fluxd
 from scipy.constants import c, h, k
+from scipy.interpolate import splev, splrep
+
+from AIS.Spectral_Energy_Distribution import Spectral_Energy_Distribution
 
 
 class Test_Spectral_Energy_Distribution(unittest.TestCase):

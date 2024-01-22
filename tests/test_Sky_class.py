@@ -5,13 +5,16 @@
 #
 
 import os
+import unittest
+
 import numpy as np
 import pandas as pd
-import pytest, unittest
-from AIS.Spectral_Energy_Distribution import Sky
-from scipy.interpolate import splev, splrep, interp1d
-from scipy.constants import c, h
+import pytest
 from sbpy.calib import vega_fluxd
+from scipy.constants import c, h
+from scipy.interpolate import interp1d, splev, splrep
+
+from AIS.Spectral_Energy_Distribution import Sky
 
 
 class Test_Sky(unittest.TestCase):

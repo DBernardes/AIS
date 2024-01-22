@@ -9,10 +9,12 @@ Created on Thu Apr 22 13:44:35 2021
 """
 
 
-import numpy as np
 import unittest
-from AIS.Background_Image import Background_Image
+
+import numpy as np
 from photutils.datasets import make_noise_image
+
+from AIS.Background_Image import Background_Image
 from AIS.Noise import Noise
 
 
@@ -30,6 +32,7 @@ class Test_Back_Ground_Image(unittest.TestCase):
     BGI_CONV = Background_Image(CCD_OP_MODE, 1, TEMP)
     CCD_GAIN = BGI_CONV.ccd_gain
     PIXEL_SENSIBILITY = 0.03
+    SEED = 5
 
     @classmethod
     def setUpClass(cls):
@@ -66,16 +69,16 @@ class Test_Back_Ground_Image(unittest.TestCase):
         assert self.BGI_CONV.ccd_gain == 3.37
 
     def test_create_bias_background(self):
-        bbg = self.BGI_CONV.create_bias_background()
+        bbg = self.BGI_CONV.create_bias_background(self.SEED)
 
         image_size = self.CCD_OP_MODE["image_size"]
         shape = (image_size, image_size)
         noise_adu = self.read_noise / self.CCD_GAIN
         bias_background = make_noise_image(
-            shape, distribution="gaussian", mean=500, stddev=noise_adu
+            shape, distribution="gaussian", mean=500, stddev=noise_adu, seed=self.SEED
         )
 
-        assert np.allclose(bbg, bias_background, rtol=5 * noise_adu)
+        assert np.allclose(bbg, bias_background)
 
     def test_create_dark_background(self):
         image_size = self.CCD_OP_MODE["image_size"]
@@ -90,11 +93,15 @@ class Test_Back_Ground_Image(unittest.TestCase):
         )
 
         dark_background = make_noise_image(
-            shape, distribution="gaussian", mean=dark_level, stddev=noise
+            shape,
+            distribution="gaussian",
+            mean=dark_level,
+            stddev=noise,
+            seed=self.SEED,
         )
 
         assert np.allclose(
-            dark_background, self.BGI_CONV.create_dark_background(), rtol=5 * noise
+            dark_background, self.BGI_CONV.create_dark_background(self.SEED)
         )
 
     def test_create_flat_image(self):
@@ -117,11 +124,15 @@ class Test_Back_Ground_Image(unittest.TestCase):
         )
 
         flat_background = make_noise_image(
-            shape, distribution="gaussian", mean=FLAT_LEVEL, stddev=noise
+            shape,
+            distribution="gaussian",
+            mean=FLAT_LEVEL,
+            stddev=noise,
+            seed=self.SEED,
         )
 
         assert np.allclose(
-            flat_background, self.BGI_CONV.create_flat_background(), rtol=5 * noise
+            flat_background, self.BGI_CONV.create_flat_background(self.SEED)
         )
 
     def test_create_sky_background(self):
@@ -144,9 +155,13 @@ class Test_Back_Ground_Image(unittest.TestCase):
 
         shape = (image_size, image_size)
         sky_background = make_noise_image(
-            shape, distribution="gaussian", mean=sky_background, stddev=noise
+            shape,
+            distribution="gaussian",
+            mean=sky_background,
+            stddev=noise,
+            seed=self.SEED,
         )
 
         assert np.allclose(
-            sky_background, self.BGI_CONV.create_sky_background(10), rtol=5 * noise
+            sky_background, self.BGI_CONV.create_sky_background(10, self.SEED)
         )

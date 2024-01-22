@@ -11,13 +11,16 @@ Created on Fri Apr 16 11:53:12 2021
 """
 
 
+import os
+import unittest
+from math import pi
+
 import numpy as np
-import pytest, unittest
-from AIS.Point_Spread_Function import Point_Spread_Function
+import pytest
 from astropy.table import Table
 from photutils.datasets import make_gaussian_sources_image, make_noise_image
-from math import pi
-import os
+
+from AIS.Point_Spread_Function import Point_Spread_Function
 
 
 class Test_PSF(unittest.TestCase):
@@ -36,6 +39,7 @@ class Test_PSF(unittest.TestCase):
     SPARC4_PLATE_SCALE = 0.35  # arcsec/pix
     SPREADSHEET_PATH = os.path.join("AIS", "Point_Spread_Function", "preamp_gains.csv")
     SEEING = 1
+    SEED = 5
 
     @classmethod
     def setUpClass(cls):
@@ -109,29 +113,37 @@ class Test_PSF(unittest.TestCase):
         self.PSF._create_table((50, 50), self.SEEING)
         gaussian_amplitude = self.PSF._calculate_gaussian_amplitude(100)
         self.PSF.table["amplitude"] = gaussian_amplitude
+        self.PSF.seed = self.SEED
         image_noise = self.PSF._make_noise_image()
 
         table = self.PSF.table
         new_image = (
-            make_noise_image(self.PSF.shape, "poisson", gaussian_amplitude)
+            make_noise_image(
+                self.PSF.shape, "poisson", gaussian_amplitude, seed=self.SEED
+            )
             - gaussian_amplitude
         )
         table["amplitude"] = [1]
         new_image *= make_gaussian_sources_image(self.PSF.shape, table)
-        assert np.allclose(new_image, image_noise, atol=5 * np.sqrt(gaussian_amplitude))
+        assert np.allclose(new_image, image_noise)
 
     def test_create_image_ordinary_ray(self):
         self.PSF._create_table((100, 100), self.SEEING)
         gaussian_amplitude = self.PSF._calculate_gaussian_amplitude(100)
         self.PSF.table["amplitude"] = gaussian_amplitude
+        self.PSF.seed = self.SEED
         star_image = make_gaussian_sources_image(self.PSF.shape, self.PSF.table)
         star_image += self.PSF._make_noise_image()
 
         new_image = self.PSF._create_image_ordinary_ray(100)
 
-        assert np.allclose(star_image, new_image, atol=5 * np.sqrt(gaussian_amplitude))
+        assert np.allclose(star_image, new_image)
 
     def test_create_image_extra_ordinary_ray(self):
+        self.PSF._create_table((100, 100), self.SEEING)
+        self.PSF.seed = self.SEED
+        new_image = self.PSF._create_image_extra_ordinary_ray(100)
+
         self.PSF._create_table((100, 100), self.SEEING)
         gaussian_amplitude = self.PSF._calculate_gaussian_amplitude(100)
         self.PSF.table["amplitude"] = gaussian_amplitude
@@ -140,16 +152,17 @@ class Test_PSF(unittest.TestCase):
         star_image = make_gaussian_sources_image(self.PSF.shape, self.PSF.table)
         star_image += self.PSF._make_noise_image()
 
-        new_image = self.PSF._create_image_extra_ordinary_ray(100)
-
-        assert np.allclose(star_image, new_image, atol=5 * np.sqrt(gaussian_amplitude))
+        assert np.allclose(star_image, new_image)
 
     def test_creat_star_image(self):
+        self.PSF.seed = self.SEED
         self.PSF._create_table((100, 100), self.SEEING)
         gaussian_amplitude = self.PSF._calculate_gaussian_amplitude(100)
         star_image = self.PSF._create_image_ordinary_ray(100)
         star_image += self.PSF._create_image_extra_ordinary_ray(100)
 
-        new_image = self.PSF.create_star_image((100, 100), 100, 100, self.SEEING)
+        new_image = self.PSF.create_star_image(
+            (100, 100), 100, 100, self.SEEING, self.SEED
+        )
 
         assert np.allclose(star_image, new_image, atol=5 * np.sqrt(gaussian_amplitude))

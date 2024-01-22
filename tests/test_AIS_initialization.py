@@ -28,10 +28,19 @@ Created on Fri Apr 16 09:10:51 2021
 """
 
 
-import unittest, pytest
-import datetime, os
+import datetime
+import os
+import unittest
+
+import astropy.io.fits as fits
 import numpy as np
+import pytest
+
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
+from AIS.Background_Image import Background_Image
+from AIS.Header import Header
+from AIS.Noise import Noise
+from AIS.Point_Spread_Function import Point_Spread_Function
 
 
 class Test_AIS_Initialization(unittest.TestCase):
@@ -207,6 +216,7 @@ class Test_AIS_Operation(unittest.TestCase):
     AIS = Artificial_Image_Simulator(CCD_OP_MODE, CH_ID, TEMP)
     MAGNITUDE = 15
     FITS_PATH = os.path.join("tests", "fits")
+    SEED = 5
 
     @classmethod
     def setUpClass(cls):
@@ -269,6 +279,38 @@ class Test_AIS_Operation(unittest.TestCase):
         now = datetime.datetime.now()
         datetime_str = now.strftime("%Y%m%d_s4c1_000004.fits")
         assert self.AIS.image_name == datetime_str
+
+    def test_calculate_exposure_time(self):
+        snr = 100
+        seeing = 1
+        psf = Point_Spread_Function(self.CCD_OP_MODE, self.CH_ID)
+        n_pix = psf.calculate_npix_star(seeing)
+        noise_obj = Noise(self.CH_ID)
+        dark_noise = noise_obj.calculate_dark_current(self.TEMP)
+        read_noise = noise_obj.calculate_read_noise(self.CCD_OP_MODE)
+        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_sky_sed("full")
+        self.AIS.apply_sparc4_spectral_response("photometry")
+        min_t_exp = self.AIS.calculate_exposure_time(snr, seeing)
+
+        noise_factor = 1.0
+        em_gain = 1.0
+        binn = self.CCD_OP_MODE["binn"]
+
+        a = self.AIS.star_photons_per_second**2
+        b = (
+            snr**2
+            * noise_factor**2
+            * (
+                self.AIS.star_photons_per_second
+                + n_pix * (self.AIS.sky_photons_per_second + dark_noise)
+            )
+        )
+        c = snr**2 * n_pix * (read_noise / em_gain / binn) ** 2
+
+        texp_list = self.AIS._solve_second_degree_eq(a, -b, -c)
+
+        assert min_t_exp == min([texp for texp in texp_list if texp > 0])
 
     # def test_create_source_sed_blackbody(self):
     #     self.AIS.create_source_sed(
@@ -361,145 +403,227 @@ class Test_AIS_Operation(unittest.TestCase):
 
     # # --------------------------- test create artificial image ----------------
 
-    # sparc4_operation_mode = "photometry"
-    # star_coordinates = (50, 50)
+    def test_create_artificial_image_phot(self):
+        star_coordinates = (50, 50)
+        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_sky_sed("full")
+        self.AIS.apply_sparc4_spectral_response("photometry")
+        self.AIS.create_artificial_image(self.FITS_PATH, star_coordinates, 1, self.SEED)
+        file1 = os.path.join(self.FITS_PATH, self.AIS.image_name)
 
-    # path = os.path.join("tests", "fits")
+        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_sky_sed("full")
+        self.AIS.apply_sparc4_spectral_response("photometry")
+        self.AIS._integrate_sed()
+        ord_ray, extra_ord_ray = self.AIS.star_photons_per_second, 0
 
-    # def test_create_artificial_image_phot(self):
-    #     self.AIS.create_source_sed(
-    #         calculation_method, magnitude, wavelegnth_interval, star_temperature
-    #     )
-    #     self.AIS.create_sky_sed(moon_phase)
-    #     self.AIS.create_artificial_image(path, star_coordinates)
-    #     os.remove(os.path.join(path, self.AIS.image_name))
+        bgi = Background_Image(self.CCD_OP_MODE, self.CH_ID, self.TEMP)
+        background = bgi.create_sky_background(
+            self.AIS.sky_photons_per_second, self.SEED
+        )
+        psf = Point_Spread_Function(self.CCD_OP_MODE, self.CH_ID)
+        star_psf = psf.create_star_image(
+            star_coordinates, ord_ray, extra_ord_ray, 1, self.SEED
+        )
+        self.AIS._create_image_name(self.FITS_PATH)
+        hdr = Header(self.CCD_OP_MODE, self.TEMP, self.CH_ID)
+        header = hdr.create_header()
+        header["OBSTYPE"] = "OBJECT"
+        header["FILENAME"] = self.AIS.image_name
+        header["SHUTTER"] = "OPEN"
 
-    # # def test_create_artificial_image_pol():
-    # #     ccd_operation_mode = {
-    # #         "em_mode": "Conv",
-    # #         "em_gain": 1,
-    # #         "preamp": 1,
-    # #         "hss": 1,
-    # #         "binn": 1,
-    # #         "t_exp": 1,
-    # #         "ccd_temp": -70,
-    # #         "image_size": 100,
-    # #     }
-    # #     sparc4_operation_mode = {
-    # #         "acquisition_mode": "polarimetric",
-    # #         "calibration_wheel": "empty",
-    # #         "retarder": "quarter",
-    # #     }
-    # #     ais = Artificial_Image_Simulator(
-    # #         ccd_operation_mode,
-    # #         image_dir=os.path.join("FITS"),
-    # #     )
-    # #     self.AIS.apply_sparc4_spectral_response(sparc4_operation_mode)
-    # #     self.AIS.create_artificial_image()
+        image = background + star_psf
+        file2 = os.path.join(self.FITS_PATH, self.AIS.image_name)
+        fits.writeto(
+            file2,
+            image,
+            header=header,
+        )
+        with fits.open(file1, memmap=True) as hdulist:
+            image1 = hdulist[0].data.copy()
+        with fits.open(file2, memmap=True) as hdulist:
+            image2 = hdulist[0].data.copy()
 
-    # def test_create_background_image():
-    #     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
-    #     self.AIS.create_source_sed(
-    #         calculation_method, magnitude, wavelegnth_interval, star_temperature
-    #     )
-    #     self.AIS.create_sky_sed(moon_phase)
-    #     self.AIS.apply_sparc4_spectral_response("photometry")
-    #     self.AIS.create_background_image(path)
-    #     os.remove(os.path.join(path, self.AIS.image_name))
+        assert np.allclose(image1, image2)
+        os.remove(file1)
+        os.remove(file2)
 
-    # def test_creat_background_image_error(self):
-    #     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
-    #     with pytest.raises(ValueError):
-    #         self.AIS.create_background_image(path, 0)
+    def test_create_artificial_image_pol(self):
+        star_coordinates = (50, 50)
+        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_sky_sed("full")
+        self.AIS.apply_sparc4_spectral_response("polarimetry")
+        self.AIS.create_artificial_image(self.FITS_PATH, star_coordinates, 1, self.SEED)
+        file1 = os.path.join(self.FITS_PATH, self.AIS.image_name)
 
-    # def test_creat_bias_image(self):
-    #     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
-    #     self.AIS.create_bias_image(path)
-    #     os.remove(os.path.join(path, self.AIS.image_name))
+        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_sky_sed("full")
+        self.AIS.apply_sparc4_spectral_response("polarimetry")
+        self.AIS._integrate_sed()
+        self.AIS.sky_photons_per_second = sum(self.AIS.sky_photons_per_second)
+        ord_ray, extra_ord_ray = (
+            self.AIS.star_photons_per_second[0],
+            self.AIS.star_photons_per_second[1],
+        )
 
-    # def test_creat_bias_image_error(self):
-    #     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
-    #     with pytest.raises(ValueError):
-    #         self.AIS.create_bias_image(path, 0)
+        bgi = Background_Image(self.CCD_OP_MODE, self.CH_ID, self.TEMP)
+        background = bgi.create_sky_background(
+            self.AIS.sky_photons_per_second, self.SEED
+        )
+        psf = Point_Spread_Function(self.CCD_OP_MODE, self.CH_ID)
+        star_psf = psf.create_star_image(
+            star_coordinates, ord_ray, extra_ord_ray, 1, self.SEED
+        )
+        self.AIS._create_image_name(self.FITS_PATH)
+        hdr = Header(self.CCD_OP_MODE, self.TEMP, self.CH_ID)
+        header = hdr.create_header()
+        header["OBSTYPE"] = "OBJECT"
+        header["FILENAME"] = self.AIS.image_name
+        header["SHUTTER"] = "OPEN"
 
-    # def test_creat_dark_image():
-    #     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
-    #     self.AIS.create_dark_image(path)
-    #     os.remove(os.path.join(path, self.AIS.image_name))
+        image = background + star_psf
+        file2 = os.path.join(self.FITS_PATH, self.AIS.image_name)
+        fits.writeto(
+            file2,
+            image,
+            header=header,
+        )
+        with fits.open(file1, memmap=True) as hdulist:
+            image1 = hdulist[0].data.copy()
+        with fits.open(file2, memmap=True) as hdulist:
+            image2 = hdulist[0].data.copy()
 
-    # def test_creat_dark_image_error(self):
-    #     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
-    #     with pytest.raises(ValueError):
-    #         self.AIS.create_dark_image(path, 0)
+        assert np.allclose(image1, image2)
+        os.remove(file1)
+        os.remove(file2)
 
-    # # def test_creat_random_image():
-    # #     ccd_operation_mode = {
-    # #         "em_mode": "Conv",
-    # #         "em_gain": 1,
-    # #         "preamp": 1,
-    # #         "hss": 1,
-    # #         "binn": 1,
-    # #         "t_exp": 1,
-    # #         "ccd_temp": -70,
-    # #         "image_size": 100,
-    # #     }
-    # #     ais = Artificial_Image_Simulator(ccd_operation_mode, image_dir=os.path.join("FITS"))
-    # #     self.AIS.create_random_image(n=2)
+    def test_create_background_image(self):
+        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_sky_sed("full")
+        self.AIS.apply_sparc4_spectral_response("photometry")
+        self.AIS.create_background_image(self.FITS_PATH, 1, self.SEED)
+        file1 = os.path.join(self.FITS_PATH, self.AIS.image_name)
 
-    # def test_creat_flat_image():
-    #     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
-    #     self.AIS.create_flat_image(path)
-    #     os.remove(os.path.join(path, self.AIS.image_name))
+        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_sky_sed("full")
+        self.AIS.apply_sparc4_spectral_response("photometry")
+        self.AIS._integrate_sed()
 
-    # def test_creat_flat_image_error(self):
-    #     ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
-    #     with pytest.raises(ValueError):
-    #         self.AIS.create_flat_image(path, 0)
+        bgi = Background_Image(self.CCD_OP_MODE, self.CH_ID, self.TEMP)
+        background = bgi.create_sky_background(
+            self.AIS.sky_photons_per_second, self.SEED
+        )
+
+        self.AIS._create_image_name(self.FITS_PATH)
+        hdr = Header(self.CCD_OP_MODE, self.TEMP, self.CH_ID)
+        header = hdr.create_header()
+        header["OBSTYPE"] = "OBJECT"
+        header["FILENAME"] = self.AIS.image_name
+        header["SHUTTER"] = "OPEN"
+
+        image = background
+        file2 = os.path.join(self.FITS_PATH, self.AIS.image_name)
+        fits.writeto(
+            file2,
+            image,
+            header=header,
+        )
+        with fits.open(file1, memmap=True) as hdulist:
+            image1 = hdulist[0].data.copy()
+        with fits.open(file2, memmap=True) as hdulist:
+            image2 = hdulist[0].data.copy()
+
+        assert np.allclose(image1, image2)
+        os.remove(file1)
+        os.remove(file2)
+
+    def test_creat_bias_image(self):
+        self.AIS.create_bias_image(self.FITS_PATH, 1, self.SEED)
+        file1 = os.path.join(self.FITS_PATH, self.AIS.image_name)
+
+        bgi = Background_Image(self.CCD_OP_MODE, self.CH_ID, self.TEMP)
+        bias = bgi.create_bias_background(self.SEED)
+        hdr = Header(self.CCD_OP_MODE, self.TEMP, self.CH_ID)
+        header = hdr.create_header()
+        self.AIS._create_image_name(self.FITS_PATH)
+        header["EXPTIME"] = 1e-5
+        header["FILENAME"] = self.AIS.image_name
+        header["OBSTYPE"] = "ZERO"
+
+        file2 = os.path.join(self.FITS_PATH, self.AIS.image_name)
+
+        fits.writeto(
+            file2,
+            bias,
+            header=header,
+        )
+        with fits.open(file1, memmap=True) as hdulist:
+            image1 = hdulist[0].data.copy()
+        with fits.open(file2, memmap=True) as hdulist:
+            image2 = hdulist[0].data.copy()
+
+        assert np.allclose(image1, image2)
+        os.remove(file1)
+        os.remove(file2)
+
+    def test_create_dark_image(self):
+        self.AIS.create_dark_image(self.FITS_PATH, 1, self.SEED)
+        file1 = os.path.join(self.FITS_PATH, self.AIS.image_name)
+
+        bgi = Background_Image(self.CCD_OP_MODE, self.CH_ID, self.TEMP)
+        dark = bgi.create_dark_background(self.SEED)
+        hdr = Header(self.CCD_OP_MODE, self.TEMP, self.CH_ID)
+        header = hdr.create_header()
+        self.AIS._create_image_name(self.FITS_PATH)
+        header["EXPTIME"] = 1e-5
+        header["FILENAME"] = self.AIS.image_name
+        header["OBSTYPE"] = "ZERO"
+
+        file2 = os.path.join(self.FITS_PATH, self.AIS.image_name)
+
+        fits.writeto(
+            file2,
+            dark,
+            header=header,
+        )
+        with fits.open(file1, memmap=True) as hdulist:
+            image1 = hdulist[0].data.copy()
+        with fits.open(file2, memmap=True) as hdulist:
+            image2 = hdulist[0].data.copy()
+
+        assert np.allclose(image1, image2)
+        os.remove(file1)
+        os.remove(file2)
+
+    def test_creat_flat_image(self):
+        self.AIS.create_flat_image(self.FITS_PATH, 1, self.SEED)
+        file1 = os.path.join(self.FITS_PATH, self.AIS.image_name)
+
+        bgi = Background_Image(self.CCD_OP_MODE, self.CH_ID, self.TEMP)
+        flat = bgi.create_flat_background(self.SEED)
+        hdr = Header(self.CCD_OP_MODE, self.TEMP, self.CH_ID)
+        header = hdr.create_header()
+        self.AIS._create_image_name(self.FITS_PATH)
+        header["EXPTIME"] = 1e-5
+        header["FILENAME"] = self.AIS.image_name
+        header["OBSTYPE"] = "ZERO"
+
+        file2 = os.path.join(self.FITS_PATH, self.AIS.image_name)
+
+        fits.writeto(
+            file2,
+            flat,
+            header=header,
+        )
+        with fits.open(file1, memmap=True) as hdulist:
+            image1 = hdulist[0].data.copy()
+        with fits.open(file2, memmap=True) as hdulist:
+            image2 = hdulist[0].data.copy()
+
+        assert np.allclose(image1, image2)
+        os.remove(file1)
+        os.remove(file2)
 
     # def test_solve_second_degree_equation(self):
     #     roots = self.AIS._solve_second_degree_eq(1, -4, 4)
     #     assert roots == [2, 2]
-
-    # def test_calculate_exposure_time():
-    #     ais = Artificial_Image_Simulator(
-    #         ccd_operation_mode, channel_id=1, ccd_temperature=-70
-    #     )
-    #     self.AIS.create_source_sed(
-    #         calculation_method="spectral_library",
-    #         magnitude=15,
-    #         wavelength_interval=(400, 1100, 100),
-    #         spectral_type="A0v",
-    #     )
-    #     self.AIS.create_sky_sed(moon_phase="new")
-    #     self.AIS.apply_atmosphere_spectral_response()
-    #     self.AIS.apply_telescope_spectral_response()
-    #     self.AIS.apply_sparc4_spectral_response(acquisition_mode="photometry")
-    #     ais_texp = self.AIS.calculate_exposure_time()
-
-    #     snr = 100
-    #     psf_obj = Point_Spread_Function(ccd_operation_mode, channel_id)
-    #     n_pix = psf_obj.calculate_npix_star(seeing=1.5)
-    #     noise_obj = Noise(channel_id)
-    #     dark_noise = noise_obj.calculate_dark_current(-70)
-    #     read_noise = noise_obj.calculate_read_noise(ccd_operation_mode)
-    #     noise_factor = 1
-    #     em_gain = 1
-    #     binn = ccd_operation_mode["binn"]
-    #     if ccd_operation_mode["em_mode"] == "EM":
-    #         noise_factor = 1.4
-    #         em_gain = ccd_operation_mode["em_gain"]
-    #     star_photons_per_second = self.AIS.star_photons_per_second
-    #     sky_photons_per_second = self.AIS.sky_photons_per_second
-
-    #     a = star_photons_per_second**2
-    #     b = (
-    #         snr**2
-    #         * noise_factor**2
-    #         * (star_photons_per_second + n_pix * (sky_photons_per_second + dark_noise))
-    #     )
-    #     c = snr**2 * n_pix * (read_noise / em_gain / binn) ** 2
-
-    #     texp_list = self.AIS._solve_second_degree_eq(a, -b, -c)
-    #     min_t_exp = min([texp for texp in texp_list if texp > 0])
-
-    #     assert min_t_exp == ais_texp
