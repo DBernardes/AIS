@@ -11,19 +11,19 @@ of an image of the SPARC4 cameras, as a function of its operation mode.
 """
 import datetime
 import os
+from math import sqrt
 from random import randint, uniform
 
 import astropy.io.fits as fits
 import numpy as np
 from numpy import ndarray
-from math import sqrt
 
 from ..Background_Image import Background_Image
 from ..Header import Header
+from ..Noise import Noise
 from ..Point_Spread_Function import Point_Spread_Function
 from ..Spectral_Energy_Distribution import Sky, Source
 from ..Spectral_Response import Atmosphere, Channel, Telescope
-from ..Noise import Noise
 
 __all__ = ["Artificial_Image_Simulator"]
 
@@ -168,18 +168,14 @@ class Artificial_Image_Simulator:
                 )
         else:
             self._verify_var_in_interval(em_gain, "EM Gain", 2, 300)
-
         self._check_var_in_a_list(readout, "readout rate", [0.1, 1, 10, 20, 30])
-
         self._check_var_in_a_list(preamp, "pre-amplification", [1, 2])
-
         self._check_var_in_a_list(binn, "binning", [1, 2])
-
-        self._verify_var_in_interval(image_size, "image size", 0, 1025)
+        self._verify_var_in_interval(image_size, "image size", 1, 1024)
         self.image_size = image_size
-
         self._verify_var_in_interval(t_exp, "exposure time", 1e-5, 84600)
         self.t_exp = t_exp
+        self._verify_var_in_interval(self.ccd_temperature, "ccd temperature", -70, -30)
         return
 
     @staticmethod
@@ -438,7 +434,11 @@ class Artificial_Image_Simulator:
         return min_t_exp
 
     def create_artificial_image(
-        self, image_path: str, star_coordinates: tuple, seeing: float = 1
+        self,
+        image_path: str,
+        star_coordinates: tuple,
+        seeing: float = 1,
+        seed: float = 1,
     ):
         """
         Create the artificial star image.
@@ -456,6 +456,9 @@ class Artificial_Image_Simulator:
         seeing : float, optional
             The seeing of the star.
 
+        seed: float, optinal.
+            The seed used to create the image. Default to 1.
+
         """
         self._integrate_sed()
         ord_ray, extra_ord_ray = self.star_photons_per_second, 0
@@ -465,9 +468,11 @@ class Artificial_Image_Simulator:
                 self.star_photons_per_second[0],
                 self.star_photons_per_second[1],
             )
-        background = self.BGI_obj.create_sky_background(self.sky_photons_per_second)
+        background = self.BGI_obj.create_sky_background(
+            self.sky_photons_per_second, seed
+        )
         star_psf = self.PSF_obj.create_star_image(
-            star_coordinates, ord_ray, extra_ord_ray, seeing
+            star_coordinates, ord_ray, extra_ord_ray, seeing, seed
         )
         self._create_image_name(image_path)
         header = self.HDR_obj.create_header()
@@ -483,7 +488,9 @@ class Artificial_Image_Simulator:
             header=header,
         )
 
-    def create_background_image(self, image_path: str, images: int = 1) -> None:
+    def create_background_image(
+        self, image_path: str, images: int = 1, seed: float = 1
+    ) -> None:
         """Create the background image.
 
         This function creates the background image, similar to those
@@ -497,6 +504,9 @@ class Artificial_Image_Simulator:
 
         images : int, optional
             The number of images to be created. The default is 1.
+
+        seed: float, optinal.
+            The seed used to create the image. Default to 1.
         """
 
         if images < 1:
@@ -504,7 +514,9 @@ class Artificial_Image_Simulator:
 
         for _ in range(images):
             self._integrate_sed()
-            background = self.BGI_obj.create_sky_background(self.sky_photons_per_second)
+            background = self.BGI_obj.create_sky_background(
+                self.sky_photons_per_second, seed
+            )
             header = self.HDR_obj.create_header()
             self._create_image_name(image_path)
             header["FILENAME"] = self.image_name
@@ -515,7 +527,9 @@ class Artificial_Image_Simulator:
 
             fits.writeto(file, background, header=header)
 
-    def create_dark_image(self, image_path: str, images: int = 1) -> None:
+    def create_dark_image(
+        self, image_path: str, images: int = 1, seed: float = 1
+    ) -> None:
         """
         Create a dark image.
 
@@ -530,12 +544,14 @@ class Artificial_Image_Simulator:
         images : int, optional
             The number of dark images to be created. The default is 1.
 
+        seed: float, optinal.
+            The seed used to create the image. Default to 1.
         """
         if images < 1:
             raise ValueError("The number of images must be greater than 0.")
 
         for _ in range(images):
-            dark_image = self.BGI_obj.create_dark_background()
+            dark_image = self.BGI_obj.create_dark_background(seed)
             header = self.HDR_obj.create_header()
             self._create_image_name(image_path)
             header["FILENAME"] = self.image_name
@@ -548,7 +564,9 @@ class Artificial_Image_Simulator:
                 header=header,
             )
 
-    def create_bias_image(self, image_path: str, images: int = 1) -> None:
+    def create_bias_image(
+        self, image_path: str, images: int = 1, seed: float = 1
+    ) -> None:
         """
         Create a bias image.
 
@@ -562,12 +580,15 @@ class Artificial_Image_Simulator:
 
         images : int, optional
             The number of bias images to be created. The default is 1.
+
+        seed: float, optinal.
+            The seed used to create the image. Default to 1.
         """
         if images < 1:
             raise ValueError("The number of images must be greater than 0.")
 
         for _ in range(images):
-            bias = self.BGI_obj.create_bias_background()
+            bias = self.BGI_obj.create_bias_background(seed)
             header = self.HDR_obj.create_header()
             self._create_image_name(image_path)
             header["EXPTIME"] = 1e-5
@@ -583,7 +604,7 @@ class Artificial_Image_Simulator:
             )
 
     def create_random_image(
-        self, image_path, number_stars=10, seeing: float = 1
+        self, image_path, number_stars=10, seeing: float = 1, seed: float = 1
     ) -> None:
         """
         Create a random star image.
@@ -603,6 +624,9 @@ class Artificial_Image_Simulator:
 
         seeing : float, optional
             The seeing of the star.
+
+        seed: float, optinal.
+            The seed used to create the image. Default to 1.
 
         Returns
         -------
@@ -642,7 +666,9 @@ class Artificial_Image_Simulator:
             header=header,
         )
 
-    def create_flat_image(self, image_path: str, images: int = 1) -> None:
+    def create_flat_image(
+        self, image_path: str, images: int = 1, seed: float = 1
+    ) -> None:
         """
         Create a flat image.
 
@@ -656,12 +682,15 @@ class Artificial_Image_Simulator:
 
         images : int, optional
             The number of flat images to be created. The default is 1.
+
+        seed: float, optinal.
+            The seed used to create the image. Default to 1.
         """
         if images < 1:
             raise ValueError("The number of images must be greater than 0.")
 
         for _ in range(images):
-            flat_image = self.BGI_obj.create_flat_background()
+            flat_image = self.BGI_obj.create_flat_background(seed)
             header = self.HDR_obj.create_header()
             self._create_image_name(image_path)
             header["FILENAME"] = self.image_name

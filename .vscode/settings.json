@@ -10,7 +10,13 @@
     "python.analysis.typeCheckingMode": "off",
     "git.ignoreLimitWarning": true,
     "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+             },
+        
+        
+      
     },
-    "python.formatting.provider": "none",
 }

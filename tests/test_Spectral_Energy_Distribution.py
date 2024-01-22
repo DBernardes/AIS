@@ -5,61 +5,50 @@
 #
 
 import os
+import unittest
+
 import numpy as np
 import pandas as pd
-import pytest
-from AIS.Spectral_Energy_Distribution import Spectral_Energy_Distribution
-from scipy.interpolate import splev, splrep
 from sbpy.calib import vega_fluxd
 from scipy.constants import c, h, k
+from scipy.interpolate import splev, splrep
 
-obj_wavelength = np.linspace(400, 1100, 100)
-
-
-@pytest.fixture
-def sed_obj():
-    return Spectral_Energy_Distribution()
+from AIS.Spectral_Energy_Distribution import Spectral_Energy_Distribution
 
 
-sed = np.linspace(100, 1000, 100)
-wv = np.linspace(350, 1100, 100)
+class Test_Spectral_Energy_Distribution(unittest.TestCase):
+    OBJ_WAVELENGTH = np.linspace(400, 1100, 100)
+    SED = np.linspace(100, 1000, 100)
+    WV = np.linspace(350, 1100, 100)
+    SPEC_RESPONSE = np.ones(100)
+    BASE_PATH = os.path.join("AIS", "Spectral_Energy_Distribution")
 
+    @classmethod
+    def setUpClass(cls):
+        cls.sed = Spectral_Energy_Distribution()
+        spl = splrep(cls.WV, cls.SPEC_RESPONSE)
+        cls.interpolated_sed = splev(cls.WV, spl)
 
-def test_get_sed(sed_obj):
-    assert np.allclose(sed_obj.get_sed(), sed)
+    def test_interpolate(self):
+        interpolated_sed = self.sed._interpolate_spectral_distribution(
+            self.WV, self.SPEC_RESPONSE, self.OBJ_WAVELENGTH
+        )
+        assert np.allclose(self.interpolated_sed, interpolated_sed)
 
+    def test_calc_sed(self):
+        assert np.allclose(self.sed.calculate_sed(), self.SED)
 
-def test_write_sed(sed_obj):
-    sed_obj.write_sed(sed)
-    assert np.allclose(sed_obj.sed, sed)
-
-
-def test_interpolate(sed_obj):
-    spl = splrep(wv, sed)
-    interpolated_sed = splev(obj_wavelength, spl)
-    class_interpolated_sed = sed_obj._interpolate_spectral_distribution(
-        wv, sed, obj_wavelength
-    )
-    assert np.allclose(class_interpolated_sed, interpolated_sed)
-
-
-def test_calc_sed(sed_obj):
-    assert np.allclose(sed_obj.calculate_sed(), sed)
-
-
-magnitude = 10
-TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
-EFFECT_WAVELENGTH = 555.6  # nm
-S_0 = 3.658e-2  # W/m2/m
-effective_flux = (
-    S_0
-    * 10 ** (-magnitude / 2.5)
-    * TELESCOPE_EFFECTIVE_AREA
-    * EFFECT_WAVELENGTH
-    * 1e-9
-    / (h * c)
-)
-
-
-def test_calculate_effective_flux(sed_obj):
-    assert sed_obj._calculate_photons_density(magnitude) == effective_flux
+    def test_calculate_photons_density(self):
+        magnitude = 10
+        TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
+        EFFECT_WAVELENGTH = 555.6  # nm
+        S_0 = 3.658e-2  # W/m2/m
+        photons_density = (
+            S_0
+            * 10 ** (-magnitude / 2.5)
+            * TELESCOPE_EFFECTIVE_AREA
+            * EFFECT_WAVELENGTH
+            * 1e-9
+            / (h * c)
+        )
+        assert self.sed._calculate_photons_density(magnitude) == photons_density

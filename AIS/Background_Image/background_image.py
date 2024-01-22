@@ -53,8 +53,8 @@ class Background_Image:
         The bias level of the image in ADU.
     """
 
-    _PIXEL_SENSIBILITY = 0.03
-    _SPREADSHEET_PATH = os.path.join("AIS", "Background_Image", "preamp_gains.csv")
+    PIXEL_SENSIBILITY = 0.03
+    SPREADSHEET_PATH = os.path.join("AIS", "Background_Image", "preamp_gains.csv")
 
     def __init__(
         self,
@@ -72,7 +72,7 @@ class Background_Image:
         if ccd_operation_mode["em_mode"] == "EM":
             self._NOISE_FACTOR = 1.4
 
-        noise = Noise(channel)
+        noise = Noise(channel)  # ? Injeção de dependência
         self.read_noise = noise.calculate_read_noise(ccd_operation_mode)
         self.dark_noise = (
             noise.calculate_dark_current(ccd_temp) * ccd_operation_mode["t_exp"]
@@ -87,10 +87,10 @@ class Background_Image:
         else:
             idx_tab = [1, 0.1].index(readout) * 2 + 8
         idx_tab += self.ccd_operation_mode["preamp"] - 1
-        ss = pd.read_csv(self._SPREADSHEET_PATH)
+        ss = pd.read_csv(self.SPREADSHEET_PATH)
         self.ccd_gain = ss[f"CH{self.channel}"][idx_tab]
 
-    def create_bias_background(self) -> ndarray:
+    def create_bias_background(self, seed: float = 1) -> ndarray:
         """Create the bias background.
 
         This functions creates a bias background with a noise distribution given by a gaussian distribution over the read noise.
@@ -100,18 +100,24 @@ class Background_Image:
         bias_background: array like
             A bias background for the respective CCD operation mode.
 
+        seed: float
+            A seed for the creating of the noise image. Default to 1.
         """
 
         image_size = self.ccd_operation_mode["image_size"]
         shape = (image_size, image_size)
         noise_adu = self.read_noise / self.ccd_gain
         bias_background = make_noise_image(
-            shape, distribution="gaussian", mean=self.bias_level, stddev=noise_adu
+            shape,
+            distribution="gaussian",
+            mean=self.bias_level,
+            stddev=noise_adu,
+            seed=seed,
         )
 
         return bias_background
 
-    def create_dark_background(self) -> ndarray:
+    def create_dark_background(self, seed: float = 1) -> ndarray:
         """
         Create a dark background.
 
@@ -123,7 +129,10 @@ class Background_Image:
         Returns
         -------
         dark_background: array like
-            A dark background for the respective CCD operation mode and the dc level
+            A dark background for the respective CCD operation mode and the dc level.
+
+        seed: float
+            A seed for the creating of the noise image. Default to 1.
 
         """
 
@@ -144,12 +153,12 @@ class Background_Image:
         )
 
         dark_background = make_noise_image(
-            shape, distribution="gaussian", mean=dark_level, stddev=noise
+            shape, distribution="gaussian", mean=dark_level, stddev=noise, seed=seed
         )
 
         return dark_background
 
-    def create_flat_background(self) -> ndarray:
+    def create_flat_background(self, seed: float = 1) -> ndarray:
         """
         Create a flat background.
 
@@ -163,21 +172,24 @@ class Background_Image:
             A flat background with counts distribution around half of the
             pixels depth.
 
+        seed: float
+            A seed for the creating of the noise image. Default to 1.
+
         """
         em_gain = self.ccd_operation_mode["em_gain"]
         binn = self.ccd_operation_mode["binn"]
         image_size = self.ccd_operation_mode["image_size"]
-        _FLAT_LEVEL = 2**15  # ADU
+        FLAT_LEVEL = 2**15  # ADU
         if self.ccd_operation_mode["preamp"] == 1:
-            _FLAT_LEVEL /= 2
+            FLAT_LEVEL /= 2
 
-        poisson_noise = _FLAT_LEVEL / self.ccd_gain
+        poisson_noise = FLAT_LEVEL / self.ccd_gain
         shape = (image_size, image_size)
 
         noise = (
             np.sqrt(
                 self.read_noise**2
-                + (poisson_noise * (1 + self._PIXEL_SENSIBILITY) + self.dark_noise)
+                + (poisson_noise * (1 + self.PIXEL_SENSIBILITY) + self.dark_noise)
                 * self._NOISE_FACTOR**2
                 * em_gain**2
                 * binn**2
@@ -186,12 +198,12 @@ class Background_Image:
         )
 
         flat_background = make_noise_image(
-            shape, distribution="gaussian", mean=_FLAT_LEVEL, stddev=noise
+            shape, distribution="gaussian", mean=FLAT_LEVEL, stddev=noise, seed=seed
         )
 
         return flat_background
 
-    def create_sky_background(self, sky_flux: float) -> ndarray:
+    def create_sky_background(self, sky_flux: float, seed: float = 1) -> ndarray:
         """
         Create a sky background.
 
@@ -205,6 +217,9 @@ class Background_Image:
 
         sky_flux : float
             Photons/s of the sky.
+
+        seed: float
+            A seed for the creating of the noise image. Default to 1.
 
         Returns
         -------
@@ -235,7 +250,7 @@ class Background_Image:
 
         shape = (image_size, image_size)
         sky_background = make_noise_image(
-            shape, distribution="gaussian", mean=sky_background, stddev=noise
+            shape, distribution="gaussian", mean=sky_background, stddev=noise, seed=seed
         )
 
         return sky_background

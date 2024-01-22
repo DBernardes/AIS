@@ -9,152 +9,159 @@ Created on Thu Apr 22 13:44:35 2021
 """
 
 
+import unittest
+
 import numpy as np
-import pytest
-from AIS.Background_Image import Background_Image
 from photutils.datasets import make_noise_image
 
-ccd_operation_mode = {
-    "em_mode": "Conv",
-    "em_gain": 1,
-    "preamp": 1,
-    "readout": 1,
-    "binn": 1,
-    "t_exp": 1,
-    "image_size": 1024,
-}
-ccd_temp = -70
+from AIS.Background_Image import Background_Image
+from AIS.Noise import Noise
 
 
-@pytest.fixture
-def bgi_conv():
-    return Background_Image(ccd_operation_mode, 1, ccd_temp, bias_level=100)
+class Test_Back_Ground_Image(unittest.TestCase):
+    CCD_OP_MODE = {
+        "em_mode": "Conv",
+        "em_gain": 1,
+        "preamp": 1,
+        "readout": 1,
+        "binn": 1,
+        "t_exp": 1,
+        "image_size": 1024,
+    }
+    TEMP = -70
+    BGI_CONV = Background_Image(CCD_OP_MODE, 1, TEMP)
+    CCD_GAIN = BGI_CONV.ccd_gain
+    PIXEL_SENSIBILITY = 0.03
+    SEED = 5
 
+    @classmethod
+    def setUpClass(cls):
+        noise = Noise(1)
+        cls.read_noise = noise.calculate_read_noise(cls.CCD_OP_MODE)
+        cls.dark_noise = (
+            noise.calculate_dark_current(cls.TEMP) * cls.CCD_OP_MODE["t_exp"]
+        )
 
-@pytest.fixture
-def bgi_em():
-    dic = ccd_operation_mode.copy()
-    dic["em_mode"] = "EM"
-    dic["em_gain"] = 2
-    return Background_Image(dic, 1, ccd_temp)
+    # ------------------------ Initialize the class --------------------------
 
+    def test_ccd_operation_mode(self):
+        assert self.BGI_CONV.ccd_operation_mode == self.CCD_OP_MODE
 
-# ------------------------ Initialize the class --------------------------
+    def test_bias_level(self):
+        assert self.BGI_CONV.bias_level == 500
 
+    def test_channel(self):
+        assert self.BGI_CONV.channel == 1
 
-def test_ccd_operation_mode(bgi_conv):
-    assert bgi_conv.ccd_operation_mode == ccd_operation_mode
+    def test_noise_factor(self):
+        assert self.BGI_CONV._NOISE_FACTOR == 1
 
+    def test_read_noise(self):
+        assert self.BGI_CONV.read_noise == 6.67
 
-def test_bias_level(bgi_conv):
-    assert bgi_conv.bias_level == 100
+    def test_dark_noise(self):
+        assert (
+            self.BGI_CONV.dark_noise
+            == 5.8597559895090484e-05 * self.CCD_OP_MODE["t_exp"]
+        )
 
+    def test_get_ccd_gain(self):
+        assert self.BGI_CONV.ccd_gain == 3.37
 
-def test_channel(bgi_conv):
-    assert bgi_conv.channel == 1
+    def test_create_bias_background(self):
+        bbg = self.BGI_CONV.create_bias_background(self.SEED)
 
+        image_size = self.CCD_OP_MODE["image_size"]
+        shape = (image_size, image_size)
+        noise_adu = self.read_noise / self.CCD_GAIN
+        bias_background = make_noise_image(
+            shape, distribution="gaussian", mean=500, stddev=noise_adu, seed=self.SEED
+        )
 
-def test_noise_factor(bgi_conv):
-    assert bgi_conv._NOISE_FACTOR == 1
+        assert np.allclose(bbg, bias_background)
 
+    def test_create_dark_background(self):
+        image_size = self.CCD_OP_MODE["image_size"]
+        em_gain = self.CCD_OP_MODE["em_gain"]
+        binn = self.CCD_OP_MODE["binn"]
+        shape = (image_size, image_size)
+        dark_level = 500 + self.dark_noise * em_gain * binn**2 / self.CCD_GAIN
 
-def test_read_noise(bgi_conv):
-    assert bgi_conv.read_noise == 6.67
+        noise = (
+            np.sqrt(self.read_noise**2 + self.dark_noise * em_gain**2 * binn**2)
+            / self.CCD_GAIN
+        )
 
+        dark_background = make_noise_image(
+            shape,
+            distribution="gaussian",
+            mean=dark_level,
+            stddev=noise,
+            seed=self.SEED,
+        )
 
-def test_dark_noise(bgi_conv):
-    assert bgi_conv.dark_noise == 5.8597559895090484e-05 * ccd_operation_mode["t_exp"]
+        assert np.allclose(
+            dark_background, self.BGI_CONV.create_dark_background(self.SEED)
+        )
 
+    def test_create_flat_image(self):
+        em_gain = self.CCD_OP_MODE["em_gain"]
+        binn = self.CCD_OP_MODE["binn"]
+        image_size = self.CCD_OP_MODE["image_size"]
+        FLAT_LEVEL = 2**14
 
-# ----------------------------------------------------------------------------
+        poisson_noise = FLAT_LEVEL / self.CCD_GAIN
+        shape = (image_size, image_size)
 
+        noise = (
+            np.sqrt(
+                self.read_noise**2
+                + (poisson_noise * (1 + self.PIXEL_SENSIBILITY) + self.dark_noise)
+                * em_gain**2
+                * binn**2
+            )
+            / self.CCD_GAIN
+        )
 
-def test_get_ccd_gain(bgi_conv):
-    idx_tab = bgi_conv.get_ccd_gain()
-    assert bgi_conv.ccd_gain == 3.37
+        flat_background = make_noise_image(
+            shape,
+            distribution="gaussian",
+            mean=FLAT_LEVEL,
+            stddev=noise,
+            seed=self.SEED,
+        )
 
+        assert np.allclose(
+            flat_background, self.BGI_CONV.create_flat_background(self.SEED)
+        )
 
-# ----------------------- Calculate Background Image -------------------------
+    def test_create_sky_background(self):
+        t_exp = self.CCD_OP_MODE["t_exp"]
+        em_gain = self.CCD_OP_MODE["em_gain"]
+        binn = self.CCD_OP_MODE["binn"]
+        image_size = self.CCD_OP_MODE["image_size"]
 
+        sky_background = (
+            500 + (self.dark_noise + 10) * t_exp * em_gain * binn**2 / self.CCD_GAIN
+        )
 
-ccd_gain = 3.37
-read_noise = 6.67
-bias_level = 100
+        noise = (
+            np.sqrt(
+                self.read_noise**2
+                + (10 * t_exp + self.dark_noise) * em_gain**2 * binn**2
+            )
+            / self.CCD_GAIN
+        )
 
+        shape = (image_size, image_size)
+        sky_background = make_noise_image(
+            shape,
+            distribution="gaussian",
+            mean=sky_background,
+            stddev=noise,
+            seed=self.SEED,
+        )
 
-def test_create_bias_background(bgi_conv):
-    bbg = bgi_conv.create_bias_background()
-    bg_level = np.mean(bbg)
-    new_noise = np.std(bbg)
-    noise = read_noise / ccd_gain
-    assert np.allclose(bg_level, bias_level, rtol=0.005)
-    assert np.allclose(noise, new_noise, rtol=0.005)
-
-
-# -------------------------------------------------------------------------------------------------------
-
-
-dark_noise = 5.8597559895090484e-05 * ccd_operation_mode["t_exp"]
-
-
-def test_create_dark_background(bgi_conv):
-    image = bgi_conv.create_dark_background()
-    bg_level = np.mean(image)
-    new_noise = np.std(image)
-    noise = read_noise / ccd_gain
-    assert np.allclose(bg_level, bias_level + dark_noise / ccd_gain, rtol=0.005)
-    assert np.allclose(noise, new_noise, rtol=0.005)
-
-
-# -------------------------------------------------------------------------------------------------------
-
-
-noise_factor = 1
-_FLAT_LEVEL = 2**14
-poisson_noise = _FLAT_LEVEL / ccd_gain
-_PIXEL_SENSIBILITY = 0.03
-em_gain = ccd_operation_mode["em_gain"]
-binn = ccd_operation_mode["binn"]
-noise = (
-    np.sqrt(
-        read_noise**2
-        + (poisson_noise * (1 + _PIXEL_SENSIBILITY))
-        * noise_factor**2
-        * em_gain**2
-        * binn**2
-    )
-    / ccd_gain
-)
-image_size = ccd_operation_mode["image_size"]
-shape = (image_size, image_size)
-flat_background = make_noise_image(
-    shape, distribution="gaussian", mean=_FLAT_LEVEL, stddev=noise
-)
-
-
-def test_create_flat_image(bgi_conv):
-    image = bgi_conv.create_flat_background()
-    assert np.allclose(image, flat_background, rtol=5 * noise)
-
-
-# -------------------------------------------------------------------------------------------------------
-sky_flux = 10
-t_exp = ccd_operation_mode["t_exp"]
-background_level = (
-    bias_level + (sky_flux * t_exp + dark_noise) * em_gain * binn**2 / ccd_gain
-)
-noise = (
-    np.sqrt(
-        read_noise**2
-        + (sky_flux * t_exp + dark_noise) * noise_factor**2 * em_gain**2 * binn**2
-    )
-    / ccd_gain
-)
-
-
-def test_create_sky_background(bgi_conv):
-    image = bgi_conv.create_sky_background(sky_flux)
-    bg_level = np.mean(image)
-    new_noise = np.std(image)
-    assert np.allclose(bg_level, background_level, atol=5 * noise)
-    assert np.allclose(noise, new_noise, rtol=0.005)
+        assert np.allclose(
+            sky_background, self.BGI_CONV.create_sky_background(10, self.SEED)
+        )

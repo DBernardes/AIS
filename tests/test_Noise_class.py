@@ -8,8 +8,10 @@ Created on Fri Apr 23 11:59:02 2021
 @author: denis
 """
 
-import pytest
 import os
+
+import pytest
+
 from AIS.Noise import Noise
 
 
