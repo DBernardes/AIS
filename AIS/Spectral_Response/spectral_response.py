@@ -26,9 +26,9 @@ from scipy.optimize import curve_fit
 
 from ._utils import (
     apply_matrix,
+    calculate_depolarizer_matrix,
     calculate_polarizer_matrix,
     calculate_retarder_matrix,
-    calculate_depolarizer_matrix,
 )
 
 __all__ = ["Atmosphere", "Telescope", "Channel"]
@@ -445,7 +445,7 @@ class Channel(Spectral_Response):
             spectral_response = self.get_spectral_response(
                 self.obj_wavelength, csv_file
             )
-            self.sed = np.multiply(spectral_response, self.sed)
+            self.sed = np.multiply(spectral_response, self.sed)  #  ? Pode isso
 
         if self.calibration_wheel != "":
             self._apply_calibration_wheel()
@@ -490,13 +490,13 @@ class Channel(Spectral_Response):
         )
         for idx, transmission in enumerate(spectral_response):
             contrast = contrast_ratio[idx]
-            # theta = np.rad2deg(atan(1/sqrt(contrast)))
-            # total_transmission = transmission * (1 + 1/contrast)
-            polarizer_matrix = calculate_polarizer_matrix(self.POLARIZER_ANGLE)
-            self.sed[:, idx] = transmission * np.transpose(
+            theta = np.rad2deg(atan(1 / sqrt(contrast)))
+            total_transmission = transmission * (1 + 1 / contrast)
+            polarizer_matrix = calculate_polarizer_matrix(self.POLARIZER_ANGLE + theta)
+            self.sed[:, idx] = total_transmission * np.transpose(
                 polarizer_matrix.dot(self.sed[:, idx])
             )
-            self.sed[1, idx] *= 1 - 1 / contrast
+            self.sed[1, idx] *= 1 - 1 / contrast  # ? ta certo isso
 
     def _apply_depolarizer(self) -> None:
         spectral_response = self.get_spectral_response(

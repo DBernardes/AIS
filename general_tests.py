@@ -1,24 +1,27 @@
-from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
+# -*- coding: utf-8 -*-
 
-ccd_operation_mode = {
-    "em_mode": "Conv",
-    "em_gain": 1,
-    "preamp": 1,
-    "readout": 1,
-    "binn": 1,
-    "t_exp": 1,
-    "image_size": 100,
-}
+"""
+Created on Tue Apr 27 10:23:27 2021
 
-ais = Artificial_Image_Simulator(ccd_operation_mode, channel_id=3, ccd_temperature=-70)
-ais.create_source_sed(
-    calculation_method="spectral_library",
-    magnitude=11.52,
-    wavelength_interval=(400, 1100, 100),
-    spectral_type="G0v",
-)
-ais.create_sky_sed(moon_phase="full")
-ais.apply_atmosphere_spectral_response(air_mass=1.8, sky_condition="regular")
-ais.apply_telescope_spectral_response()
-ais.apply_sparc4_spectral_response(acquisition_mode="photometry")
-ais.create_artificial_image("./FITS", (50, 50), 1)
+@author: denis
+"""
+
+import os
+from math import cos
+
+import numpy as np
+
+from AIS.Spectral_Response import Channel, _utils
+
+ch = Channel(1)
+wv = np.linspace(400, 1100, 100)
+sed = np.zeros((4, 100))
+sed[0, :] = np.ones(100) * 5
+sed[1, :] = np.ones(100) * 5
+
+ch.sed = sed
+ch.obj_wavelength = wv
+ch.write_sparc4_operation_mode("polarimetry", retarder_waveplate_angle=180)
+# ch._apply_real_waveplate()
+# # ch._apply_analyzer()
+# print(ch.sed)

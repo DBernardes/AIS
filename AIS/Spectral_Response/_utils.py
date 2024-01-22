@@ -1,7 +1,8 @@
-from math import sin, cos, pi
+import cmath
+from math import cos, pi, sin
+
 import numpy as np
 from numpy import ndarray
-import cmath
 
 __all__ = [
     "calculate_polarizer_matrix",

@@ -13,10 +13,14 @@
         "editor.defaultFormatter": "ms-python.black-formatter",
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
-            "source.organizeImports": true
-             },
+            "source.organizeImports": "explicit"
+        },
+    
         
         
       
     },
+
+    "notebook.formatOnSave.enabled": true,
+
 }
