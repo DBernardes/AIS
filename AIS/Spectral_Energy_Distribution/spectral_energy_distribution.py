@@ -204,10 +204,13 @@ class Source(Spectral_Energy_Distribution):
                 f"The polarization angle must be in the interval of 0 up to 180: {pol_angle}"
             )
 
+        # TODO: fazer em função de cos e sin
         theta = np.deg2rad(pol_angle)
         tan_value = tan(2 * theta)
         self.sed[1] = self.sed[0] * percent_pol / (100 * sqrt(1 + tan_value**2))
         self.sed[2] = self.sed[1] * tan_value
+        # if pol_angle > 90:
+        #     self.sed[2] *= -1
 
         return self.sed
 
@@ -354,6 +357,7 @@ class Sky(Spectral_Energy_Distribution):
             sed : ndarray
                 The SED of the sky in photons/m/s.
         """
+        # TODO: >800, constante igual a 800
         wavelength, mags = self._read_csv(self.CSV_FILE, moon_phase)
         sed = self._calculate_photons_density(mags)
         temp = self._interpolate_spectral_distribution(
