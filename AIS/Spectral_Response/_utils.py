@@ -24,6 +24,37 @@ def calculate_polarizer_matrix(theta):
     theta = np.deg2rad(theta)
     POLARIZER_MATRIX = 0.5 * np.asarray(
         [
+            [1, cos(2 * theta), 0, 0],
+            [
+                cos(2 * theta),
+                1,
+                0,
+                0,
+            ],
+            [
+                0,
+                0,
+                sin(2 * theta),
+                0,
+            ],
+            [0, 0, 0, sin(2 * theta)],
+        ]
+    )
+    return POLARIZER_MATRIX
+
+
+def calculate_polarizer_matrix_1(theta):
+    """Calculate the polarizer matrix.
+
+    Parameters
+    ----------
+    theta: float
+        Angle of the transmission axis of the polarizer in degrees
+
+    """
+    theta = np.deg2rad(theta)
+    POLARIZER_MATRIX = 0.5 * np.asarray(
+        [
             [1, cos(2 * theta), sin(2 * theta), 0],
             [
                 cos(2 * theta),

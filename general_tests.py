@@ -16,17 +16,13 @@ import numpy as np
 from AIS.Spectral_Response import Channel, _utils
 
 ch = Channel(1)
-wv = np.linspace(400, 1100, 100)
-sed = np.zeros((4, 100))
-sed[0, :] = np.ones(100)
-sed[1, :] = np.ones(100) * 5
-sed[2, :] = np.ones(100) * 5
+wv = np.linspace(400, 1100, 10)
+sed = np.zeros((4, 10))
+sed[0, :] = 1
 
 ch.sed = sed
 ch.obj_wavelength = wv
 ch.write_sparc4_operation_mode("polarimetry", retarder_waveplate_angle=22.5)
-ch._apply_ideal_waveplate()
-ch._apply_analyzer()
-plt.plot(ch.sed[0, :])
-plt.plot(ch.sed[1, :])
-plt.show()
+ch._apply_real_polarizer(np.ones(10))
+
+print(ch.sed)

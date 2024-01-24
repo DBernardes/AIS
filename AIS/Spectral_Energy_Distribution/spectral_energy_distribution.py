@@ -204,13 +204,11 @@ class Source(Spectral_Energy_Distribution):
                 f"The polarization angle must be in the interval of 0 up to 180: {pol_angle}"
             )
 
-        # TODO: fazer em função de cos e sin
         theta = np.deg2rad(pol_angle)
+        percent_pol /= 100
         tan_value = tan(2 * theta)
-        self.sed[1] = self.sed[0] * percent_pol / (100 * sqrt(1 + tan_value**2))
+        self.sed[1] = self.sed[0] * percent_pol / sqrt(1 + tan_value**2)
         self.sed[2] = self.sed[1] * tan_value
-        # if pol_angle > 90:
-        #     self.sed[2] *= -1
 
         return self.sed
 
@@ -291,7 +289,6 @@ class Source(Spectral_Energy_Distribution):
     def _calculate_sed_blackbody(wavelength, temperature) -> float:
         return (
             2
-            * pi
             * h
             * c**2
             / (wavelength * 1e-9) ** 5

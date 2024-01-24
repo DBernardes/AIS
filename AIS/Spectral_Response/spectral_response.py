@@ -491,6 +491,16 @@ class Channel(Spectral_Response):
         for idx, transmission in enumerate(spectral_response):
             contrast = contrast_ratio[idx]
             theta = np.rad2deg(atan(1 / sqrt(contrast)))
+            polarizer_matrix = calculate_polarizer_matrix(self.POLARIZER_ANGLE + theta)
+            self.sed[:, idx] = np.transpose(polarizer_matrix.dot(self.sed[:, idx]))
+
+    def _apply_real_polarizer_1(self, spectral_response) -> None:
+        contrast_ratio = self._get_spectral_response_custom(
+            "polarizer_contrast_ratio.csv", "Contrast ratio"
+        )
+        for idx, transmission in enumerate(spectral_response):
+            contrast = contrast_ratio[idx]
+            theta = np.rad2deg(atan(1 / sqrt(contrast)))
             total_transmission = transmission * (1 + 1 / contrast)
             polarizer_matrix = calculate_polarizer_matrix(self.POLARIZER_ANGLE + theta)
             self.sed[:, idx] = total_transmission * np.transpose(
