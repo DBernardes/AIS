@@ -10,7 +10,7 @@ Theses systems are the atmosphere, the telescope, and the SPARC4 instrument.
 
 import os
 from copy import copy
-from math import atan, sqrt
+from math import atan2, sqrt
 
 import numpy as np
 import pandas as pd
@@ -67,7 +67,7 @@ class Spectral_Response:
 
     @staticmethod
     def _read_csv_file(csv_file_name) -> tuple[ndarray]:
-        ss = pd.read_csv(csv_file_name)
+        ss = pd.read_csv(csv_file_name, dtype=np.float64)
         return np.array(ss["Wavelength (nm)"]), np.array(ss["Transmitance (%)"]) / 100
 
     def _interpolate_spectral_response(self, wavelength, spectral_response) -> ndarray:
@@ -180,40 +180,6 @@ class Atmosphere(Spectral_Response):
         super().__init__()
         return
 
-    def get_spectral_response_2(
-        self,
-        obj_wavelength: ndarray,
-        air_mass: int | float = 1,
-        sky_condition="photometric",
-    ) -> ndarray:
-        """Return the spectral response.
-
-        Parameters
-        ----------
-        obj_wavelength: array like
-            The wavelength interval, in nm, of the object.
-
-        air_mass: int, float
-            The air mass.
-
-        sky_condition: ['photometric', 'regular', 'good']
-            The condition of the sky.
-
-        Yields
-        ------
-        spectral_response: array like
-            The spectral response of the optical system.
-
-        """
-        self.obj_wavelength = obj_wavelength
-        ss = pd.read_csv(os.path.join(self.BASE_PATH, self.ATM_EXTINCTION))
-        spectral_response = 10 ** (-0.4 * air_mass * ss["coeff"])
-        spectral_response = self._interpolate_spectral_response(
-            ss["Wavelength (nm)"], spectral_response
-        )
-
-        return spectral_response
-
     def get_spectral_response(
         self,
         obj_wavelength: ndarray,
@@ -239,7 +205,45 @@ class Atmosphere(Spectral_Response):
             The spectral response of the optical system.
 
         """
-        ss = pd.read_csv(os.path.join(self.BASE_PATH, self.ATM_EXTINCTION_FILE))
+        ss = pd.read_csv(
+            os.path.join(self.BASE_PATH, self.ATM_EXTINCTION_FILE), dtype=np.float64
+        )
+        spectral_response = 10 ** (-0.4 * air_mass * ss[sky_condition])
+        spectral_response = self._interpolate_spectral_response(
+            ss["Wavelength (nm)"], spectral_response, obj_wavelength
+        )
+        spectral_response[spectral_response > 1] = 1
+
+        return spectral_response
+
+    def get_spectral_response_2(
+        self,
+        obj_wavelength: ndarray,
+        air_mass: int | float = 1,
+        sky_condition="photometric",
+    ) -> ndarray:
+        """Return the spectral response.
+
+        Parameters
+        ----------
+        obj_wavelength: array like
+            The wavelength interval, in nm, of the object.
+
+        air_mass: int, float
+            The air mass.
+
+        sky_condition: ['photometric', 'regular', 'good']
+            The condition of the sky.
+
+        Yields
+        ------
+        spectral_response: array like
+            The spectral response of the optical system.
+
+        """
+        ss = pd.read_csv(
+            os.path.join(self.BASE_PATH, self.ATM_EXTINCTION_FILE), dtype=np.float64
+        )
         extinction_coef = 10 ** (-0.4 * air_mass * ss[sky_condition])
         popt_M1, _ = curve_fit(self._func, ss["Wavelength (nm)"], extinction_coef)
 
@@ -303,6 +307,20 @@ class Atmosphere(Spectral_Response):
             sys_wavelength, spectral_response, bounds_error=False, kind="cubic"
         )
         return spl(wavelength_interv) * C
+
+    @staticmethod
+    def _interpolate_spectral_response(
+        wavelength, spectral_response, obj_wavelength
+    ) -> ndarray:
+        spl = interp1d(
+            wavelength,
+            spectral_response,
+            bounds_error=False,
+            fill_value="extrapolate",
+            kind="linear",
+        )
+
+        return spl(obj_wavelength)
 
 
 class Channel(Spectral_Response):
@@ -488,10 +506,14 @@ class Channel(Spectral_Response):
         contrast_ratio = self._get_spectral_response_custom(
             "polarizer_contrast_ratio.csv", "Contrast ratio"
         )
-        for idx, transmission in enumerate(spectral_response):
+        for idx, transx in enumerate(spectral_response):
             contrast = contrast_ratio[idx]
-            theta = np.rad2deg(atan(1 / sqrt(contrast)))
-            polarizer_matrix = calculate_polarizer_matrix(self.POLARIZER_ANGLE + theta)
+            transy = transx / contrast
+            total_transmission = sqrt(transx + transy)
+            theta = np.rad2deg(atan2(1, sqrt(contrast)))
+            polarizer_matrix = total_transmission * calculate_polarizer_matrix(
+                self.POLARIZER_ANGLE + theta
+            )
             self.sed[:, idx] = np.transpose(polarizer_matrix.dot(self.sed[:, idx]))
 
     def _apply_real_polarizer_1(self, spectral_response) -> None:

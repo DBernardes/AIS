@@ -32,7 +32,6 @@ class Test_Source(unittest.TestCase):
     def test_calculate_sed_blackbody(self):
         sed = (
             2
-            * pi
             * h
             * c**2
             / (self.WAVELENGTH * 1e-9) ** 5

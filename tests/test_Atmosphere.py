@@ -39,7 +39,14 @@ class Test_Atmosphere(unittest.TestCase):
         spectral_response = ss["Transmitance (%)"] / 100
         cls.wavelength, cls.spectral_response = wavelength, spectral_response
 
-        spl = PchipInterpolator(wavelength, spectral_response)
+        spl = interp1d(
+            wavelength,
+            spectral_response,
+            bounds_error=False,
+            fill_value="extrapolate",
+            kind="linear",
+        )
+
         cls.interpolated_spectral_response = spl(cls.OBJ_WAVELENGTH)
 
     def test_csv_file_name(self):
@@ -58,7 +65,7 @@ class Test_Atmosphere(unittest.TestCase):
         atm = self.atm
         atm.obj_wavelength = self.OBJ_WAVELENGTH
         class_spectral_response = atm._interpolate_spectral_response(
-            self.wavelength, self.spectral_response
+            self.wavelength, self.spectral_response, self.OBJ_WAVELENGTH
         )
         assert np.allclose(class_spectral_response, self.interpolated_spectral_response)
 
@@ -78,18 +85,16 @@ class Test_Atmosphere(unittest.TestCase):
         assert np.allclose(spectral_response, new_spectral_response)
 
     def test_get_spectral_response(self):
-        extinction_ss = pd.read_csv(
-            os.path.join(self.BASE_PATH, self.ATM_EXTINCTION_FILE)
+        ss = pd.read_csv(
+            os.path.join(self.BASE_PATH, self.ATM_EXTINCTION_FILE), dtype=np.float64
         )
-        extinction_coef = 10 ** (
-            -0.4 * self.AIR_MASS * extinction_ss[self.SKY_CONDITION]
+        spectral_response = 10 ** (-0.4 * self.AIR_MASS * ss[self.SKY_CONDITION])
+        spectral_response = self.atm._interpolate_spectral_response(
+            ss["Wavelength (nm)"], spectral_response, self.OBJ_WAVELENGTH
         )
-        popt_M1, _ = curve_fit(
-            self.atm._func, extinction_ss["Wavelength (nm)"], extinction_coef
-        )
-        new_spectral_response = self.interpolated_spectral_response * popt_M1[0]
+        spectral_response[spectral_response > 1] = 1
 
-        spectral_response = self.atm.get_spectral_response(
+        new_spectral_response = self.atm.get_spectral_response(
             self.OBJ_WAVELENGTH, self.AIR_MASS, self.SKY_CONDITION
         )
 

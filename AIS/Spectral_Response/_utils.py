@@ -38,7 +38,8 @@ def calculate_polarizer_matrix(theta):
                 0,
             ],
             [0, 0, 0, sin(2 * theta)],
-        ]
+        ],
+        dtype=np.float64,
     )
     return POLARIZER_MATRIX
 
@@ -111,7 +112,8 @@ def calculate_retarder_matrix(phase_difference, theta) -> ndarray:
                 -sin(phase_difference) * cos(2 * theta),
                 cos(phase_difference),
             ],
-        ]
+        ],
+        dtype=np.float64,
     )
 
     return retarder_matrix
@@ -187,7 +189,8 @@ def calculate_depolarizer_matrix(wavelength: float):
                 cos(2 * phase_shift) * sin(phase_shift),
                 cos(2 * phase_shift) * sin(phase_shift),
             ],
-        ]
+        ],
+        dtype=np.float64,
     )
     return DEPOLARIZER_MATRIX
 

@@ -11,7 +11,7 @@ import os
 from copy import copy
 
 # from sbpy.calib import vega_fluxd
-from math import pi, sqrt, tan
+from math import cos, pi, sin, sqrt, tan
 from sys import exit
 
 import numpy as np
@@ -58,7 +58,7 @@ class Spectral_Energy_Distribution:
         ndarray
             The Spectral Energy Distribution of the object in photons/s/m.
         """
-        return np.linspace(100, 1000, 100)
+        return np.linspace(100, 1000, 100, dtype=np.float64)
 
     @staticmethod
     def _interpolate_spectral_distribution(
@@ -156,7 +156,7 @@ class Source(Spectral_Energy_Distribution):
 
         if calculation_method == "blackbody":
             wv = wavelength_interval
-            wavelength = np.linspace(wv[0], wv[1], wv[2])
+            wavelength = np.linspace(wv[0], wv[1], wv[2], dtype=np.float64)
             sed = self._calculate_sed_blackbody(wavelength, temperature)
             normalization_flux = self._interpolate_spectral_distribution(
                 wavelength, sed, self.EFFECT_WAVELENGTH
@@ -172,7 +172,7 @@ class Source(Spectral_Energy_Distribution):
         effective_flux = self._calculate_photons_density(magnitude)
 
         n = len(sed)
-        self.sed = np.zeros((4, n))
+        self.sed = np.zeros((4, n), dtype=np.float64)
         self.sed[0] = sed * effective_flux
         self.wavelength = wavelength
 
@@ -206,9 +206,14 @@ class Source(Spectral_Energy_Distribution):
 
         theta = np.deg2rad(pol_angle)
         percent_pol /= 100
-        tan_value = tan(2 * theta)
-        self.sed[1] = self.sed[0] * percent_pol / sqrt(1 + tan_value**2)
-        self.sed[2] = self.sed[1] * tan_value
+        self.sed[1] = self.sed[0] * percent_pol * cos(2 * theta)
+        self.sed[2] = self.sed[0] * percent_pol * sin(2 * theta)
+
+        # theta = np.deg2rad(pol_angle)
+        # percent_pol /= 100
+        # tan_value = tan(2 * theta)
+        # self.sed[1] = self.sed[0] * percent_pol / sqrt(1 + tan_value**2)
+        # self.sed[2] = self.sed[1] * tan_value
 
         return self.sed
 
@@ -299,7 +304,7 @@ class Source(Spectral_Energy_Distribution):
     def _read_spectral_library(self, spectral_type) -> tuple[ndarray]:
         path = os.path.join(self.SPECTRAL_LIB_PATH, "uk" + spectral_type + ".csv")
         try:
-            ss = pd.read_csv(path)
+            ss = pd.read_csv(path, dtype=np.float64)
             return ss["wavelength (nm)"], ss["flux (F_lambda)"]
         except FileNotFoundError:
             print(f"\nThe spectral type {spectral_type} is not available.")
@@ -329,7 +334,7 @@ class Sky(Spectral_Energy_Distribution):
 
     def _read_csv(self, file_name, value_name) -> tuple[ndarray]:
         file_name = os.path.join(self.BASE_PATH, file_name)
-        ss = pd.read_csv(file_name)
+        ss = pd.read_csv(file_name, dtype=np.float64)
         wavelenght = ss["wavelength"]
         value = ss[value_name]
 
@@ -354,12 +359,25 @@ class Sky(Spectral_Energy_Distribution):
             sed : ndarray
                 The SED of the sky in photons/m/s.
         """
-        # TODO: >800, constante igual a 800
         wavelength, mags = self._read_csv(self.CSV_FILE, moon_phase)
         sed = self._calculate_photons_density(mags)
         temp = self._interpolate_spectral_distribution(
             wavelength, sed, object_wavelength
         )
-        sed = np.zeros((4, object_wavelength.shape[0]))
+        sed = np.zeros((4, object_wavelength.shape[0]), dtype=np.float64)
         sed[0] = temp
         return sed
+
+    @staticmethod
+    def _interpolate_spectral_distribution(
+        wavelength, spectral_response, obj_wavelength
+    ) -> ndarray:
+        spl = interp1d(
+            wavelength,
+            spectral_response,
+            bounds_error=False,
+            fill_value="extrapolate",
+            kind="linear",
+        )
+
+        return spl(obj_wavelength)

@@ -1,6 +1,6 @@
 """
-Artificial Images Simulator
-============================
+Artificial Image Simulator
+===========================
 
 The Artificial Images Simulator (AIS) class was developed to generate
 artificial star images, similar to those images that would be acquired by
@@ -268,7 +268,7 @@ class Artificial_Image_Simulator:
         """
         self.source_sed = self.SRC_obj.apply_polarization(stokes)
 
-    def write_source_sed(self, wavelenth: ndarray, sed: ndarray) -> None:
+    def write_source_sed(self, wavelength: ndarray, sed: ndarray) -> None:
         """Write the source SED into the class.
 
         Parameters
@@ -281,9 +281,9 @@ class Artificial_Image_Simulator:
         n = sed.shape
         self.source_sed = sed
         if len(n) == 1:
-            self.source_sed = np.zeros((4, n[0]))
+            self.source_sed = np.zeros((4, n[0]), dtype=np.float64)
             self.source_sed[0] = sed
-        self.wavelength = wavelenth
+        self.wavelength = wavelength
         return
 
     def print_available_spectral_types(self) -> None:
