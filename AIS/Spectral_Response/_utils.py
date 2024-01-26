@@ -172,7 +172,7 @@ def calculate_depolarizer_matrix(wavelength: float):
         DEPOLARIZER_MATRIX (ndarray): depolarizer matrix for the provided wavelength
     """
 
-    phase_shift = _calculate_phase_shift(wavelength)
+    phase_shift = np.deg2rad(_calculate_phase_shift(wavelength))
     DEPOLARIZER_MATRIX = np.asarray(
         [
             [1, 0, 0, 0],
@@ -196,8 +196,8 @@ def calculate_depolarizer_matrix(wavelength: float):
 
 
 def _calculate_phase_shift(wavelength: float):
-    b, a = 47741685.0394, -34883937007874
-    phase_shift = a * wavelength * 1e-9 + b
+    a, b = -32878.57142857143, 45656261.9047619
+    phase_shift = a * wavelength + b
     return phase_shift
 
 

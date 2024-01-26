@@ -5,8 +5,8 @@ Created on Tue Apr 27 10:23:27 2021
 
 @author: denis
 """
-
 import os
+import sys
 
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 

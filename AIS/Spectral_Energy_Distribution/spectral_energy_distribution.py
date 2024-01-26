@@ -20,7 +20,7 @@ from numpy import ndarray
 from scipy.constants import c, h, k
 from scipy.interpolate import interp1d, splev, splrep
 
-from ..Spectral_Response._utils import (
+from AIS.Spectral_Response._utils import (
     apply_matrix,
     calculate_polarizer_matrix,
     calculate_retarder_matrix,
@@ -204,6 +204,8 @@ class Source(Spectral_Energy_Distribution):
                 f"The polarization angle must be in the interval of 0 up to 180: {pol_angle}"
             )
 
+        # TODO: tirar tratamento de exceção daqui
+
         theta = np.deg2rad(pol_angle)
         percent_pol /= 100
         self.sed[1] = self.sed[0] * percent_pol * cos(2 * theta)
@@ -243,6 +245,7 @@ class Source(Spectral_Energy_Distribution):
                 f'The value for the orientation must be "left" or "right": {orientation}'
             )
 
+        # TODO: tirar tratamento de exceção
         self.sed[3] = percent_pol * self.sed[0] / 100
         if orientation == "right":
             self.sed[3] *= -1
@@ -283,6 +286,7 @@ class Source(Spectral_Energy_Distribution):
                 raise ValueError(
                     f"The quadratic sum of the Stokes parameters must be equal or smaller than 1: {stokes}"
                 )
+        # TODO: tirar exceção
         I = self.sed[0]
         self.sed[1] = I * stokes[0]
         self.sed[2] = I * stokes[1]

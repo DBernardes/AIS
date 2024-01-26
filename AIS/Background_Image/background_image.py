@@ -14,7 +14,7 @@ import pandas as pd
 from numpy import ndarray
 from photutils.datasets import make_noise_image
 
-from ..Noise import Noise
+from AIS.Noise import Noise
 
 __all__ = ["Background_Image"]
 

@@ -1,23 +1,21 @@
 {
-    "restructuredtext.languageServer.disabled": true,
     "python.testing.pytestArgs": [
         "tests"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "restructuredtext.confPath": "${workspaceFolder}\\docs\\source",
-    "esbonio.sphinx.confDir": "${workspaceFolder}\\docs\\source",
     "python.analysis.typeCheckingMode": "off",
     "git.ignoreLimitWarning": true,
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter",
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
-            "source.organizeImports": true
+            "source.organizeImports": "explicit"
         },
     
     },
     "isort.args":["--profile", "black"],
+    "notebook.formatOnSave.enabled": true
     
 
 }

@@ -24,7 +24,7 @@ from scipy.interpolate import (
 )
 from scipy.optimize import curve_fit
 
-from ._utils import (
+from AIS.Spectral_Response._utils import (
     apply_matrix,
     calculate_depolarizer_matrix,
     calculate_polarizer_matrix,
@@ -400,7 +400,7 @@ class Channel(Spectral_Response):
             The acquisition mode of the channel. If the acquisition mode is polarimetry,
             the polarimetric configuration must be provided.
 
-        calibration_wheel: ["polarizer", "ideal-polarizer", "ideal-depolarizer"], optional
+        calibration_wheel: ["polarizer", "ideal-polarizer", "ideal-depolarizer", "depolarizer"], optional
             The optical component of the calibration wheel.
             This parameter provides to the user the options of using the real or the ideal versions
             of the optical components of the calibration wheel. Based on the provided value, AIS
@@ -494,7 +494,7 @@ class Channel(Spectral_Response):
             self._apply_real_polarizer(spectral_response)
         else:
             raise ValueError(
-                f"A wrong value has been provided for the polarizer: {self.calibration_wheel}"
+                f"A wrong value was provided for the polarizer: {self.calibration_wheel}"
             )
 
     def _apply_ideal_polarizer(self, spectral_response) -> None:
@@ -540,7 +540,7 @@ class Channel(Spectral_Response):
             self._apply_real_depolarizer(spectral_response)
         else:
             raise ValueError(
-                f"A wrong value has been provided for the depolarizer: {self.calibration_wheel}"
+                f"A wrong value was provided for the depolarizer: {self.calibration_wheel}"
             )
 
         return
@@ -557,10 +557,14 @@ class Channel(Spectral_Response):
             self.sed[:, idx] = np.transpose(depolarizer_matrix.dot(self.sed[:, idx]))
 
     def _apply_retarder_waveplate(self) -> None:
-        if "ideal-" not in self.retarder_waveplate:
+        if self.retarder_waveplate[:5] == "ideal":
+            self._apply_ideal_waveplate()
+        elif self.retarder_waveplate in ["half", "quarter"]:
             self._apply_real_waveplate()
         else:
-            self._apply_ideal_waveplate()
+            raise ValueError(
+                f"A wrong value was provided for the depolarizer: {self.retarder_waveplate}"
+            )
         return
 
     def _apply_real_waveplate(self) -> None:

@@ -18,12 +18,12 @@ import astropy.io.fits as fits
 import numpy as np
 from numpy import ndarray
 
-from ..Background_Image import Background_Image
-from ..Header import Header
-from ..Noise import Noise
-from ..Point_Spread_Function import Point_Spread_Function
-from ..Spectral_Energy_Distribution import Sky, Source
-from ..Spectral_Response import Atmosphere, Channel, Telescope
+from AIS.Background_Image import Background_Image
+from AIS.Header import Header
+from AIS.Noise import Noise
+from AIS.Point_Spread_Function import Point_Spread_Function
+from AIS.Spectral_Energy_Distribution import Sky, Source
+from AIS.Spectral_Response import Atmosphere, Channel, Telescope
 
 __all__ = ["Artificial_Image_Simulator"]
 

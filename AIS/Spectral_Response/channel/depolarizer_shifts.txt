@@ -1,0 +1,10 @@
+Wavelength (nm),birefringence, phase shift (deg)
+400,.00956,3.4427e7
+750,.00893,1.7153e7 
+1100,.00871,1.1412e7
+
+email Vinod
+Crystal quartz Lyot Depolarizer is made of two approximate wave plates of thickness 4 and 8 mm. 
+Based on birefringence of crystal quartz at 400, 750 and 1100 nm, which is .00956, .00893 and .00871 respectively, 
+phase shift in degrees between the two beams is 3.4427x10^7, 1.7153x10^7 and 1.1412x10^7 at 400, 750 and 1100 nm respectively. 
+This is for 4 mm thick plate. For 8 mm thick plate phase shift will be respectively twice these numbers.
