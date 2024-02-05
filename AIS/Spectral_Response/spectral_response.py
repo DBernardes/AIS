@@ -7,7 +7,6 @@ The Spectral Response is an abstract class that represents the optical systems i
 Theses systems are the atmosphere, the telescope, and the SPARC4 instrument.
 """
 
-
 import os
 from copy import copy
 from math import atan2, sqrt
