@@ -15,7 +15,7 @@
     
     },
     "isort.args":["--profile", "black"],
-    "notebook.formatOnSave.enabled": true
+    "notebook.formatOnSave.enabled": false
     
 
 }
