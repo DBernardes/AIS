@@ -11,6 +11,7 @@ import os
 from copy import copy
 from math import atan2, sqrt
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from numpy import ndarray
@@ -114,7 +115,7 @@ class Spectral_Response:
             related to the spectral response of the system.
         """
         spectral_response = self.get_spectral_response(obj_wavelength)
-        sed = np.multiply(sed, spectral_response)
+        sed = sed * spectral_response
 
         return sed
 
@@ -281,7 +282,7 @@ class Atmosphere(Spectral_Response):
             obj_wavelength, air_mass, sky_condition
         )
 
-        sed = np.multiply(spectral_response, sed)
+        sed = spectral_response * sed
 
         return sed
 
@@ -453,8 +454,13 @@ class Channel(Spectral_Response):
             spectral_response = self.get_spectral_response(
                 self.obj_wavelength, csv_file
             )
-            self.sed = np.multiply(spectral_response, self.sed)
-
+            self.sed = spectral_response * self.sed
+        #     plt.plot(self.obj_wavelength, self.sed[0], label=csv_file)
+        #     plt.plot(self.obj_wavelength, self.sed[1], label=csv_file)
+        #     ord = np.trapz(self.sed[0], self.obj_wavelength * 1e-9)
+        #     extra = np.trapz(self.sed[1], self.obj_wavelength * 1e-9)
+        #     print((ord - extra) / (ord + extra))
+        # plt.show()
         return
 
     def _apply_polarimetric_spectral_response(self) -> None:
@@ -462,7 +468,8 @@ class Channel(Spectral_Response):
             spectral_response = self.get_spectral_response(
                 self.obj_wavelength, csv_file
             )
-            self.sed = np.multiply(spectral_response, self.sed)  #  ? Pode isso
+            self.sed = spectral_response * self.sed
+        #  ? Pode isso: fiz o teste uma vez e deu a mesma coisa
 
         if self.calibration_wheel != "":
             self._apply_calibration_wheel()
@@ -497,7 +504,7 @@ class Channel(Spectral_Response):
             )
 
     def _apply_ideal_polarizer(self, spectral_response) -> None:
-        self.sed = np.multiply(spectral_response, self.sed)
+        self.sed = spectral_response * self.sed
         polarizer_matrix = calculate_polarizer_matrix(self.POLARIZER_ANGLE)
         self.sed = apply_matrix(polarizer_matrix, self.sed)
 
@@ -550,7 +557,7 @@ class Channel(Spectral_Response):
         self.sed[0] = tmp[0] * spectral_response
 
     def _apply_real_depolarizer(self, spectral_response) -> None:
-        self.sed = np.multiply(spectral_response, self.sed)
+        self.sed = spectral_response * self.sed
         for idx, wavelength in enumerate(self.obj_wavelength):
             depolarizer_matrix = calculate_depolarizer_matrix(wavelength)
             self.sed[:, idx] = np.transpose(depolarizer_matrix.dot(self.sed[:, idx]))
@@ -573,6 +580,9 @@ class Channel(Spectral_Response):
             )
             * 360
         )
+        # phase_difference[np.where(phase_difference > 1)] = 89
+        # plt.plot(self.obj_wavelength, phase_difference)
+        # plt.show()
         for idx, phase in enumerate(phase_difference):
             RETARDER_MATRIX = calculate_retarder_matrix(
                 phase, self.retarder_waveplate_angle

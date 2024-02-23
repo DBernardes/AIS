@@ -155,8 +155,8 @@ class Source(Spectral_Energy_Distribution):
         """
 
         if calculation_method == "blackbody":
-            wv = wavelength_interval
-            wavelength = np.linspace(wv[0], wv[1], wv[2], dtype=np.float64)
+            init, final, step = wavelength_interval
+            wavelength = np.linspace(init, final, step, dtype=np.float64)
             sed = self._calculate_sed_blackbody(wavelength, temperature)
             normalization_flux = self._interpolate_spectral_distribution(
                 wavelength, sed, self.EFFECT_WAVELENGTH
@@ -164,9 +164,16 @@ class Source(Spectral_Energy_Distribution):
             sed /= normalization_flux
         elif calculation_method == "spectral_library":
             wavelength, sed = self._read_spectral_library(spectral_type.lower())
+            # TODO: arrumar isso
+            idx = np.where(wavelength > 1100)[0][0]
+            wavelength = wavelength[:idx]
+            sed = sed[:idx]
+            idx = np.where(400 < wavelength)[0][0]
+            wavelength = wavelength[idx:]
+            sed = sed[idx:]
         else:
             raise ValueError(
-                "The calculation_method must be 'blackbody' or 'spectral_library'."
+                f"The calculation_method should be 'blackbody' or 'spectral_library': {calculation_method}."
             )
 
         effective_flux = self._calculate_photons_density(magnitude)
