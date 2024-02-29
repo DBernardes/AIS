@@ -455,12 +455,6 @@ class Channel(Spectral_Response):
                 self.obj_wavelength, csv_file
             )
             self.sed = spectral_response * self.sed
-        #     plt.plot(self.obj_wavelength, self.sed[0], label=csv_file)
-        #     plt.plot(self.obj_wavelength, self.sed[1], label=csv_file)
-        #     ord = np.trapz(self.sed[0], self.obj_wavelength * 1e-9)
-        #     extra = np.trapz(self.sed[1], self.obj_wavelength * 1e-9)
-        #     print((ord - extra) / (ord + extra))
-        # plt.show()
         return
 
     def _apply_polarimetric_spectral_response(self) -> None:
@@ -580,9 +574,6 @@ class Channel(Spectral_Response):
             )
             * 360
         )
-        # phase_difference[np.where(phase_difference > 1)] = 89
-        # plt.plot(self.obj_wavelength, phase_difference)
-        # plt.show()
         for idx, phase in enumerate(phase_difference):
             RETARDER_MATRIX = calculate_retarder_matrix(
                 phase, self.retarder_waveplate_angle

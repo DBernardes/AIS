@@ -52,8 +52,8 @@ sed = sed.apply_linear_polarization(100)
 ch = Channel(1)
 ch.write_sparc4_operation_mode(
     "polarimetry",
-    retarder_waveplate="ideal-quarter",
-    retarder_waveplate_angle=20,
+    retarder_waveplate="quarter",
+    retarder_waveplate_angle=22.5,
 )
 
 ch.sed = sed

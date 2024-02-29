@@ -154,31 +154,27 @@ class Source(Spectral_Energy_Distribution):
                 The SED of the astronomical object in photons/m/s.
         """
 
+        init, final, step = wavelength_interval
+        wavelength = np.linspace(init, final, step, dtype=np.float64)
         if calculation_method == "blackbody":
-            init, final, step = wavelength_interval
-            wavelength = np.linspace(init, final, step, dtype=np.float64)
             sed = self._calculate_sed_blackbody(wavelength, temperature)
             normalization_flux = self._interpolate_spectral_distribution(
                 wavelength, sed, self.EFFECT_WAVELENGTH
             )
             sed /= normalization_flux
         elif calculation_method == "spectral_library":
-            wavelength, sed = self._read_spectral_library(spectral_type.lower())
-            # TODO: arrumar isso
-            idx = np.where(wavelength > 1100)[0][0]
-            wavelength = wavelength[:idx]
-            sed = sed[:idx]
-            idx = np.where(400 < wavelength)[0][0]
-            wavelength = wavelength[idx:]
-            sed = sed[idx:]
+            lib_wavelength, sed = self._read_spectral_library(spectral_type.lower())
+            sed = self._interpolate_spectral_distribution(
+                lib_wavelength, sed, wavelength
+            )
+
         else:
             raise ValueError(
                 f"The calculation_method should be 'blackbody' or 'spectral_library': {calculation_method}."
             )
 
-        effective_flux = self._calculate_photons_density(magnitude)
-
         n = len(sed)
+        effective_flux = self._calculate_photons_density(magnitude)
         self.sed = np.zeros((4, n), dtype=np.float64)
         self.sed[0] = sed * effective_flux
         self.wavelength = wavelength
