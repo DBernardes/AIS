@@ -19,12 +19,7 @@ import pandas as pd
 from numpy import ndarray
 from scipy.constants import c, h, k
 from scipy.interpolate import interp1d, splev, splrep
-
-from AIS.Spectral_Response._utils import (
-    apply_matrix,
-    calculate_polarizer_matrix,
-    calculate_retarder_matrix,
-)
+from scipy.optimize import curve_fit
 
 __all__ = ["Source", "Sky"]
 
@@ -35,12 +30,12 @@ class Spectral_Energy_Distribution:
     The Spectral Energy Distribtution is an abstract class that represents the sky and the source classes.
     """
 
-    EFFECT_WAVELENGTH = 555.6  # nm
+    EFFECT_WAVELENGTH = 545  # nm
     TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
 
     # https://www.astronomy.ohio-state.edu/martini.10/usefuldata.html
     # https://cass.ucsd.edu/archive/physics/ph162/mags.html
-    S_0 = 3.658e-2  # W/(m.m2)
+    S_0 = 3.631e-2  # W/(m.m2)
     BASE_PATH = os.path.join("AIS", "Spectral_Energy_Distribution")
 
     def __init__(self) -> None:
@@ -97,8 +92,12 @@ class Source(Spectral_Energy_Distribution):
                             temperature=5700)
     """
 
+    effect_wl = {"B": 0.438e-6, "V": 0.545e-6, "R": 0.641e-6, "I": 0.798e-6}
+
     def __init__(self) -> None:
         self.SPECTRAL_LIB_PATH = os.path.join(self.BASE_PATH, "Spectral_Library")
+        self.pol_BVRI = dict.fromkeys(["B", "V", "R", "I"], None)
+
         return
 
     def calculate_sed(
@@ -122,8 +121,8 @@ class Source(Spectral_Energy_Distribution):
             In the 'blackbody' case, the spectral response of the object is calculated using the Planck function,
             given the temperature and the wavelength interval of the object. In the 'spectral_library' case, the
             spectral response and the wavelength of the object are obtained using a library of spectral types.
-            These spectrums are taken from the Library of Stellar Spectrum of the ESO, and they can be found at:
-            https://www.eso.org/sci/observing/tools/standards/spectra/index.html.
+            These spectrums are taken from the Library of Stellar Spectrum of ESO, and they can be found at:
+            https://www.eso.org/sci/facilities/paranal/decommissioned/isaac/tools/lib.html.
             The level of the spectral response is adjusted using the magnitude of the object in the V band.
 
         magnitude : int | float
@@ -297,6 +296,36 @@ class Source(Spectral_Energy_Distribution):
 
         return self.sed
 
+    def apply_Serkowski_curve(self, pol_BVRI: dict) -> ndarray:
+        """Apply the Serkowski curve to the SED of the star.
+
+        Parameters
+        ----------
+        pol_BVRI : dict
+            A python dictionary containing the polarization values of the filters BVRI in percentage.
+            Ex: {'B':8, 'V': 8.5, 'R': 7.2, 'I':6}
+
+        Returns
+        -------
+        ndarray
+            The SED of the star with the q and u Stokes parameters calculated according to the Serkowski curve.
+        """
+        self._verify_pol_BVRI(pol_BVRI)
+        popt = self._adjust_Serkowski_curve(pol_BVRI)
+        q_Stokes = self._Serkowski_curve(self.wavelength * 1e-9, *popt) / 100
+
+        self.sed[1] = q_Stokes * self.sed[0]
+        return self.sed
+
+    def _adjust_Serkowski_curve(self, pol_BVRI):
+        popt, _ = curve_fit(
+            self._Serkowski_curve,
+            list(self.effect_wl.values()),
+            list(pol_BVRI.values()),
+            p0=(10, 500e-9),
+        )
+        return popt
+
     @staticmethod
     def _calculate_sed_blackbody(wavelength, temperature) -> float:
         return (
@@ -325,6 +354,23 @@ class Source(Spectral_Energy_Distribution):
         print("-------------------------\n")
         spec_types = [spec_type.split(".")[0][2:] for spec_type in spec_types]
         print(*spec_types, sep="\n")
+
+    @staticmethod
+    def _Serkowski_curve(wavelength, p_max, l_max):
+        return p_max * np.exp(-1.15 * np.log(l_max / wavelength) ** 2)
+
+    @staticmethod
+    def _verify_pol_BVRI(pol_BVRI):
+        pol_vals = pol_BVRI.values()
+        if None in pol_vals:
+            raise ValueError(
+                f"The polarization values for all the filters BVRI should be provided: {pol_BVRI}"
+            )
+        for val in pol_vals:
+            if not 0 <= val <= 100:
+                raise ValueError(
+                    f"The provided polarization values should be in the interval [0, 100]: {val}"
+                )
 
 
 class Sky(Spectral_Energy_Distribution):

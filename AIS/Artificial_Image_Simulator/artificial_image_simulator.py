@@ -9,6 +9,7 @@ the AIS models as star flux as a 2D gaussian distribution. Then, the star
 flux is added to an image with a background level given by counts disstribution
 of an image of the SPARC4 cameras, as a function of its operation mode.
 """
+
 import datetime
 import os
 from math import sqrt
@@ -267,6 +268,23 @@ class Artificial_Image_Simulator:
             ndarray: polarized SED, adjusted for the provided Stokes parameters
         """
         self.source_sed = self.SRC_obj.apply_polarization(stokes)
+
+    def apply_Serkowski_curve(self, pol_BVRI: dict) -> ndarray:
+        """Apply the Serkowski curve to the SED of the star.
+
+        Parameters
+        ----------
+        pol_BVRI : dict
+            A python dictionary containing the polarization values of the filters BVRI in percentage.
+            Ex: {'B':8, 'V': 8.5, 'R': 7.2, 'I':6}
+
+        Returns
+        -------
+        ndarray
+            The SED of the star with the q and u Stokes parameters calculated according to the Serkowski curve.
+        """
+        self.source_sed = self.SRC_obj.apply_Serkowski_curve(pol_BVRI)
+        return
 
     def write_source_sed(self, wavelength: ndarray, sed: ndarray) -> None:
         """Write the source SED into the class.

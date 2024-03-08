@@ -16,6 +16,7 @@ import pytest
 from sbpy.calib import vega_fluxd
 from scipy.constants import c, h, k
 from scipy.interpolate import splev, splrep
+from scipy.optimize import curve_fit
 
 from AIS.Spectral_Energy_Distribution import Source
 from AIS.Spectral_Response._utils import apply_matrix, calculate_polarizer_matrix
@@ -129,3 +130,37 @@ class Test_Source(unittest.TestCase):
 
         polarized_sed = self.SOURCE.apply_polarization(stokes)
         assert np.allclose(sed, polarized_sed)
+
+    def test_Serkowski_curve(self):
+        wavelength, p_max, K, l_max = 450e-9, 10, 1.15, 550e-9
+        p = p_max * np.exp(-K * np.log(l_max / wavelength) ** 2)
+        assert self.SOURCE._Serkowski_curve(wavelength, p_max, l_max) == p
+
+    def test_verify_pol_vals(self):
+        with pytest.raises(ValueError):
+            self.SOURCE._verify_pol_BVRI({"B": 1, "V": 1, "R": 1, "I": None})
+        with pytest.raises(ValueError):
+            self.SOURCE._verify_pol_BVRI({"B": 1, "V": 1, "R": 1, "I": -1})
+
+    def test_adjust_Serkowski_curve(self):
+        pol_BVRI = {"B": 7.812, "V": 7.029, "R": 5.951, "I": 4.706}
+        popt, _ = curve_fit(
+            self.SOURCE._Serkowski_curve,
+            list(self.SOURCE.effect_wl.values()),
+            list(pol_BVRI.values()),
+            p0=(10, 500e-9),
+        )
+        assert np.allclose(popt, self.SOURCE._adjust_Serkowski_curve(pol_BVRI))
+
+    def test_apply_Serkowski_curve(self):
+        pol_BVRI = {"B": 7.812, "V": 7.029, "R": 5.951, "I": 4.706}
+        sed = np.ones((4, 100))
+        wv = np.linspace(400, 1100, 100)
+        self.SOURCE.sed = sed
+        self.SOURCE.wavelength = wv
+
+        popt = self.SOURCE._adjust_Serkowski_curve(pol_BVRI)
+        q_Stokes = self.SOURCE._Serkowski_curve(wv * 1e-9, *popt) / 100
+        sed[1] = sed[0] * q_Stokes
+
+        assert np.allclose(self.SOURCE.apply_Serkowski_curve(pol_BVRI), sed)
