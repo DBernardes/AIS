@@ -24,7 +24,7 @@ from AIS.Spectral_Response._utils import apply_matrix, calculate_polarizer_matri
 
 class Test_Source(unittest.TestCase):
     WAVELENGTH = np.linspace(400, 1100, 100)
-    EFFECT_WAVELENGTH = 555.6  # nm
+    EFFECT_WAVELENGTH = 545  # nm
     BASE_PATH = os.path.join("AIS", "Spectral_Energy_Distribution", "Spectral_Library")
     CSV_FILE = "moon_magnitude.csv"
     SOURCE = Source()
@@ -79,17 +79,16 @@ class Test_Source(unittest.TestCase):
 
     def test_calculate_sed_spec_lib(self):
         wv, sed = self.SOURCE.calculate_sed(
-            "spectral_library", self.MAGNITUDE, spectral_type="a0i"
+            "spectral_library", self.MAGNITUDE, (400, 1100, 100), spectral_type="a0i"
         )
         new_wv, tmp = self.SOURCE._read_spectral_library("a0i")
-
+        tmp = self.SOURCE._interpolate_spectral_distribution(new_wv, tmp, wv)
         photons_density = self.SOURCE._calculate_photons_density(self.MAGNITUDE)
 
         new_sed = np.zeros((4, tmp.shape[0]))
         new_sed[0] = tmp * photons_density
 
         assert np.allclose(sed, new_sed)
-        assert np.allclose(wv, new_wv)
 
     def test_linear_polarization(self):
         percent_pol = 70

@@ -121,9 +121,8 @@ class Spectral_Response:
 
 
 class Telescope(Spectral_Response):
-    CSV_FILE_NAME = "telescope.csv"
-    PRIMARY_MIRROR_ADJUSTMENT = 0.933
-    SECONDARY_MIRROR_ADJUSTMENT = 0.996
+    CSV_FILE_NAME = "aluminium_curve.csv"
+    ADJUSMENT_COEFFS = {"20230328": (0.86, 0.95), "20230329": (0.998, 0.995)}
 
     def __init__(self) -> None:
         """
@@ -138,15 +137,19 @@ class Telescope(Spectral_Response):
                 The spectral response of the optical system.
         """
         super().__init__()
+        self.BASE_PATH = os.path.join(self.BASE_PATH, "telescope")
         return
 
-    def get_spectral_response(self, obj_wavelength) -> ndarray:
+    def get_spectral_response(self, obj_wavelength, date="20230329") -> ndarray:
         """Return the spectral response.
 
         Parameters
         ---------
         obj_wavelength: array like
             Wavelength interval of the object in nm.
+
+        date: ['20230329', '20230328'], optional
+            Date of the transmission curve of the telescope.
 
         Returns
         ------
@@ -155,12 +158,35 @@ class Telescope(Spectral_Response):
             The spectral response of the optical system.
         """
         spectral_response = super().get_spectral_response(obj_wavelength)
+        primary_coeff, secondary_coeff = self.ADJUSMENT_COEFFS[date]
+        return spectral_response**2 * primary_coeff * secondary_coeff
 
-        return (
-            spectral_response**2
-            * self.PRIMARY_MIRROR_ADJUSTMENT
-            * self.SECONDARY_MIRROR_ADJUSTMENT
-        )
+    def apply_spectral_response(
+        self, obj_wavelength: ndarray, sed: ndarray, date="20230329"
+    ) -> ndarray:
+        """Apply the spectral response.
+
+        Parameters
+        ----------
+        obj_wavelength: array like
+            The wavelength interval, in nm, of the object.
+
+        sed: array like in the (4, n) format
+            The Spectral Energy Distribution (SED) of the object.
+
+        date: ['20230329', '20230328'], optional
+            Date of the transmission curve of the telescope.
+
+        Yields
+        ------
+        reduced_sed: array like
+            The Spectral Energy Distribution (SED) of the object subtracted from the loses
+            related to the spectral response of the system.
+        """
+        spectral_response = self.get_spectral_response(obj_wavelength, date)
+        sed = sed * spectral_response
+
+        return sed
 
 
 class Atmosphere(Spectral_Response):
@@ -178,6 +204,7 @@ class Atmosphere(Spectral_Response):
                 The spectral response of the optical system.
         """
         super().__init__()
+        self.BASE_PATH = os.path.join(self.BASE_PATH, "atmosphere")
         return
 
     def get_spectral_response(

@@ -41,8 +41,8 @@ class Test_Spectral_Energy_Distribution(unittest.TestCase):
     def test_calculate_photons_density(self):
         magnitude = 10
         TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
-        EFFECT_WAVELENGTH = 555.6  # nm
-        S_0 = 3.658e-2  # W/m2/m
+        EFFECT_WAVELENGTH = 545  # nm
+        S_0 = 3.631e-2  # W/m2/m
         photons_density = (
             S_0
             * 10 ** (-magnitude / 2.5)

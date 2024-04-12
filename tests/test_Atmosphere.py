@@ -24,7 +24,7 @@ from AIS.Spectral_Response import Atmosphere
 class Test_Atmosphere(unittest.TestCase):
     OBJ_WAVELENGTH = np.linspace(400, 1100, 100)
     SED = np.ones(100)
-    BASE_PATH = os.path.join("AIS", "Spectral_Response")
+    BASE_PATH = os.path.join("AIS", "Spectral_Response", "atmosphere")
     CSV_FILE_NAME = "atmosphere_profile.csv"
     ATM_EXTINCTION_FILE = "willton.csv"
     AIR_MASS = 1

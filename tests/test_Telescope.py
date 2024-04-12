@@ -22,14 +22,13 @@ from AIS.Spectral_Response import Telescope
 class Test_Telescope(unittest.TestCase):
     OBJ_WAVELENGTH = np.linspace(400, 1100, 100)
     SED = np.ones(100)
-    PRIMARY_MIRROR_ADJUSTMENT = 0.933
-    SECONDARY_MIRROR_ADJUSTMENT = 0.996
-    BASE_PATH = os.path.join("AIS", "Spectral_Response")
+    ADJUSMENT_COEFFS = {"20230328": (0.86, 0.95), "20230329": (0.998, 0.995)}
+    BASE_PATH = os.path.join("AIS", "Spectral_Response", "telescope")
 
     @classmethod
     def setUpClass(cls):
         cls.telescope = Telescope()
-        spreadsheet_path = os.path.join(cls.BASE_PATH, "telescope.csv")
+        spreadsheet_path = os.path.join(cls.BASE_PATH, "aluminium_curve.csv")
         ss = pd.read_csv(spreadsheet_path)
         wavelength = ss["Wavelength (nm)"]
         spectral_response = ss["Transmitance (%)"] / 100
@@ -39,7 +38,7 @@ class Test_Telescope(unittest.TestCase):
         cls.interpolated_spectral_response = spl(cls.OBJ_WAVELENGTH)
 
     def test_csv_file_name(self):
-        assert self.telescope.CSV_FILE_NAME == "telescope.csv"
+        assert self.telescope.CSV_FILE_NAME == "aluminium_curve.csv"
 
     def test_base_path(self):
         assert self.telescope.BASE_PATH == self.BASE_PATH
@@ -47,7 +46,7 @@ class Test_Telescope(unittest.TestCase):
     # --------------------------------------------------------------------------------------------
 
     def test_read_csv_file(self):
-        spreadsheet_path = os.path.join(self.BASE_PATH, "telescope.csv")
+        spreadsheet_path = os.path.join(self.BASE_PATH, "aluminium_curve.csv")
         new_wavelength, new_transmitance = self.telescope._read_csv_file(
             spreadsheet_path
         )
@@ -65,10 +64,9 @@ class Test_Telescope(unittest.TestCase):
         )
 
     def test_get_spectral_response(self):
+        primary_coeff, secondary_coeff = self.ADJUSMENT_COEFFS["20230329"]
         spectral_response = (
-            self.interpolated_spectral_response**2
-            * self.PRIMARY_MIRROR_ADJUSTMENT
-            * self.SECONDARY_MIRROR_ADJUSTMENT
+            self.interpolated_spectral_response**2 * primary_coeff * secondary_coeff
         )
         new_spectral_response = self.telescope.get_spectral_response(
             self.OBJ_WAVELENGTH

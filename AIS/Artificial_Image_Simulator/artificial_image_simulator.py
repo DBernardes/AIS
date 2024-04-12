@@ -342,17 +342,20 @@ class Artificial_Image_Simulator:
             self.wavelength, self.source_sed, air_mass, sky_condition
         )
 
-    def apply_telescope_spectral_response(self) -> None:
+    def apply_telescope_spectral_response(self, date="20230329") -> None:
         """Apply the telescope spectral response.
 
         This functions applies the telescope spectral response on the
         Spectral Energy Distribution of the source and the sky.
+
+        date: ['20230329', '20230328'], optional
+            Date of the transmission curve of the telescope.
         """
         self.source_sed = self.TEL_obj.apply_spectral_response(
-            self.wavelength, self.source_sed
+            self.wavelength, self.source_sed, date
         )
         self.sky_sed = self.TEL_obj.apply_spectral_response(
-            self.wavelength, self.sky_sed
+            self.wavelength, self.sky_sed, date
         )
 
     def apply_sparc4_spectral_response(
