@@ -92,6 +92,7 @@ class Source(Spectral_Energy_Distribution):
                             temperature=5700)
     """
 
+    # TODO verificar o l effetivo johson e cousin
     effect_wl = {"B": 0.438e-6, "V": 0.545e-6, "R": 0.641e-6, "I": 0.798e-6}
 
     def __init__(self) -> None:
@@ -357,6 +358,7 @@ class Source(Spectral_Energy_Distribution):
 
     @staticmethod
     def _Serkowski_curve(wavelength, p_max, l_max):
+        # TODO deixar o K livre, ver no ADS
         return p_max * np.exp(-1.15 * np.log(l_max / wavelength) ** 2)
 
     @staticmethod
