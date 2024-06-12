@@ -75,7 +75,7 @@ def calculate_polarizer_matrix_1(theta):
     return POLARIZER_MATRIX
 
 
-def calculate_retarder_matrix(phase_difference, theta) -> ndarray:
+def calculate_retarder_matrix_1(phase_difference, theta) -> ndarray:
     """Calculate the retarder matrix for a given phase difference.
 
     Parameters
@@ -87,6 +87,7 @@ def calculate_retarder_matrix(phase_difference, theta) -> ndarray:
         Angle of the transmission axis of the retarder in degrees.
 
     """
+    # ! This equation is wrong
     phase_difference = np.deg2rad(phase_difference)
     theta = np.deg2rad(theta)
     G = (1 + cos(phase_difference)) / 2
@@ -119,7 +120,7 @@ def calculate_retarder_matrix(phase_difference, theta) -> ndarray:
     return retarder_matrix
 
 
-def calculate_retarder_matrix_1(phase_difference, theta) -> ndarray:
+def calculate_retarder_matrix(phase_difference, theta) -> ndarray:
     """Calculate the retarder matrix for a given phase difference.
 
     Parameters
@@ -144,7 +145,7 @@ def calculate_retarder_matrix_1(phase_difference, theta) -> ndarray:
             ],
             [
                 0,
-                cos(2 * theta) + sin(2 * theta) * (1 - cos(phase_difference)),
+                cos(2 * theta) * sin(2 * theta) * (1 - cos(phase_difference)),
                 sin(2 * theta) ** 2 + cos(2 * theta) ** 2 * cos(phase_difference),
                 cos(2 * theta) * sin(phase_difference),
             ],
