@@ -32,11 +32,12 @@ __all__ = ["Artificial_Image_Simulator"]
 class Artificial_Image_Simulator:
     """Artificial Images Simulator class.
 
-    The Artificial Images Simulator (AIS) class was developed to generate artificial star images,
-    similar to those images that would be acquired by using the acquisition system of the SPARC4 instrument.
-    To accomplish this, the AIS models as star flux as a 2D gaussian distribution.
-    Then, the star flux is added to an image with a background level
-    given by counts distribution of an image of the SPARC4 cameras, as a function of its operation mode.
+    The Artificial Images Simulator (AIS) class was developed to generate artificial
+    star images, similar to those images that would be acquired by using the acquisition
+    system of the SPARC4 instrument. To accomplish this, the AIS models as star flux as
+    a 2D gaussian distribution. Then, the star flux is added to an image with a
+    background level given by counts distribution of an image of the SPARC4 cameras, as
+    a function of its operation mode.
 
     Example
     --------
@@ -51,7 +52,8 @@ class Artificial_Image_Simulator:
         'image_size': 100
     }
 
-    ais = Artificial_Image_Simulator(ccd_operation_mode, channel_id=1, ccd_temperature=-70)
+    ais = Artificial_Image_Simulator(ccd_operation_mode,
+                                    channel_id=1, ccd_temperature=-70)
 
     ais.create_source_sed(calculation_method='blackbody',
                             magnitude=15,
@@ -66,7 +68,7 @@ class Artificial_Image_Simulator:
 
     ais.apply_sparc4_spectral_response(acquisition_mode='photometry')
 
-    ais.create_artificial_image(image_path=r'.\FITS', star_coordinates=(50,50))
+    ais.create_artificial_image(image_path=r'.\\FITS', star_coordinates=(50,50))
 
     Notes
     -----

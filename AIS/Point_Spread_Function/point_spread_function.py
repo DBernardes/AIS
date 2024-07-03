@@ -13,9 +13,10 @@ from math import pi
 
 import numpy as np
 import pandas as pd
+from astropy.modeling.models import Gaussian2D
 from astropy.table import Table
 from numpy import ndarray
-from photutils.datasets import make_gaussian_sources_image, make_noise_image
+from photutils.datasets import make_model_image, make_noise_image
 
 __all__ = ["Point_Spread_Function"]
 
@@ -137,7 +138,13 @@ class Point_Spread_Function:
         gaussian_amplitude = self._calculate_gaussian_amplitude(ordinary_ray)
         self.table["amplitude"] = gaussian_amplitude
 
-        star_image = make_gaussian_sources_image(self.shape, self.table)
+        star_image = make_model_image(
+            self.shape,
+            Gaussian2D(),
+            self.table,
+            x_name="x_mean",
+            y_name="y_mean",
+        )
         star_image += self._make_noise_image()
         return star_image
 
@@ -147,7 +154,13 @@ class Point_Spread_Function:
         self.table["x_mean"] -= self.SPARC4_POL_SEPARATION
         self.table["y_mean"] -= self.SPARC4_POL_SEPARATION
 
-        star_image = make_gaussian_sources_image(self.shape, self.table)
+        star_image = make_model_image(
+            self.shape,
+            Gaussian2D(),
+            self.table,
+            x_name="x_mean",
+            y_name="y_mean",
+        )
         star_image += self._make_noise_image()
 
         return star_image
@@ -173,7 +186,9 @@ class Point_Spread_Function:
             - amplitude
         )
         self.table["amplitude"] = 1
-        noise_image *= make_gaussian_sources_image(self.shape, self.table)
+        noise_image *= make_model_image(
+            self.shape, Gaussian2D(), self.table, x_name="x_mean", y_name="y_mean"
+        )
         return noise_image
 
     def calculate_npix_star(self, seeing: float) -> int:

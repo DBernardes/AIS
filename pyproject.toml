@@ -17,12 +17,32 @@ pandas = "^2.2.2"
 pytest = "^8.2.2"
 matplotlib = "^3.9.0"
 datetime = "^5.5"
+sbpy = "^0.4.0"
+pytest-coverage = "^0.0"
 
 
 [tool.poetry.group.lint.dependencies]
 isort = "^5.13.2"
 black = "^24.4.2"
 taskipy = "^1.13.0"
+flake8 = "^7.1.0"
+
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^7.3.7"
+sphinx-rtd-theme = "^2.0.0"
+ipython = "^8.26.0"
+
+[tool.isort]
+profile="black"
+
+[tool.taskipy.tasks]
+test = "pytest -x tests --cov=AIS"
+post_test = "coverage html"
+open-cov = "start htmlcov\\index.html"
+make-docs = "sphinx-apidoc -o docs ."
+post_make-docs = "cd docs && make html"
+open-docs = "start docs\\build\\html\\index.html"
 
 [build-system]
 requires = ["poetry-core"]

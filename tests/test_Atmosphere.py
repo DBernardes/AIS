@@ -10,13 +10,10 @@ Jun 14, 2021
 
 import os
 import unittest
-from copy import copy
 
 import numpy as np
 import pandas as pd
-import pytest
-from scipy.interpolate import PchipInterpolator, interp1d, splev, splrep
-from scipy.optimize import curve_fit
+from scipy.interpolate import interp1d
 
 from AIS.Spectral_Response import Atmosphere
 

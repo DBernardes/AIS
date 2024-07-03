@@ -17,8 +17,13 @@ from math import pi
 
 import numpy as np
 import pytest
+from astropy.modeling.models import Gaussian2D
 from astropy.table import Table
-from photutils.datasets import make_gaussian_sources_image, make_noise_image
+from photutils.datasets import (
+    make_gaussian_sources_image,
+    make_model_image,
+    make_noise_image,
+)
 
 from AIS.Point_Spread_Function import Point_Spread_Function
 
@@ -124,7 +129,13 @@ class Test_PSF(unittest.TestCase):
             - gaussian_amplitude
         )
         table["amplitude"] = [1]
-        new_image *= make_gaussian_sources_image(self.PSF.shape, table)
+        new_image *= make_model_image(
+            self.PSF.shape,
+            Gaussian2D(),
+            self.PSF.table,
+            x_name="x_mean",
+            y_name="y_mean",
+        )
         assert np.allclose(new_image, image_noise)
 
     def test_create_image_ordinary_ray(self):
@@ -132,7 +143,13 @@ class Test_PSF(unittest.TestCase):
         gaussian_amplitude = self.PSF._calculate_gaussian_amplitude(100)
         self.PSF.table["amplitude"] = gaussian_amplitude
         self.PSF.seed = self.SEED
-        star_image = make_gaussian_sources_image(self.PSF.shape, self.PSF.table)
+        star_image = make_model_image(
+            self.PSF.shape,
+            Gaussian2D(),
+            self.PSF.table,
+            x_name="x_mean",
+            y_name="y_mean",
+        )
         star_image += self.PSF._make_noise_image()
 
         new_image = self.PSF._create_image_ordinary_ray(100)
@@ -149,7 +166,13 @@ class Test_PSF(unittest.TestCase):
         self.PSF.table["amplitude"] = gaussian_amplitude
         self.PSF.table["x_mean"] -= self.SPARC4_POL_SEPARATION
         self.PSF.table["y_mean"] -= self.SPARC4_POL_SEPARATION
-        star_image = make_gaussian_sources_image(self.PSF.shape, self.PSF.table)
+        star_image = make_model_image(
+            self.PSF.shape,
+            Gaussian2D(),
+            self.PSF.table,
+            x_name="x_mean",
+            y_name="y_mean",
+        )
         star_image += self.PSF._make_noise_image()
 
         assert np.allclose(star_image, new_image)

@@ -15,14 +15,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from numpy import ndarray
-from scipy.interpolate import (PchipInterpolator, UnivariateSpline, interp1d,
-                               splev, splrep)
+from scipy.interpolate import (
+    PchipInterpolator,
+    UnivariateSpline,
+    interp1d,
+    splev,
+    splrep,
+)
 from scipy.optimize import curve_fit
 
-from AIS.Spectral_Response._utils import (apply_matrix,
-                                          calculate_depolarizer_matrix,
-                                          calculate_polarizer_matrix,
-                                          calculate_retarder_matrix)
+from AIS.Spectral_Response._utils import (
+    apply_matrix,
+    calculate_depolarizer_matrix,
+    calculate_polarizer_matrix,
+    calculate_retarder_matrix,
+)
 
 __all__ = ["Atmosphere", "Telescope", "Channel"]
 
