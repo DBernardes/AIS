@@ -12,4 +12,4 @@ Created on Fri Apr 23 11:19:34 2021
 
 from .noise import Noise
 
-__all__ = ['noise']
+__all__ = ["noise"]

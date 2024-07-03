@@ -10,4 +10,4 @@ This package calculates the point spread function of a star based on a gaussian
 
 from .point_spread_function import Point_Spread_Function
 
-__all__ = ['point_spread_function']
+__all__ = ["point_spread_function"]

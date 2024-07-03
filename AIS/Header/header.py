@@ -18,7 +18,6 @@ __all__ = ["Header"]
 
 
 class Header:
-
     """Image header class.
 
     Parameters

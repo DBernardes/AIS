@@ -7,4 +7,5 @@ models the star flux distribution as a 2D-Gaussian Distribution. This result is
 added to a noise image, created based on the noise information of the SPARC4
 CCDs, as a function of their operation mode.
 """
+
 from . import Artificial_Image_Simulator

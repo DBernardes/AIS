@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "ais"
+version = "0.1.0"
+description = ""
+authors = ["Denis Bernardes"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[tool.poetry.group.dev.dependencies]
+astropy = "^6.1.1"
+scipy = "^1.14.0"
+photutils = "^1.13.0"
+pandas = "^2.2.2"
+pytest = "^8.2.2"
+matplotlib = "^3.9.0"
+datetime = "^5.5"
+
+
+[tool.poetry.group.lint.dependencies]
+isort = "^5.13.2"
+black = "^24.4.2"
+taskipy = "^1.13.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

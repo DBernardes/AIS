@@ -3,9 +3,10 @@
 # @author: denis
 # This script fix the dat files in the spectral library
 
-import pandas as pd
-import numpy as np
 import os
+
+import numpy as np
+import pandas as pd
 
 for file in os.listdir():
     if file.endswith(".dat"):

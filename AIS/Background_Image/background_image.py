@@ -6,7 +6,6 @@ Background Image
 This is the Background Image Class used to generate a background image.
 """
 
-
 import os
 
 import numpy as np
