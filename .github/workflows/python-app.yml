@@ -35,5 +35,5 @@ jobs:
         POETRY_VIRTUALENVS_IN_PROJECT: false
     - name: Run tests
       run: |
-        task test
+        poetry run pytest -x tests --cov=AIS
       
