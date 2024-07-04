@@ -1,0 +1,26 @@
+site_name: Artificial Image Simulator
+nav:
+  - Home: 'index.md'  
+
+theme:
+  name: 'material'
+  palette:
+    - scheme: default
+      primary: indigo
+      toggle:
+        icon: material/weather-night
+        name: Dark mode
+    - scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Light mode
+
+markdown_extensions:
+  - pymdownx.tasklist
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.emoji
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+  

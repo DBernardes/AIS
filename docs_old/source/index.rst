@@ -28,10 +28,10 @@ References
 .. toctree::    
     :hidden:       
     
-    software_description    
+    Software Description <pages/software_description>
     Code <code/modules>          
-    license
-    contact
+    License <pages/license>
+    Contact <pages/contat>
 
 
 
