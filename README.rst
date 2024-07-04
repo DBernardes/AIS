@@ -186,8 +186,8 @@ References
 .. |Documentation| image:: https://readthedocs.org/projects/ais/badge/?version=latest
 	:target: https://ais.readthedocs.io/en/latest/?badge=latest
 	:alt: Documentation Status
-.. |Unit Tests| image:: https://github.com/DBernardes/AIS/actions/workflows/python-unittests.yml/badge.svg
-	:target: https://github.com/DBernardes/AIS/actions/workflows/python-unittests.yml
+.. |Unit Tests| image:: https://github.com/DBernardes/AIS/actions/workflows/python-app.yml/badge.svg
+	:target: https://github.com/DBernardes/AIS/actions/workflows/python-app.yml
 	:alt: Unit Tests
 .. |Code Cov| image:: https://codecov.io/gh/DBernardes/AIS/branch/main/graph/badge.svg?token=aPhVaeHkOh
       :target: https://codecov.io/gh/DBernardes/AIS
