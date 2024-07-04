@@ -27,4 +27,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install poetry
-        poetry install     
+        poetry install
+    - name: Running the tests
+      run: task test
+    - name: Creating documentation
+      run: task make-docs
+       
