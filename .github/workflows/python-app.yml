@@ -21,16 +21,12 @@ jobs:
     - name: Set up Python 3.12
       uses: actions/setup-python@v3
       with:
-        python-version: "3.12"       
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        export PATH="$HOME/.local/bin:$PATH"
+        python-version: "3.12"
     - name: Install dependencies
       run: |
-        poetry install
-      env:
-        POETRY_VIRTUALENVS_IN_PROJECT: false
+       python -m pip install --upgrade pip        
+       pip install poetry
+       poetry install        
     - name: Run tests
       run: |
         poetry run pytest -x tests --cov=AIS
