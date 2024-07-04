@@ -1,15 +1,3 @@
-"""
-Artificial Image Simulator
-===========================
-
-The Artificial Images Simulator (AIS) class was developed to generate
-artificial star images, similar to those images that would be acquired by
-using the acquisition system of the instrument. To accomplish this,
-the AIS models as star flux as a 2D gaussian distribution. Then, the star
-flux is added to an image with a background level given by counts disstribution
-of an image of the SPARC4 cameras, as a function of its operation mode.
-"""
-
 import datetime
 import os
 from math import sqrt
@@ -30,8 +18,7 @@ __all__ = ["Artificial_Image_Simulator"]
 
 
 class Artificial_Image_Simulator:
-    """Artificial Images Simulator class.
-
+    """
     The Artificial Images Simulator (AIS) class was developed to generate artificial
     star images, similar to those images that would be acquired by using the acquisition
     system of the SPARC4 instrument. To accomplish this, the AIS models as star flux as
@@ -59,15 +46,10 @@ class Artificial_Image_Simulator:
                             magnitude=15,
                             wavelength_interval=(400, 1100, 100),
                             temperature=5700)
-
     ais.create_sky_sed(moon_phase='new')
-
     ais.apply_atmosphere_spectral_response()
-
     ais.apply_telescope_spectral_response()
-
     ais.apply_sparc4_spectral_response(acquisition_mode='photometry')
-
     ais.create_artificial_image(image_path=r'.\\FITS', star_coordinates=(50,50))
 
     Notes

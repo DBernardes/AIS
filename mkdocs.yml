@@ -1,6 +1,7 @@
 site_name: Artificial Image Simulator
-nav:
-  - Home: 'index.md'  
+repo_url: 'https://github.com/DBernardes/AIS'
+repo_name: 'Dbernardes/AIS'
+
 
 theme:
   name: 'material'
@@ -22,5 +23,11 @@ markdown_extensions:
   - pymdownx.emoji
   - pymdownx.highlight
   - pymdownx.superfences
+  - attr_list
 
   
+plugins:
+- mkdocstrings:
+    handlers:
+      python:
+        paths: [AIS]

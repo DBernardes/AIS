@@ -1,12 +1,3 @@
-"""
-Header Class
-============
-
-
-This class creates the header that will be written in the images created by
-the AIS.
-"""
-
 import datetime
 import os
 from cmath import exp
@@ -18,8 +9,7 @@ __all__ = ["Header"]
 
 
 class Header:
-    """Image header class.
-
+    """
     Parameters
     ----------
     ccd_operation_mode : dictionary

@@ -1,16 +1,3 @@
-"""
-Noise Class
-===========
-
-This class calculates the read noise and the dark noise of the SPARC4 EMCCDs as a function of their operation mode. 
-The calculations are done based on a series of characterization of the noise of the these cameras. 
-For the conventional mode, the values of the read noise in the Tabelas_Valores_Ruido_Leitura spreadsheet are used. 
-For the EM mode, an interpolation of the data presented by the respective spreadshhet is done, as a function of the EM gain.
-"""
-
-# Denis Varise Bernardes.
-# 08/10/2019.
-
 import os
 
 import numpy as np
@@ -21,9 +8,11 @@ __all__ = ["Noise"]
 
 
 class Noise:
-    """Noise Class.
-
-    This class calculates the read noise and the dark noise of the SPARC4 cameras.
+    """
+    This class calculates the read noise and the dark noise of the SPARC4 EMCCDs as a function of their operation mode.
+    The calculations are done based on a series of characterization of the noise of the these cameras.
+    For the conventional mode, the values of the read noise in the Tabelas_Valores_Ruido_Leitura spreadsheet are used.
+    For the EM mode, an interpolation of the data presented by the respective spreadshhet is done, as a function of the EM gain.
 
     """
 

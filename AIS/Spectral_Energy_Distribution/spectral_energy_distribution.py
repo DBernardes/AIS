@@ -1,12 +1,3 @@
-"""
-Spectral Energy Distribution Class
-==================================
-
-
-The Spectral Energy Distribtution is an abstract class that represents the sky and the 
-source classes.
-"""
-
 import os
 from copy import copy
 
@@ -25,8 +16,7 @@ __all__ = ["Source", "Sky"]
 
 
 class Spectral_Energy_Distribution:
-    """Spectral Energy Distribution Class
-
+    """
     The Spectral Energy Distribtution is an abstract class that represents the sky and the source classes.
     """
 

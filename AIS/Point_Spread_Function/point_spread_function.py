@@ -1,11 +1,3 @@
-"""
-Point Spread Function Class
-===========================
-
-The Point Spread Function (PSF) class models the star flux distribution
-as a gaussian 2D distribution
-"""
-
 import os
 from array import array
 from functools import cached_property
@@ -23,8 +15,6 @@ __all__ = ["Point_Spread_Function"]
 
 class Point_Spread_Function:
     """
-    Point Spread Function Class.
-
     This class creates the image of the star flux distribution. The PSF of the
     object is based on a 2D gaussian distribution. Initially, the star flux is
     calculated using the library Flux_Calculation. Over this flux, the

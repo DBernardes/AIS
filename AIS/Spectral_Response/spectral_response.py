@@ -1,12 +1,3 @@
-"""
-Spectral Respose Class
-======================
-
-
-The Spectral Response is an abstract class that represents the optical systems in the light path.
-Theses systems are the atmosphere, the telescope, and the SPARC4 instrument.
-"""
-
 import os
 from copy import copy
 from math import atan2, sqrt
@@ -35,8 +26,7 @@ __all__ = ["Atmosphere", "Telescope", "Channel"]
 
 
 class Spectral_Response:
-    """Spectral Response class
-
+    """
     The Spectral Response is an abstract class that represents the optical systems present in the light path
     between the object and a detector on the ground.
 

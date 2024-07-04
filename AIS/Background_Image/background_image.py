@@ -1,11 +1,3 @@
-"""
-
-Background Image
-================
-
-This is the Background Image Class used to generate a background image.
-"""
-
 import os
 
 import numpy as np
@@ -20,7 +12,6 @@ __all__ = ["Background_Image"]
 
 class Background_Image:
     """
-    Background Image Class.
 
     Parameters
     ----------

@@ -37,7 +37,7 @@ mkdocs = "^1.6.0"
 pymdown-extensions = "^10.8.1"
 windmill = "^1.6"
 mkdocs-material = "^9.5.28"
-mkdocstrings = "^0.25.1"
+mkdocstrings = {extras = ["python"], version = "^0.25.1"}
 
 [tool.isort]
 profile="black"
@@ -47,9 +47,8 @@ lint = "black --check --diff . && isort --check --diff . "
 test = "pytest -x tests --cov=AIS"
 post_test = "coverage html"
 open-cov = "start htmlcov\\index.html"
-make-docs = "sphinx-apidoc -o docs\\source\\code AIS"
-post_make-docs = "cd docs && make html"
-open-docs = "start docs\\build\\html\\index.html"
+make-docs = "mkdocs build"
+open-docs = "start site\\index.html"
 
 [build-system]
 requires = ["poetry-core"]
