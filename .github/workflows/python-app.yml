@@ -29,10 +29,9 @@ jobs:
        poetry install        
     - name: Run tests and make cov
       run: |
-        poetry run pytest -x tests --cov=AIS
-        poetry run coverage html
+        poetry run task test
     - name: Make docs
       run: |
-        poetry run sphinx-apidoc -o docs .
+        sphinx-apidoc -o docs .
         cd docs && make html
       
