@@ -32,6 +32,5 @@ jobs:
         poetry run task test
     - name: Make docs
       run: |
-        sphinx-apidoc -o docs .
-        cd docs && make html
+        poetry run task make-docs
       
