@@ -1,5 +1,10 @@
 # Tutorial
 
+<div style="background-color: #FFFFE0; padding: 10px; border: 1px solid #E6DB55;">
+    <p><strong>Warnings:</strong> this page is a working in progress. Its text is still being modified.</p>
+</div>
+
+
 This article presents an overview to use all the functionalities of the AIS.
 
 ## Cloning the repo
