@@ -11,37 +11,6 @@ __all__ = ["Background_Image"]
 
 
 class Background_Image:
-    """
-
-    Parameters
-    ----------
-    ccd_operation_mode: dictionary
-        A python dictionary with the CCD operation mode.
-        The allowed keywords values for the dictionary are
-
-        em_mode : ['EM', 'Conv']
-            Electron Multiplying mode of the camera.
-        em_gain : float
-            EM gain of the camera.
-        readout : [0.1, 1, 10, 20, 30]
-            Readout rate of the pixels in MHz.
-        preamp : [1, 2]
-            Pre-amplifier gain.
-        binn : [1, 2]
-            Binning of the pixels.
-        t_exp : float
-            Exposure time in seconds.
-        image_size : int
-            Image size in pixels.
-        temp: float
-            The camera temperature in celsius degree.
-    channel: integer
-        The channel related to the camera.
-    ccd_temp: float
-        The CCD temperature in celsius degree.
-    bias_level : integer (optional)
-        The bias level of the image in ADU.
-    """
 
     PIXEL_SENSIBILITY = 0.03
     SPREADSHEET_PATH = os.path.join("AIS", "Background_Image", "preamp_gains.csv")
@@ -53,7 +22,22 @@ class Background_Image:
         ccd_temp: float | int = -70,
         bias_level: int = 500,
     ) -> None:
-        """Initialize the class."""
+        """Initialize the class.
+
+        Parameters
+        ----------
+        ccd_operation_mode : dict
+            A python dictionary with the CCD operation mode.
+            The allowed keywords values for the dictionary are: em_mode, em_gain,
+            readout, preamp, binn, t_exp, image_size, temp.
+        channel : [1, 2, 3, or 4]
+            Channel ID
+        ccd_temp : float | int, optional
+            The CCD temperature in celsius degree.
+        bias_level : int, optional
+            The bias level of the image in ADU.
+        """
+
         self.bias_level = bias_level
         self.channel = channel
         self.ccd_operation_mode = ccd_operation_mode
@@ -67,9 +51,9 @@ class Background_Image:
         self.dark_noise = (
             noise.calculate_dark_current(ccd_temp) * ccd_operation_mode["t_exp"]
         )
-        self.get_ccd_gain()
+        self._get_ccd_gain()
 
-    def get_ccd_gain(self) -> None:
+    def _get_ccd_gain(self) -> None:
         idx_tab = 0
         readout = self.ccd_operation_mode["readout"]
         if self.ccd_operation_mode["em_mode"] == "EM":
@@ -83,15 +67,18 @@ class Background_Image:
     def create_bias_background(self, seed: float = 1) -> ndarray:
         """Create the bias background.
 
-        This functions creates a bias background with a noise distribution given by a gaussian distribution over the read noise.
+        This functions creates a bias background with a noise distribution given by
+        a gaussian distribution over the read noise.
+
+        Parameters
+        ----------
+        seed: float, optional
+            A seed for the creating of the noise image.
 
         Returns
         -------
-        bias_background: array like
+        array like:
             A bias background for the respective CCD operation mode.
-
-        seed: float
-            A seed for the creating of the noise image. Default to 1.
         """
 
         image_size = self.ccd_operation_mode["image_size"]
@@ -108,22 +95,23 @@ class Background_Image:
         return bias_background
 
     def create_dark_background(self, seed: float = 1) -> ndarray:
-        """
-        Create a dark background.
+        """Create a dark background.
 
         This functions creates a dark background given by the ccd operation mode,
-        the dc noise, and the bias level. This background is created woth a noise given by a gaussian
+        the dc noise, and the bias level.
+        This background is created woth a noise given by a gaussian
         distribution over the read noise and dc noise. Also, the
         extra noise of the EM amplification is considered.
 
+        Parameters
+        ----------
+        seed: float, optional
+            A seed for the creating of the noise image.
+
         Returns
         -------
-        dark_background: array like
+        array like:
             A dark background for the respective CCD operation mode and the dc level.
-
-        seed: float
-            A seed for the creating of the noise image. Default to 1.
-
         """
 
         image_size = self.ccd_operation_mode["image_size"]
@@ -149,22 +137,23 @@ class Background_Image:
         return dark_background
 
     def create_flat_background(self, seed: float = 1) -> ndarray:
-        """
-        Create a flat background.
+        """Create a flat background.
 
-        This functions creates a flat background with a noise distribution given by the contribution of the
-        the read noise, the Poisson noise, and the pixel sensibility noise.
+        This functions creates a flat background with a noise distribution given by
+        the contribution of the read noise, the Poisson noise,
+        and the pixel sensibility noise.
         The extra noise related with the EM amplification is also considered.
+
+        Parameters
+        ----------
+        seed: float, optional
+            A seed for the creating of the noise image.
 
         Returns
         -------
         flat_background: array like
             A flat background with counts distribution around half of the
             pixels depth.
-
-        seed: float
-            A seed for the creating of the noise image. Default to 1.
-
         """
         em_gain = self.ccd_operation_mode["em_gain"]
         binn = self.ccd_operation_mode["binn"]
@@ -194,26 +183,24 @@ class Background_Image:
         return flat_background
 
     def create_sky_background(self, sky_flux: float, seed: float = 1) -> ndarray:
-        """
-        Create a sky background.
+        """Create a sky background.
 
         This functions creates a sky background given
         by the sky flux, the dark noise, and the bias
-        level. Over this background, there is a noise given by the read noise, dark noise, and sky noise.
+        level. Over this background, there is a noise given by the read noise,
+        dark noise, and sky noise.
         The extra noise of the EM amplification is also considered.
 
         Parameters
         ----------
-
         sky_flux : float
             Photons/s of the sky.
-
         seed: float
             A seed for the creating of the noise image. Default to 1.
 
         Returns
         -------
-        sky_background: array like
+        array like:
             A sky background for the respective sky flux, and the dark noise.
 
         """

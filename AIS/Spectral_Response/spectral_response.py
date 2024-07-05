@@ -26,15 +26,6 @@ __all__ = ["Atmosphere", "Telescope", "Channel"]
 
 
 class Spectral_Response:
-    """
-    The Spectral Response is an abstract class that represents the optical systems present in the light path
-    between the object and a detector on the ground.
-
-    Yields
-    ------
-        spectral_response: array_like
-            The spectral response of the optical system.
-    """
 
     BASE_PATH = os.path.join("AIS", "Spectral_Response")
     CSV_FILE_NAME = "csv_file.csv"
@@ -75,8 +66,8 @@ class Spectral_Response:
             Wavelength interval of the object in nm.
 
         Returns
-        ------
-        spectral_response: array like
+        -------
+        spectral_response: array like.
             The spectral response of the optical system.
         """
         self.obj_wavelength = obj_wavelength
@@ -93,16 +84,16 @@ class Spectral_Response:
 
         Parameters
         ----------
-        obj_wavelength: array like
+        obj_wavelength: array like.
             The wavelength interval, in nm, of the object.
-        sed: array like in the (4, n) format
+        sed: array like.
             The Spectral Energy Distribution (SED) of the object.
 
-        Yields
-        ------
-        reduced_sed: array like
-            The Spectral Energy Distribution (SED) of the object subtracted from the loses
-            related to the spectral response of the system.
+        Returns
+        -------
+        array like:
+            The Spectral Energy Distribution (SED) of the object subtracted
+            from the loses related to the spectral response of the system.
         """
         spectral_response = self.get_spectral_response(obj_wavelength)
         sed = sed * spectral_response
@@ -115,22 +106,13 @@ class Telescope(Spectral_Response):
     ADJUSMENT_COEFFS = {"20230328": (0.86, 0.95), "20230329": (0.998, 0.995)}
 
     def __init__(self) -> None:
-        """
-        Telescope class
-
-        This class extends the Spectral Response class, and it represents the spectral response of the
-        1.6 m Perkin-Elmer telescope of the Picos dos Dias observatory.
-
-        Yields
-        ------
-            spectral_response: array_like
-                The spectral response of the optical system.
-        """
         super().__init__()
         self.BASE_PATH = os.path.join(self.BASE_PATH, "telescope")
         return
 
-    def get_spectral_response(self, obj_wavelength, date="20230329") -> ndarray:
+    def get_spectral_response(
+        self, obj_wavelength: ndarray, date: str = "20230329"
+    ) -> ndarray:
         """Return the spectral response.
 
         Parameters
@@ -143,8 +125,7 @@ class Telescope(Spectral_Response):
 
         Returns
         ------
-
-        spectral_response: array like
+        array like:
             The spectral response of the optical system.
         """
         spectral_response = super().get_spectral_response(obj_wavelength)
@@ -152,7 +133,7 @@ class Telescope(Spectral_Response):
         return spectral_response**2 * primary_coeff * secondary_coeff
 
     def apply_spectral_response(
-        self, obj_wavelength: ndarray, sed: ndarray, date="20230329"
+        self, obj_wavelength: ndarray, sed: ndarray, date: str = "20230329"
     ) -> ndarray:
         """Apply the spectral response.
 
@@ -161,17 +142,17 @@ class Telescope(Spectral_Response):
         obj_wavelength: array like
             The wavelength interval, in nm, of the object.
 
-        sed: array like in the (4, n) format
+        sed: array like
             The Spectral Energy Distribution (SED) of the object.
 
         date: ['20230329', '20230328'], optional
             Date of the transmission curve of the telescope.
 
-        Yields
-        ------
+        Returns
+        -------
         reduced_sed: array like
-            The Spectral Energy Distribution (SED) of the object subtracted from the loses
-            related to the spectral response of the system.
+            The Spectral Energy Distribution (SED) of the object subtracted
+            from the loses related to the spectral response of the system.
         """
         spectral_response = self.get_spectral_response(obj_wavelength, date)
         sed = sed * spectral_response
@@ -184,15 +165,7 @@ class Atmosphere(Spectral_Response):
     ATM_EXTINCTION_FILE = "willton.csv"
 
     def __init__(self) -> None:
-        """Atmosphere class
 
-        This class extends the Spectral Reponse class, and it represents the atmosphere spectral response
-
-        Yields
-        ------
-            spectral_response: array_like
-                The spectral response of the optical system.
-        """
         super().__init__()
         self.BASE_PATH = os.path.join(self.BASE_PATH, "atmosphere")
         return
@@ -201,7 +174,7 @@ class Atmosphere(Spectral_Response):
         self,
         obj_wavelength: ndarray,
         air_mass: int | float = 1,
-        sky_condition="photometric",
+        sky_condition: str = "photometric",
     ) -> ndarray:
         """Return the spectral response.
 
@@ -209,16 +182,14 @@ class Atmosphere(Spectral_Response):
         ----------
         obj_wavelength: array like
             The wavelength interval, in nm, of the object.
-
         air_mass: int, float
             The air mass.
-
         sky_condition: ['photometric', 'regular', 'good']
             The condition of the sky.
 
-        Yields
-        ------
-        spectral_response: array like
+        Returns
+        -------
+        array like:
             The spectral response of the optical system.
 
         """
@@ -233,7 +204,7 @@ class Atmosphere(Spectral_Response):
 
         return spectral_response
 
-    def get_spectral_response_2(
+    def _get_spectral_response_2(
         self,
         obj_wavelength: ndarray,
         air_mass: int | float = 1,
@@ -245,16 +216,14 @@ class Atmosphere(Spectral_Response):
         ----------
         obj_wavelength: array like
             The wavelength interval, in nm, of the object.
-
         air_mass: int, float
             The air mass.
-
         sky_condition: ['photometric', 'regular', 'good']
             The condition of the sky.
 
-        Yields
-        ------
-        spectral_response: array like
+        Returns
+        -------
+        array like:
             The spectral response of the optical system.
 
         """
@@ -271,25 +240,26 @@ class Atmosphere(Spectral_Response):
         obj_wavelength: ndarray,
         sed: ndarray,
         air_mass: int | float,
-        sky_condition="photometric",
+        sky_condition: str = "photometric",
     ) -> ndarray:
         """Apply the spectral response.
 
         Parameters
         ----------
-            obj_wavelength: array like
-                The wavelength interval, in nm, of the object.
-            sed: array like in the (4, n) format
-                The Spectral Energy Distribution (SED) of the object.
-            air_mass: int, float
-                The air mass in the light path.
-            sky_condition: ['photometric', 'regular', 'good']
+        obj_wavelength: array like
+            The wavelength interval, in nm, of the object.
+        sed: array like
+            The Spectral Energy Distribution (SED) of the object.
+        air_mass: int, float.
+            The air mass in the light path.
+        sky_condition: ['photometric', 'regular', 'good'].
+            The condition of the sky during the observation.
 
-        Yields
-        ------
-            reduced_sed: array like
-                The Spectral Energy Distribution (SED) of the object subtracted from the loses
-                related to the spectral response of the system.
+        Returns
+        -------
+        reduced_sed: array like
+            The Spectral Energy Distribution (SED) of the object subtracted from the loses
+            related to the spectral response of the system.
         """
         self._verify_var_in_interval(air_mass, "air_mass", var_max=3)
         self._check_var_in_a_list(
@@ -304,20 +274,6 @@ class Atmosphere(Spectral_Response):
         return sed
 
     def _func(self, wavelength_interv: ndarray, C: float) -> ndarray:
-        """Profile for the atmosphere spectral response
-
-        Parameters
-        ----------
-        wavelength_interv : ndarray
-            wavelength interval
-        C : float
-            Adjustment constant
-
-        Returns
-        -------
-        ndarray
-            Adjusted profile
-        """
         csv_file_name = os.path.join(self.BASE_PATH, self.CSV_FILE_NAME)
         sys_wavelength, spectral_response = self._read_csv_file(csv_file_name)
         spl = interp1d(
@@ -341,17 +297,6 @@ class Atmosphere(Spectral_Response):
 
 
 class Channel(Spectral_Response):
-    """
-    Channel class
-
-    This is an abstract class that extends the Spectral Response class. It represents one of the four
-    SPARC4 channels.
-
-    Yields
-    ------
-        spectral_response: array_like
-            The spectral response of the optical system.
-    """
 
     POL_OPTICAL_COMPONENTS = {
         "analyzer": "analyzer.csv",
@@ -363,7 +308,6 @@ class Channel(Spectral_Response):
         "camera": "camera.csv",
         "ccd": "ccd.csv",
     }
-
     POLARIZER_ANGLE = 0
 
     def __init__(self, channel_id: int) -> None:
@@ -373,7 +317,7 @@ class Channel(Spectral_Response):
         ----------
 
         channel_id: int
-            The channel ID number.
+            The channel ID of the camera.
         """
 
         super().__init__()
@@ -390,13 +334,13 @@ class Channel(Spectral_Response):
         ----------
         obj_wavelength: array like
             The wavelength interval, in nm, of the object.
-
         csv_file_name: str
-            The name of the csv file that contains the spectral response of the optical component.
+            The name of the csv file that contains the spectral response
+            of the optical component.
 
         Returns
-        ------
-        spectral_response: array like
+        -------
+        array like:
             The spectral response of the optical system.
         """
         self.CSV_FILE_NAME = csv_file_name
@@ -419,9 +363,12 @@ class Channel(Spectral_Response):
 
         calibration_wheel: ["polarizer", "ideal-polarizer", "ideal-depolarizer", "depolarizer"], optional
             The optical component of the calibration wheel.
-            This parameter provides to the user the options of using the real or the ideal versions
-            of the optical components of the calibration wheel. Based on the provided value, AIS
-            will apply the correspondent Stoke matrix. It should be highlighted that the transmission
+            This parameter provides to the user the options of using
+            the real or the ideal versions
+            of the optical components of the calibration wheel.
+            Based on the provided value, AIS
+            will apply the correspondent Stoke matrix.
+            It should be highlighted that the transmission
             of the optical component still be applied.
 
         retarder_waveplate: ["ideal-half", "half", "ideal-quarter", "quarter"], optional
@@ -429,7 +376,8 @@ class Channel(Spectral_Response):
 
         retarder_waveplate_angle: float, optional
             The angle of the retarder waveplate in degrees.
-            If the acquisition mode of SPARC4 is polarimetry, the retarder waveplate angle should be provided.
+            If the acquisition mode of SPARC4 is polarimetry,
+            the retarder waveplate angle should be provided.
         """
         self.acquisition_mode = acquisition_mode
         self.calibration_wheel = calibration_wheel
@@ -443,16 +391,16 @@ class Channel(Spectral_Response):
 
         Parameters
         ----------
-            sed: array like in the (4, n) format
-                The Spectral Energy Distribution (SED) of the object.
-            obj_wavelength: array like
-                The wavelength interval, in nm, of the object.
+        sed: array like
+            The Spectral Energy Distribution (SED) of the object.
+        obj_wavelength: array like
+            The wavelength interval, in nm, of the object.
 
         Returns
         ------
-            reduced_sed: array like
-                The Spectral Energy Distribution (SED) of the object subtracted from the loses
-                related to the spectral response of the system.
+        array like:
+            The Spectral Energy Distribution (SED) of the object subtracted
+            from the loses related to the spectral response of the system.
         """
         self.sed = sed[0]
         self.obj_wavelength = obj_wavelength

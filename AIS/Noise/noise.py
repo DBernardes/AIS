@@ -8,13 +8,6 @@ __all__ = ["Noise"]
 
 
 class Noise:
-    """
-    This class calculates the read noise and the dark noise of the SPARC4 EMCCDs as a function of their operation mode.
-    The calculations are done based on a series of characterization of the noise of the these cameras.
-    For the conventional mode, the values of the read noise in the Tabelas_Valores_Ruido_Leitura spreadsheet are used.
-    For the EM mode, an interpolation of the data presented by the respective spreadshhet is done, as a function of the EM gain.
-
-    """
 
     def __init__(self, channel: int) -> None:
         """Initialize the class.
@@ -22,8 +15,8 @@ class Noise:
         Parameters
         ----------
 
-        channel: integer
-            The channel related to the camera.
+        channel: [1, 2, 3, or 4].
+            The channel ID of the camera.
         """
         self.channel = channel
         self.spreadsheet_path = os.path.join(
@@ -45,16 +38,10 @@ class Noise:
         ccd_operation_mode: dictionary
             A dictionary with the parameters of the CCD operation mode.
 
-            em_mode : ['EM', 'Conv']
-                Electron Multiplying mode of the camera.
-            em_gain : float
-                EM gain of the camera.
-            readout : [0.1, 1, 10, 20, 30]
-                Readout rate of the pixels in MHz.
-            preamp : [1, 2]
-                Pre-amplifier gain.
-            binn : [1, 2]
-                Binning of the pixels.
+        Returns
+        -------
+        float:
+            The read noise of the camera as a function of its operation mode.
         """
         self.em_mode = ccd_operation_mode["em_mode"]
         self.em_gain = ccd_operation_mode["em_gain"]
@@ -64,8 +51,10 @@ class Noise:
 
         if self.em_mode == "Conv":
             self._calculate_read_noise_conventional_mode()
-        if self.em_mode == "EM":
+        elif self.em_mode == "EM":
             self._calculate_read_noise_em_mode()
+        else:
+            raise ValueError(f"A wrong value was passed to the EM mode: {self.em_mode}")
         return self.read_noise
 
     def _calculate_read_noise_conventional_mode(self) -> None:
@@ -113,7 +102,7 @@ class Noise:
 
         Returns
         -------
-        dark_current: float
+        float:
             Dark current, in e-/pix/s, for the respective SPARC4 channel;
         """
         if not (-70 <= temp <= -30):

@@ -16,20 +16,19 @@ __all__ = ["Source", "Sky"]
 
 
 class Spectral_Energy_Distribution:
-    """
-    The Spectral Energy Distribtution is an abstract class that represents the sky and the source classes.
-    """
 
     EFFECT_WAVELENGTH = 545  # nm
     TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
-
-    # https://www.astronomy.ohio-state.edu/martini.10/usefuldata.html
-    # https://cass.ucsd.edu/archive/physics/ph162/mags.html
     S_0 = 3.631e-2  # W/(m.m2)
     BASE_PATH = os.path.join("AIS", "Spectral_Energy_Distribution")
 
     def __init__(self) -> None:
-        """Initialize the Spectral Energy Distribution Class."""
+        """Initialize the class.
+
+        Tips: useful links:
+            https://www.astronomy.ohio-state.edu/martini.10/usefuldata.html
+            https://cass.ucsd.edu/archive/physics/ph162/mags.html
+        """
         self.sed = np.linspace(100, 1000, 100)
         return
 
@@ -40,7 +39,7 @@ class Spectral_Energy_Distribution:
 
         Returns
         -------
-        ndarray
+        ndarray:
             The Spectral Energy Distribution of the object in photons/s/m.
         """
         return np.linspace(100, 1000, 100, dtype=np.float64)
@@ -67,25 +66,24 @@ class Spectral_Energy_Distribution:
 
 
 class Source(Spectral_Energy_Distribution):
-    """Source Class
-
-    This class inherits from the Spectral_Energy_Distribution class, and it represents the astronomical object.
-
-    Example
-    -------
-
-    src = Source()
-
-    wv, sed = src.calculate_sed(calculation_method='blackbody',
-                            magnitude=12,
-                            wavelength_interval=(400, 1100, 100),
-                            temperature=5700)
-    """
 
     # TODO verificar o l effetivo johson e cousin
     effect_wl = {"B": 0.438e-6, "V": 0.545e-6, "R": 0.641e-6, "I": 0.798e-6}
 
     def __init__(self) -> None:
+        """Initialize the class.
+
+        Example
+        -------
+
+        ```
+        src = Source()
+        wv, sed = src.calculate_sed(calculation_method='blackbody',
+                                magnitude=12,
+                                wavelength_interval=(400, 1100, 100),
+                                temperature=5700)
+        ```
+        """
         self.SPECTRAL_LIB_PATH = os.path.join(self.BASE_PATH, "Spectral_Library")
         self.pol_BVRI = dict.fromkeys(["B", "V", "R", "I"], None)
 
@@ -98,32 +96,39 @@ class Source(Spectral_Energy_Distribution):
         wavelength_interval: tuple = (),
         temperature: int | float = 0,
         spectral_type: str = "",
-    ) -> ndarray:
+    ) -> tuple[ndarray]:
         """Get the Spectral Energy Distribution of the astronomical object.
 
         Parameters
         ----------
-
         calculation_method : ['blackbody', 'spectral_library']
             The method used to calculate the SED.
-            If the user wants to use a blackbody SED, the calculation_method must be 'blackbody'.
-            If the user wants to use a spectral standard SED, the calculation_method must be 'spectral_library'.
+            If the user wants to use a blackbody SED,
+            the calculation_method must be 'blackbody'.
+            If the user wants to use a spectral standard SED,
+            the calculation_method must be 'spectral_library'.
 
-            In the 'blackbody' case, the spectral response of the object is calculated using the Planck function,
-            given the temperature and the wavelength interval of the object. In the 'spectral_library' case, the
-            spectral response and the wavelength of the object are obtained using a library of spectral types.
-            These spectrums are taken from the Library of Stellar Spectrum of ESO, and they can be found at:
+            In the 'blackbody' case, the spectral response of the object is
+            calculated using the Planck function, given the temperature and the
+            wavelength interval of the object. In the 'spectral_library' case, the
+            spectral response and the wavelength of the object are obtained using a
+            library of spectral types. These spectrums are taken from the Library of
+            Stellar Spectrum of ESO, and they can be found at:
             https://www.eso.org/sci/facilities/paranal/decommissioned/isaac/tools/lib.html.
-            The level of the spectral response is adjusted using the magnitude of the object in the V band.
+            The level of the spectral response is adjusted using the magnitude of the
+            object in the V band.
 
         magnitude : int | float
             The magnitude of the astronomical object in the V band.
-            The magnitude is used to calculate the effective flux of the astronomical object.
+            The magnitude is used to calculate the effective flux of
+            the astronomical object.
 
         wavelength_interval : tuple, optional
             The wavelength interval, in nm, of the astronomical object.
-            This parameter must be a tuple with three elements, where the first element is the initial wavelength,
-            the second element is the final wavelength and the third element is the number of elements in the array.
+            This parameter must be a tuple with three elements, where the first
+            element is the initial wavelength,
+            the second element is the final wavelength and the third element is the
+            number of elements in the array.
             This parameter is used only if the calculation_method is 'blackbody'.
 
         temperature : int | float, optional
@@ -133,14 +138,14 @@ class Source(Spectral_Energy_Distribution):
         spectral_type : str, optional
             The spectral type of the star that will be used to calculate the SED.
             This parameter is used only if the calculation_method is 'spectral_standard'.
-            The available spectral types can be found using the print_available_spectral_types() method.
+            The available spectral types can be found using
+            the `print_available_spectral_types()` method.
 
         Returns
         -------
-            wavelength : ndarray
+            ndarray:
                 The wavelength of the astronomical object in nm.
-
-            sed : ndarray
+            ndarray:
                 The SED of the astronomical object in photons/m/s.
         """
 
@@ -174,19 +179,21 @@ class Source(Spectral_Energy_Distribution):
     def apply_linear_polarization(
         self, percent_pol: float = 100, pol_angle: float = 0
     ) -> ndarray:
-        """Apply polarization to SED.
+        """Apply a linear polarization to the SED.
 
         Parameters
         ----------
-            percent_pol: float, optional
-                Percentage of polarization.
-            pol_angle: float, optional
-                Polarization angle in degrees. If the selected polarization mode were linear, the polarization angle must be provided.
+        percent_pol: float, optional
+            Percentage of polarization.
+        pol_angle: float, optional
+            Polarization angle in degrees.
+            If the selected polarization mode were linear,
+            the polarization angle must be provided.
 
         Returns
         -------
-            sed: ndarray
-                Polarized SED.
+        sed: ndarray
+            Polarized SED.
         """
         if not 0 < percent_pol <= 100:
             raise ValueError(
@@ -196,9 +203,6 @@ class Source(Spectral_Energy_Distribution):
             raise ValueError(
                 f"The polarization angle must be in the interval of 0 up to 180: {pol_angle}"
             )
-
-        # TODO: tirar tratamento de exceção daqui
-
         theta = np.deg2rad(pol_angle)
         percent_pol /= 100
         self.sed[1] = self.sed[0] * percent_pol * cos(2 * theta)
@@ -215,19 +219,19 @@ class Source(Spectral_Energy_Distribution):
     def apply_circular_polarization(
         self, percent_pol: float = 100, orientation: str = "left"
     ) -> ndarray:
-        """Apply polarization to SED.
+        """Apply a circular polarization to the SED.
 
         Parameters
         ----------
-            percent_pol: float, optional
-                Percentage of polarization.
-            orientation: ['right', 'left'], optional
-                Orientation of the polarization.
+        percent_pol: float, optional
+            Percentage of polarization.
+        orientation: ['right', 'left'], optional
+            Orientation of the polarization.
 
         Returns
         -------
-            sed: ndarray
-                Polarized SED.
+        ndarray:
+            Polarized SED.
         """
         if not 0 < percent_pol <= 100:
             raise ValueError(
@@ -238,7 +242,6 @@ class Source(Spectral_Energy_Distribution):
                 f'The value for the orientation must be "left" or "right": {orientation}'
             )
 
-        # TODO: tirar tratamento de exceção
         self.sed[3] = percent_pol * self.sed[0] / 100
         if orientation == "right":
             self.sed[3] *= -1
@@ -246,21 +249,26 @@ class Source(Spectral_Energy_Distribution):
         return self.sed
 
     def apply_polarization(self, stokes: list = []) -> ndarray:
-        """Apply a general polarization to SED.
+        """Apply a generic polarization to the SED.
 
         Parameters
         ----------
-            stokes (list, optional): a list of the q, u, and v Stokes parameters. Defaults to [].
+        stokes: list, optional.
+            A list of the q, u, and v Stokes parameters.
 
-        Raises:
-        -------
-            ValueError: the variable stokes must have all the three Stokes parameters
-            ValueError: the provided values must be in the interval of -1 up to 1.
-            ValueError: the quadratic sum of the Stokes parameters must be equal or smaller than 1
-
-        Returns:
+        Returns
         --------
-            ndarray: polarized SED, adjusted for the provided Stokes parameters
+        ndarray:
+            polarized SED, adjusted for the provided Stokes parameters.
+
+        Raises
+        -------
+        ValueError:
+            The variable stokes must have all the three Stokes parameters.
+        ValueError:
+            The provided values must be in the interval of -1 up to 1.
+        ValueError:
+            The quadratic sum of the Stokes parameters must be equal or smaller than 1.
         """
         if stokes == []:
             return self.sed
@@ -279,7 +287,6 @@ class Source(Spectral_Energy_Distribution):
                 raise ValueError(
                     f"The quadratic sum of the Stokes parameters must be equal or smaller than 1: {stokes}"
                 )
-        # TODO: tirar exceção
         I = self.sed[0]
         self.sed[1] = I * stokes[0]
         self.sed[2] = I * stokes[1]
@@ -293,13 +300,14 @@ class Source(Spectral_Energy_Distribution):
         Parameters
         ----------
         pol_BVRI : dict
-            A python dictionary containing the polarization values of the filters BVRI in percentage.
-            Ex: {'B':8, 'V': 8.5, 'R': 7.2, 'I':6}
+            A python dictionary containing the polarization values
+            of the filters BVRI in percentage.
 
         Returns
         -------
         ndarray
-            The SED of the star with the q and u Stokes parameters calculated according to the Serkowski curve.
+            The SED of the star with the q and u Stokes parameters calculated
+            according to the Serkowski curve.
         """
         self._verify_pol_BVRI(pol_BVRI)
         popt = self._adjust_Serkowski_curve(pol_BVRI)
@@ -366,10 +374,6 @@ class Source(Spectral_Energy_Distribution):
 
 
 class Sky(Spectral_Energy_Distribution):
-    """Sky Class
-
-    This class inherits from the Spectral_Energy_Distribution class, and it represents the emission of the sky.
-    """
 
     CSV_FILE = "moon_magnitude.csv"
 
@@ -392,17 +396,15 @@ class Sky(Spectral_Energy_Distribution):
         ----------
         moon_phase : ['new', 'first quarter', 'third quarter', 'full']
             The phase of the moon.
-
         object_wavelength : ndarray
             The wavelength interval, in nm, of the astronomical object.
 
         Returns
         -------
-            wavelength : ndarray
-                The wavelength of the sky in nm.
-
-            sed : ndarray
-                The SED of the sky in photons/m/s.
+        ndarray:
+            The wavelength of the sky in nm.
+        ndarray:
+            The SED of the sky in photons/m/s.
         """
         wavelength, mags = self._read_csv(self.CSV_FILE, moon_phase)
         sed = self._calculate_photons_density(mags)

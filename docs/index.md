@@ -1,6 +1,8 @@
-# Introduction
+# Welcome to the Artificial Image Simulator documentation webpage
 
-## abstract
+<p style="text-align: justify;">
+Instituto Nacional de Pesquisas Espaciais (INPE), in collaboration with Laboratório Nacional de Astrofísica (LNA), is developing the Simultaneous Polarimeter and Rapid  Camera in Four Bands (SPARC4), a new astronomical instrument to be installed in the Perkin-Elmer 1.6 m telescope of Picos dos Dias Observatory (in Portuguese, OPD). In this project, we present the Artificial Image Simulator (AIS). AIS was developed to simulate the photometric and polarimetric operating modes of SPARC4, as a function of its spectral response. To obtain this spectral response, we used the theoretical curves provided by the manufacturer of the optical elements and the scientific cameras of the instrument. Also, we considered the spectral response of other systems that are relevant to this characterization, such as the telescope and the atmosphere. The individual optical components that compound the instrument are the elements of the polarimetric module, collimator, dichroic mirrors, and optical focuser cameras. AIS was implemented using the Python programming language. It was used in different activities for the instrument characterization. Among these activities, we can highlight the production of an empirical model to transform the SPARC4 instrumental system into the Sloan Digital Sky Survey (SDSS) system. This model was calibrated using observations made with the instrument. Moreover, the simulator can also be used as an exposure time calculator of SPARC4, for planning scientific observations using the instrument, and investigate the instrumental effects related to polarimetry. 
+</p>
 
 
- - Cards para lugares importantes
+![example image](images/example_image.png){width=300 .center}

@@ -1,6 +1,20 @@
 site_name: Artificial Image Simulator
 repo_url: 'https://github.com/DBernardes/AIS'
 repo_name: 'Dbernardes/AIS'
+nav:
+  - Home: index.md
+  - Quick start: quick_start.md
+  - Tutorial: tutorial.md
+  - API:
+    - Artificial Image Simulator: api/ais.md
+    - Background Image: api/background_image.md
+    - Header: api/header.md
+    - Noise: api/noise.md
+    - PSF: api/psf.md
+    - SED: api/sed.md
+    - Spectral Response: api/spectral_response.md
+  - Contribute: contribute.md
+  - Authors and contact: authors.md
 
 
 theme:
@@ -15,6 +29,8 @@ theme:
       toggle:
         icon: material/weather-sunny
         name: Light mode
+  font:
+    text: 'Roboto'
 
 markdown_extensions:
   - pymdownx.tasklist
@@ -25,9 +41,14 @@ markdown_extensions:
   - pymdownx.superfences
   - attr_list
 
+extra_css:
+  - stylesheets/extra.css
   
 plugins:
 - mkdocstrings:
     handlers:
       python:
         paths: [AIS]
+        options:
+          docstring_style: numpy
+          ignore_init_summary: false

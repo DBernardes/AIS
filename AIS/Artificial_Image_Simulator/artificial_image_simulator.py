@@ -18,50 +18,6 @@ __all__ = ["Artificial_Image_Simulator"]
 
 
 class Artificial_Image_Simulator:
-    """
-    The Artificial Images Simulator (AIS) class was developed to generate artificial
-    star images, similar to those images that would be acquired by using the acquisition
-    system of the SPARC4 instrument. To accomplish this, the AIS models as star flux as
-    a 2D gaussian distribution. Then, the star flux is added to an image with a
-    background level given by counts distribution of an image of the SPARC4 cameras, as
-    a function of its operation mode.
-
-    Example
-    --------
-
-    ccd_operation_mode = {
-        'em_mode': 'Conv',
-        'em_gain': 1,
-        'preamp': 1,
-        'readout': 1,
-        'binn': 1,
-        't_exp': 1,
-        'image_size': 100
-    }
-
-    ais = Artificial_Image_Simulator(ccd_operation_mode,
-                                    channel_id=1, ccd_temperature=-70)
-
-    ais.create_source_sed(calculation_method='blackbody',
-                            magnitude=15,
-                            wavelength_interval=(400, 1100, 100),
-                            temperature=5700)
-    ais.create_sky_sed(moon_phase='new')
-    ais.apply_atmosphere_spectral_response()
-    ais.apply_telescope_spectral_response()
-    ais.apply_sparc4_spectral_response(acquisition_mode='photometry')
-    ais.create_artificial_image(image_path=r'.\\FITS', star_coordinates=(50,50))
-
-    Notes
-    -----
-        Explicar o código; background; passo-a-passo
-
-
-    References
-    ----------
-    .. [#Bernardes_2018] Bernardes, D. V., Martioli, E., and Rodrigues, C. V., “Characterization of the SPARC4 CCDs”, <i>Publications of the Astronomical Society of the Pacific</i>, vol. 130, no. 991, p. 95002, 2018. doi:10.1088/1538-3873/aacb1e.
-
-    """
 
     def __init__(
         self,
@@ -69,32 +25,37 @@ class Artificial_Image_Simulator:
         channel_id: int,
         ccd_temperature: float | int,
     ) -> None:
-        """Initialize the Artificial Image Simulator class.
+        """Initialize the class.
 
         Parameters
         ----------
-        ccd_operation_mode: dictionary
-            A python dictionary with the CCD operation mode. The allowed keywords and values are:
+        ccd_operation_mode : dict[str,int | float | str]
+            A python dictionary of the CCD operation mode.
+            The allowed keywords are: em_mode, em_gain, preamp readout,
+            binn, t_exp, and image_size.
+        channel_id : [1, 2, 3, 4]
+            Channel id.
+        ccd_temperature : float | int
+            CCD temperature.
 
-            * em_mode: [Conv, EM]
-                Use the Conv for the Conventional Mode and EM for the Electron Multiplying mode
-            * em_gain: float
-                Electron Multiplying gain
-            * preamp: [1, 2]
-                Pre-amplification gain
-            * readout: [0.1, 1, 10, 20, 30]
-                Readout rate in MHz
-            * binn: int
-                Number of the binned pixels
-            * t_exp: float
-                Exposure time in seconds
-            * image_size: int, optional
-                Image size in pixels
-        channel_id: [1, 2, 3, 4]
-            The channel ID.
-        ccd_temperature: float
-            The CCD temperature in celsius degrees.
+        Example
+        -------
+
+        ```
+        ccd_operation_mode = {
+            'em_mode': 'Conv',
+            'em_gain': 1,
+            'preamp': 1,
+            'readout': 1,
+            'binn': 1,
+            't_exp': 1,
+            'image_size': 100
+        }
+        ais = Artificial_Image_Simulator(ccd_operation_mode,
+                                        channel_id=1, ccd_temperature=-70)
+        ```
         """
+
         self.ccd_operation_mode = ccd_operation_mode
         self.channel_id = channel_id
         self.ccd_temperature = ccd_temperature
@@ -189,8 +150,9 @@ class Artificial_Image_Simulator:
 
         wavelength_interval : tuple, optional
             The wavelength interval, in nm, of the astronomical object.
-            This parameter must be a tuple with three elements, where the first element is the initial wavelength,
-            the second element is the final wavelength and the third element is the number of elements in the array.
+            This parameter must be a tuple with three elements, where the first
+            element is the initial wavelength, the second element is the final
+            wavelength and the third element is the number of elements in the array.
             This parameter is used only if the calculation_method is 'blackbody'.
 
         temperature : int | float, optional
@@ -200,7 +162,8 @@ class Artificial_Image_Simulator:
         spectral_type : str, optional
             The spectral type of the star that will be used to calculate the SED.
             This parameter is used only if the calculation_method is 'spectral_standard'.
-            The available spectral types can be found using the print_available_spectral_types() method.
+            The available spectral types can be found using the
+            `print_available_spectral_types()` method.
         """
         self.wavelength, self.source_sed = self.SRC_obj.calculate_sed(
             calculation_method,
@@ -213,14 +176,15 @@ class Artificial_Image_Simulator:
     def apply_linear_polarization(
         self, percent_pol: float = 100, pol_angle: float = 0
     ) -> None:
-        """Apply linear polarization in SED.
+        """Apply a linear polarization to the SED of the object and the sky.
 
-         Parameters
+        Parameters
         ----------
         percent_pol: float, optional
             Percentage of polarization.
         pol_angle: float, optional
-            Polarization angle in degrees. If the selected polarization mode were linear, the polarization angle must be provided.
+            Polarization angle in degrees. If the selected polarization mode were
+            linear, the polarization angle must be provided.
         """
         self.source_sed = self.SRC_obj.apply_linear_polarization(percent_pol, pol_angle)
 
@@ -229,7 +193,7 @@ class Artificial_Image_Simulator:
     ) -> None:
         """Apply ciruclar polarization in SED.
 
-         Parameters
+        Parameters
         ----------
         percent_pol: float, optional
             Percentage of polarization.
@@ -241,44 +205,43 @@ class Artificial_Image_Simulator:
         )
 
     def apply_polarization(self, stokes: list = []) -> None:
-        """Apply a general polarization to SED.
+        """Apply a generic polarization to the SED.
 
         Parameters
         ----------
-            stokes (list, optional): a list of the q, u, and v Stokes parameters. Defaults to [].
-
-        Returns:
-        --------
-            ndarray: polarized SED, adjusted for the provided Stokes parameters
+        stokes: list, optional
+            A list with the q, u, and v Stokes parameters.
         """
         self.source_sed = self.SRC_obj.apply_polarization(stokes)
 
-    def apply_Serkowski_curve(self, pol_BVRI: dict) -> ndarray:
+    def apply_Serkowski_curve(self, pol_BVRI: dict) -> None:
         """Apply the Serkowski curve to the SED of the star.
 
         Parameters
         ----------
         pol_BVRI : dict
-            A python dictionary containing the polarization values of the filters BVRI in percentage.
-            Ex: {'B':8, 'V': 8.5, 'R': 7.2, 'I':6}
+            A python dictionary containing the polarization values of the filters BVRI
+            in percentage.
 
-        Returns
+        Example
         -------
-        ndarray
-            The SED of the star with the q and u Stokes parameters calculated according to the Serkowski curve.
+        ```
+        pol_BVRI = {'B':8, 'V': 8.5, 'R': 7.2, 'I':6}
+        AIS.apply_Serkowski_curve(pol.BVRI)
+        ```
         """
         self.source_sed = self.SRC_obj.apply_Serkowski_curve(pol_BVRI)
         return
 
     def write_source_sed(self, wavelength: ndarray, sed: ndarray) -> None:
-        """Write the source SED into the class.
+        """Write a customized source SED into the class.
 
         Parameters
         ----------
-            wavelength: array like
-                The wavelength interval of the source in nm.
-            sed: array like
-                Spectral Energy Distribution of the source in W/(m2.m).
+        wavelength: array like
+            The wavelength interval of the source in nm.
+        sed: array like
+            Spectral Energy Distribution of the source in W/(m2.m).
         """
         n = sed.shape
         self.source_sed = sed
@@ -298,8 +261,8 @@ class Artificial_Image_Simulator:
 
         Parameters
         ----------
-            moon_phase : ['new', 'first quarter', 'third quarter', 'full']
-                The phase of the moon.
+        moon_phase : ['new', 'first quarter', 'third quarter', 'full']
+            The phase of the moon.
         """
         self.sky_sed = self.SKY_obj.calculate_sed(moon_phase, self.wavelength)
 
@@ -309,14 +272,12 @@ class Artificial_Image_Simulator:
         """Apply the atmosphere spectral response.
 
         This functions applies the atmosphere spectral response on the
-        Spectral Energy Distribution of the source.
+        Spectral Energy Distribution of the source and the sky.
 
         Parameters
         ----------
-
         air_mass: 1.0, optional
             The air mass in the light path.
-
         sky_condition: ["photometric", "regular", "good"], optional
             The sky condition. According to the value provided for this variable,
             a different extinction coeficient for the atmosphere will be selected.
@@ -329,9 +290,11 @@ class Artificial_Image_Simulator:
     def apply_telescope_spectral_response(self, date="20230329") -> None:
         """Apply the telescope spectral response.
 
-        This functions applies the telescope spectral response on the
+        This functions applies the telescope spectral response to the
         Spectral Energy Distribution of the source and the sky.
 
+        Parameters
+        ----------
         date: ['20230329', '20230328'], optional
             Date of the transmission curve of the telescope.
         """
@@ -351,7 +314,7 @@ class Artificial_Image_Simulator:
     ) -> None:
         """Apply the SPARC4 spectral response.
 
-        This functions applies the SPARC4 spectral response on the
+        This functions applies the SPARC4 spectral response to the
         Spectral Energy Distribution of the source and the sky.
 
         Parameters
@@ -359,12 +322,13 @@ class Artificial_Image_Simulator:
         acquisition_mode: ["photometry", "polarimetry"]
             The acquisition mode of the sparc4.
 
-        calibration_wheel: ["polarizer", "ideal-polarizer", "ideal-depolarizer"], optional
+        calibration_wheel: ["polarizer", "ideal-polarizer", "ideal-depolarizer"], optional.
             The optical component of the calibration wheel.
-            This parameter provides to the user the options of using the real or the ideal versions
-            of the optical components of the calibration wheel. Based on the provided value, AIS
-            will apply the correspondent Stoke matrix. It should be highlighted that the transmission
-            of the optical component still be applied.
+            This parameter provides to the user the options of using the real or the
+            ideal versions of the optical components of the calibration wheel.
+            Based on the provided value, AIS will apply the correspondent Stoke matrix.
+            It should be highlighted that the transmission of the optical component
+            still be applied.
 
         retarder_waveplate: ["half", "quarter"], optional
             The waveplate for polarimetric measurements.
@@ -372,7 +336,8 @@ class Artificial_Image_Simulator:
 
         retarder_waveplate_angle: int | float, optional
             The angle of the retarder waveplate in degrees.
-            If the acquisition mode of SPARC4 is polarimetry, the retarder waveplate angle should be provided.
+            If the acquisition mode of SPARC4 is polarimetry,
+            the retarder waveplate angle should be provided.
         """
         self.CHNNL_obj.write_sparc4_operation_mode(
             acquisition_mode,
@@ -388,7 +353,6 @@ class Artificial_Image_Simulator:
         )
 
     def _integrate_sed(self) -> None:
-        """Integrate the star and the sky SEDs."""
         self.wavelength *= 1e-9
         self.sky_photons_per_second = np.clip(
             np.trapz(self.sky_sed, self.wavelength), 0, None
@@ -398,16 +362,19 @@ class Artificial_Image_Simulator:
         )
 
     def calculate_exposure_time(self, snr: float = 100, seeing: float = 1.5) -> float:
-        """Calculate the exposure time required for a given SNR.
+        """Calculate the exposure time required for a given Signal-to-Noise Ratio.
 
         Parameters
         ----------
-            snr (float, optional): signal-to-noise ratio. Defaults to 100.
-            seeing (float, optional): seeing of the object. Defaults to 1.5.
+        snr: float, optional
+            Signal-to-noise ratio. Defaults to 100.
+        seeing: float, optional
+            Seeing of the object. Defaults to 1.5.
 
         Returns
         -------
-            float: minimum exposure time required to meet SNR
+            float
+                The minimum exposure time required to meet the provided SNR.
         """
         n_pix = self.PSF_obj.calculate_npix_star(seeing)
         noise_obj = Noise(self.channel_id)
@@ -445,22 +412,19 @@ class Artificial_Image_Simulator:
         seeing: float = 1,
         seed: float = 1,
     ):
-        """
-        Create the artificial star image.
+        """Create an artificial image.
 
-        This function creates a FITS file of the artificial star image.
+        This function creates a FITS file of an artificial image, similator to those
+        acquired using the SPARC4 scientific cameras.
 
         Parameters
         ----------
         image_path : str
             The path where the FITS file will be saved.
-
         star_coordinates : tuple
             The coordinates in pixels of the star in the image.
-
         seeing : float, optional
             The seeing of the star.
-
         seed: float, optinal.
             The seed used to create the image. Default to 1.
 
@@ -496,20 +460,16 @@ class Artificial_Image_Simulator:
     def create_background_image(
         self, image_path: str, images: int = 1, seed: float = 1
     ) -> None:
-        """Create the background image.
+        """Create a background image.
 
-        This function creates the background image, similar to those
-        acquired by the SPARC4 cameras.
+        This function creates an image of the sky background.
 
         Parameters
         ----------
-
         image_path : str
             The path where the FITS file will be saved.
-
         images : int, optional
             The number of images to be created. The default is 1.
-
         seed: float, optinal.
             The seed used to create the image. Default to 1.
         """
@@ -535,20 +495,14 @@ class Artificial_Image_Simulator:
     def create_dark_image(
         self, image_path: str, images: int = 1, seed: float = 1
     ) -> None:
-        """
-        Create a dark image.
-
-        This function creates a dark image, similar to those
-        acquired by the SPARC4 cameras.
+        """Create a dark image.
 
         Parameters
         ----------
         image_path : str
             The path where the FITS file will be saved.
-
         images : int, optional
             The number of dark images to be created. The default is 1.
-
         seed: float, optinal.
             The seed used to create the image. Default to 1.
         """
@@ -572,20 +526,14 @@ class Artificial_Image_Simulator:
     def create_bias_image(
         self, image_path: str, images: int = 1, seed: float = 1
     ) -> None:
-        """
-        Create a bias image.
-
-        This function creates a bias image, similar to those
-        acquired by the SPARC4 cameras.
+        """Create a bias image.
 
         Parameters
         ----------
         image_path : str
             The path where the FITS file will be saved.
-
         images : int, optional
             The number of bias images to be created. The default is 1.
-
         seed: float, optinal.
             The seed used to create the image. Default to 1.
         """
@@ -611,32 +559,23 @@ class Artificial_Image_Simulator:
     def create_random_image(
         self, image_path, number_stars=10, seeing: float = 1, seed: float = 1
     ) -> None:
-        """
-        Create a random star image.
+        """Create a random star image.
 
         This function creates an artificial image with a set of random stars.
-        The number of star created by the function can be provided to the class. Otherwise,
-        the number 10 will be used. Then, all the star images will be sumed with the background image.
+        The number of star created by the function can be provided to the class.
+        Otherwise, the number 10 will be used.
+        Then, all the star images will be sumed with the background image.
 
         Parameters
         ----------
-
         image_path : str
             The path where the FITS file will be saved.
-
         number_stars: int, optional
             The number of stars in the image.
-
         seeing : float, optional
             The seeing of the star.
-
         seed: float, optinal.
             The seed used to create the image. Default to 1.
-
-        Returns
-        -------
-        Star Image:
-            A FITS file with the calculated random artificial image.
         """
         self._integrate_sed()
         ord_ray, extra_ord_ray = self.star_photons_per_second, 0
@@ -674,20 +613,14 @@ class Artificial_Image_Simulator:
     def create_flat_image(
         self, image_path: str, images: int = 1, seed: float = 1
     ) -> None:
-        """
-        Create a flat image.
-
-        This function creates a flat image, similar to those
-        acquired by the SPARC4 cameras.
+        """Create a flat image.
 
         Parameters
         ----------
         image_path : str
             The path where the FITS file will be saved.
-
         images : int, optional
             The number of flat images to be created. The default is 1.
-
         seed: float, optinal.
             The seed used to create the image. Default to 1.
         """

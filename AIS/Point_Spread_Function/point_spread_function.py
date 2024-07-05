@@ -14,52 +14,29 @@ __all__ = ["Point_Spread_Function"]
 
 
 class Point_Spread_Function:
-    """
-    This class creates the image of the star flux distribution. The PSF of the
-    object is based on a 2D gaussian distribution. Initially, the star flux is
-    calculated using the library Flux_Calculation. Over this flux, the
-    contribution of the atmosphere, the telescope, and the SPARC4 are
-    considered as a function of their spectral response.
-
-
-    Parameters
-    ----------
-    ccd_operation_mode : dictionary
-        Operation mode parameters of the SPARC4 camera
-
-        em_mode: ['EM', 'Conv']
-            The Electron Multiplying mode of the camera.
-        em_gain: float
-            CCD Electron Multiplying gain.
-        readout: [30, 20, 10, 1, 0.1]
-            The readout rate of the pixels in MHz.
-        preamp:
-            The pre-amplification gain.
-        binn: [1, 2]
-            Binning of the pixels
-        t_exp: float
-            Exposure time in seconds
-        image_size : int
-            Image size in pixels
-    seeing: float
-        The size of the seeing disk in arcsec.
-    channel: int
-        The channel related to the camera.
-    """
 
     SPARC4_POL_SEPARATION = 20  # pix
     SPARC4_PLATE_SCALE = 0.35  # arcsec/pix
     SPREADSHEET_PATH = os.path.join("AIS", "Point_Spread_Function", "preamp_gains.csv")
 
     def __init__(self, ccd_operation_mode: dict, channel: int) -> None:
-        """Initialize the class."""
+        """Initialize the class.
+
+        Parameters
+        ----------
+        ccd_operation_mode : dict
+            Operation mode parameters of the SPARC4 camera
+        channel : int
+            The channel ID of the camera.
+        """
+
         self.ccd_operation_mode = ccd_operation_mode
         image_size = self.ccd_operation_mode["image_size"]
         self.shape = (image_size, image_size)
         self.channel = channel
-        self.get_ccd_gain()
+        self._get_ccd_gain()
 
-    def get_ccd_gain(self) -> None:
+    def _get_ccd_gain(self) -> None:
         idx_tab = 0
         readout = self.ccd_operation_mode["readout"]
         if self.ccd_operation_mode["em_mode"] == "EM":
@@ -91,30 +68,24 @@ class Point_Spread_Function:
         seeing: float = 1,
         seed: float = 1,
     ) -> ndarray:
-        """Create the star image.
+        """Create a star image.
 
         Parameters
         ----------
-
         star_coordinates: tuple
             XY star coordinates in the image.
-
         ordinary_ray: float
             Photons/s of the ordinary ray.
-
         extra_ordinary_ray: float, optional
             Photons/s of the extra ordinary ray.
-
         seeing: float, optional
             The size of the seeing disk.
-
         seed: float, optional
-            The seed used for the creation of the noise images. Default value to 1.
+            The seed used for the creation of the noise images.
 
         Returns
         -------
-
-        star_image: ndarray
+        ndarray:
             The Point Spred Function of the star for the respective CCD operation mode.
         """
         self.seed = seed
@@ -186,11 +157,13 @@ class Point_Spread_Function:
 
         Parameters
         ----------
-            seeing (float): seeing of the object.
+        seeing: float.
+            Size of the seeing disk of the object.
 
         Returns
         -------
-            npix (int): number of pixels of PSF of the object.
+        int:
+            Number of pixels of PSF of the object.
         """
         gaussian_std = seeing / (
             self.SPARC4_PLATE_SCALE * self.ccd_operation_mode["binn"] * 2

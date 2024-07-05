@@ -9,38 +9,23 @@ __all__ = ["Header"]
 
 
 class Header:
-    """
-    Parameters
-    ----------
-    ccd_operation_mode : dictionary
-        Operation mode parameters of the SPARC4 camera
-
-        em_mode : ['EM', 'Conv']
-            Electron Multiplying mode of the camera.
-        em_gain : float
-            EM gain of the camera.
-        readout : [30, 20, 10, 1, 0.1]
-            Readout rate of the pixels in MHz.
-        preamp : [1, 2]
-            Pre-amplifier gain
-        binn : [1, 2]
-            Binning of the pixels
-        t_exp : float
-            Exposure time in seconds
-        image_size : int
-            Image size in pixels
-    ccd_temp: float
-        The CCD temperatura in celsius degree.
-    channel:
-        The channel related to the camera.
-    """
 
     _CSV_HEADER_FILE = os.path.join("AIS", "Header", "header.csv")
     _CSV_GAINS_FILE = os.path.join("AIS", "Header", "preamp_gains.csv")
     _CSV_READNOISE_FILE = os.path.join("AIS", "Header", "read_noises.csv")
 
     def __init__(self, ccd_operation_mode: dict, ccd_temp: float, channel: int) -> None:
-        """Initialize the Header Class."""
+        """Initialize the class.
+
+        Parameters
+        ----------
+        ccd_operation_mode : dict
+            Operation mode parameters of the SPARC4 camera.
+        ccd_temp : float
+            The CCD temperatura in celsius degree.
+        channel : [1, 2, 3, or 4].
+            The channel ID of the camera
+        """
         self.ccd_operation_mode = ccd_operation_mode
         self.ccd_temp = ccd_temp
         self.channel = channel
@@ -78,8 +63,8 @@ class Header:
     def create_header(self) -> fits.Header:
         """Create the image header.
 
-        This functions returns a astropy.io.fits.Header class with all the information used
-        to create the artificial image.
+        This functions returns a astropy.io.fits.Header class with all
+        the information used to create the artificial image.
         """
         dic = self.ccd_operation_mode
         self.header["NAXIS1"] = dic["image_size"]
