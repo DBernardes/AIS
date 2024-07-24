@@ -1,3 +1,4 @@
+[![Documentation Status](https://readthedocs.org/projects/ais/badge/?version=latest)](https://ais.readthedocs.io/en/latest/?badge=latest)
 [![Unit tests](https://github.com/DBernardes/AIS/actions/workflows/python-app.yml/badge.svg)](https://github.com/DBernardes/AIS/actions/workflows/python-app.yml)
 [![Code cov](https://codecov.io/gh/DBernardes/AIS/branch/main/graph/badge.svg?token=aPhVaeHkOh)](https://codecov.io/gh/DBernardes/AIS)
 [![Codacy](https://app.codacy.com/project/badge/Grade/b2724af0f0b043bc84f768659f73fb77)](https://www.codacy.com/gh/DBernardes/AIS/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DBernardes/AIS&amp;utm_campaign=Badge_Grade)
