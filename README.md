@@ -11,10 +11,6 @@ Instituto Nacional de Pesquisas Espaciais (INPE), in collaboration with Laborat�
 </p>
 
 
-![example image](docs/images/example_image.png){width=300 .center}
-
-   
-
 Authors and Contact
 ====================
 
@@ -25,7 +21,7 @@ email: denis.bernardes099@gmail.com
 License
 =======
 
-This project is licensed under the MIT License - see the LICENSE_ file for details
+This project is licensed under the MIT License.
 
 
 References
@@ -33,7 +29,7 @@ References
 
 * Claudia V. Rodrigues, Keith Taylor, Francisco J. Jablonski, Marcelo Assafin, Alex Carciofi, Deonisio Cieslinski, Joaquim E. R. Costa, Ruben Dominguez, Tania P. Dominici, Gabriel A. P. Franco, Damien J. Jones, Antonio Kanaan, René Laporte, Antonio M. Magalhaes, André Milone, José A. Neri, Antonio Pereyra, Luiz A. Reitano, Karleyne M. G. Silva, Cesar Strauss, "Concept of SPARC4: a simultaneous polarimeter and rapid camera in 4 bands," Proc. SPIE 8446, Ground-based and Airborne Instrumentation for Astronomy IV, 844626 (24 September 2012); https://doi.org/10.1117/12.924976
 
-* *Bernardes, D. V., Martioli, E., and Rodrigues, C. V., “Characterization of the SPARC4 CCDs”, <i>Publications of the Astronomical Society of the Pacific</i>, vol. 130, no. 991, p. 95002, 2018. doi:10.1088/1538-3873/aacb1e.
+* Bernardes, D. V., Martioli, E., and Rodrigues, C. V., “Characterization of the SPARC4 CCDs”, <i>Publications of the Astronomical Society of the Pacific</i>, vol. 130, no. 991, p. 95002, 2018. doi:10.1088/1538-3873/aacb1e.
 
 * The Astropy Collaboration et al 2018 AJ 156 123.
 

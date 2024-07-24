@@ -16,7 +16,6 @@ photutils = "^1.13.0"
 pandas = "^2.2.2"
 pytest = "^8.2.2"
 matplotlib = "^3.9.0"
-datetime = "^5.5"
 sbpy = "^0.4.0"
 pytest-coverage = "^0.0"
 numpy = ">=1.23.5,<2.3"
@@ -26,16 +25,12 @@ numpy = ">=1.23.5,<2.3"
 isort = "^5.13.2"
 black = {extras = ["jupyter"], version = "^24.4.2"}
 taskipy = "^1.13.0"
-flake8 = "^7.1.0"
 
 
 [tool.poetry.group.docs.dependencies]
-sphinx = "^7.3.7"
-sphinx-rtd-theme = "^2.0.0"
 ipython = "^8.26.0"
 mkdocs = "^1.6.0"
 pymdown-extensions = "^10.8.1"
-windmill = "^1.6"
 mkdocs-material = "^9.5.28"
 mkdocstrings = {extras = ["python"], version = "^0.25.1"}
 
