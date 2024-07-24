@@ -5,9 +5,11 @@ This work was developed as part of the PhD project of Dr. Denis Bernardes, under
 </p>
 
 ### Denis Bernardes
-- **Affiliation:** Instituto Nacional de Pesquisas Espaciais (INPE).
-- **Email:** denis.bernardes099@gmail.com.
-- **Address:** Astronautas Avenue, 1.758, Jardim da Granja, São José dos Campos, São Paulo, Brazil.
+  - [Github](https://github.com/DBernardes)
+  - [LinkedIn](www.linkedin.com/in/denisbernardes)
+  - [Email](mailto:denis.bernardes099@gmail.com)
+  - **Affiliation:** Instituto Nacional de Pesquisas Espaciais (INPE).
+  - **Address:** Astronautas Avenue, 1.758, Jardim da Granja, São José dos Campos, São Paulo, Brazil.
 
 
 ### Claudia Vilega Rodrigues
