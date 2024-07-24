@@ -1,7 +1,7 @@
-[![Documentation Status](https://readthedocs.org/projects/ais/badge/?version=latest)](https://ais.readthedocs.io/en/latest/?badge=latest)
 [![Unit tests](https://github.com/DBernardes/AIS/actions/workflows/python-app.yml/badge.svg)](https://github.com/DBernardes/AIS/actions/workflows/python-app.yml)
 [![Code cov](https://codecov.io/gh/DBernardes/AIS/branch/main/graph/badge.svg?token=aPhVaeHkOh)](https://codecov.io/gh/DBernardes/AIS)
 [![Codacy](https://app.codacy.com/project/badge/Grade/b2724af0f0b043bc84f768659f73fb77)](https://www.codacy.com/gh/DBernardes/AIS/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DBernardes/AIS&amp;utm_campaign=Badge_Grade)
+[![DOI](https://zenodo.org/badge/346361531.svg)](https://zenodo.org/doi/10.5281/zenodo.12808262)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 <h1 style="text-align: center">Welcome to the documentation of the Artificial Image Simulator</h1>
