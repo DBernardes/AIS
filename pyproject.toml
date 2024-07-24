@@ -44,6 +44,7 @@ post_test = "coverage html"
 open-cov = "start htmlcov\\index.html"
 make-docs = "mkdocs build"
 open-docs = "start site\\index.html"
+make-req = "poetry export -f requirements.txt --output docs/requirements.txt --without-hashes --with docs --with lint"
 
 [build-system]
 requires = ["poetry-core"]
