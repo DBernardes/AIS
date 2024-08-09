@@ -20,7 +20,7 @@ class Spectral_Energy_Distribution:
     EFFECT_WAVELENGTH = 545  # nm
     TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
     S_0 = 3.631e-2  # W/(m.m2)
-    BASE_PATH = os.path.join("AIS", "Spectral_Energy_Distribution")
+    BASE_PATH = os.path.join(os.path.dirname(__file__))
 
     def __init__(self) -> None:
         """Initialize the class.

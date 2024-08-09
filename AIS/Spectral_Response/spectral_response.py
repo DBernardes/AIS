@@ -27,7 +27,7 @@ __all__ = ["Atmosphere", "Telescope", "Channel"]
 
 class Spectral_Response:
 
-    BASE_PATH = os.path.join("AIS", "Spectral_Response")
+    BASE_PATH = os.path.join(os.path.dirname(__file__))
     CSV_FILE_NAME = "csv_file.csv"
 
     def __init__(self) -> None:

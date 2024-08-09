@@ -9,10 +9,10 @@ __all__ = ["Header"]
 
 
 class Header:
-
-    _CSV_HEADER_FILE = os.path.join("AIS", "Header", "header.csv")
-    _CSV_GAINS_FILE = os.path.join("AIS", "Header", "preamp_gains.csv")
-    _CSV_READNOISE_FILE = os.path.join("AIS", "Header", "read_noises.csv")
+    _local_path = os.path.dirname(__file__)
+    _CSV_HEADER_FILE = os.path.join(_local_path, "header.csv")
+    _CSV_GAINS_FILE = os.path.join(_local_path, "preamp_gains.csv")
+    _CSV_READNOISE_FILE = os.path.join(_local_path, "read_noises.csv")
 
     def __init__(self, ccd_operation_mode: dict, ccd_temp: float, channel: int) -> None:
         """Initialize the class.

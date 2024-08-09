@@ -13,7 +13,7 @@ __all__ = ["Background_Image"]
 class Background_Image:
 
     PIXEL_SENSIBILITY = 0.03
-    SPREADSHEET_PATH = os.path.join("AIS", "Background_Image", "preamp_gains.csv")
+    SPREADSHEET_PATH = os.path.join(os.path.dirname(__file__), "preamp_gains.csv")
 
     def __init__(
         self,

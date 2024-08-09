@@ -17,7 +17,7 @@ class Point_Spread_Function:
 
     SPARC4_POL_SEPARATION = 20  # pix
     SPARC4_PLATE_SCALE = 0.35  # arcsec/pix
-    SPREADSHEET_PATH = os.path.join("AIS", "Point_Spread_Function", "preamp_gains.csv")
+    SPREADSHEET_PATH = os.path.join(os.path.dirname(__file__), "preamp_gains.csv")
 
     def __init__(self, ccd_operation_mode: dict, channel: int) -> None:
         """Initialize the class.

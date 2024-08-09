@@ -20,7 +20,9 @@ class Noise:
         """
         self.channel = channel
         self.spreadsheet_path = os.path.join(
-            "AIS", "Noise", "spreadsheet", f"Channel {channel}"
+            os.path.dirname(__file__),
+            "spreadsheet",
+            f"Channel {channel}",
         )
 
     def calculate_read_noise(self, ccd_operation_mode: dict) -> float:
