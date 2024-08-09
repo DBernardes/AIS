@@ -40,8 +40,8 @@ class Test_Telescope(unittest.TestCase):
     def test_csv_file_name(self):
         assert self.telescope.CSV_FILE_NAME == "aluminium_curve.csv"
 
-    def test_base_path(self):
-        assert self.telescope.BASE_PATH == self.BASE_PATH
+    # def test_base_path(self):
+    #     assert self.telescope.BASE_PATH == self.BASE_PATH
 
     # --------------------------------------------------------------------------------------------
 

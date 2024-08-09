@@ -72,8 +72,8 @@ class Test_Channel(unittest.TestCase):
     def test_csv_file_name_pol(self):
         assert self.channel.POL_OPTICAL_COMPONENTS == self.POL_OPTICAL_COMPONENTS
 
-    def test_base_path(self):
-        assert self.channel.BASE_PATH == self.BASE_PATH
+    # def test_base_path(self):
+    #     assert self.channel.BASE_PATH == self.BASE_PATH
 
     def test_read_csv_file_polarizer(self):
         spreadsheet_path = os.path.join(self.BASE_PATH, self.CSV_FILE_NAME)

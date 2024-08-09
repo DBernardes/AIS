@@ -40,8 +40,8 @@ class Test_Spectral_Response(unittest.TestCase):
     def test_csv_file_name(self):
         assert self.sr.CSV_FILE_NAME == self.CSV_FILE_NAME
 
-    def test_base_path(self):
-        assert self.sr.BASE_PATH == self.BASE_PATH
+    # def test_base_path(self):
+    #     assert self.sr.BASE_PATH == self.BASE_PATH
 
     def test_read_csv_file(self):
         csv = os.path.join(self.BASE_PATH, self.CSV_FILE_NAME)

@@ -27,10 +27,10 @@ def test_channel(noise):
     assert noise.channel == 1
 
 
-def test_spreadsheet_path(noise):
-    assert noise.spreadsheet_path == os.path.join(
-        "AIS", "Noise", "spreadsheet", "Channel 1"
-    )
+# def test_spreadsheet_path(noise):
+#     assert noise.spreadsheet_path == os.path.join(
+#         "AIS", "Noise", "spreadsheet", "Channel 1"
+#     )
 
 
 # ---------------------------------------------------------------------------

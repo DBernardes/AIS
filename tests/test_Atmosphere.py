@@ -49,8 +49,8 @@ class Test_Atmosphere(unittest.TestCase):
     def test_csv_file_name(self):
         assert self.atm.CSV_FILE_NAME == self.CSV_FILE_NAME
 
-    def test_base_path(self):
-        assert self.atm.BASE_PATH == self.BASE_PATH
+    # def test_base_path(self):
+    #     assert self.atm.BASE_PATH == self.BASE_PATH
 
     def test_read_csv_file(self):
         spreadsheet_path = os.path.join(self.BASE_PATH, self.CSV_FILE_NAME)

@@ -355,10 +355,10 @@ class Artificial_Image_Simulator:
     def _integrate_sed(self) -> None:
         self.wavelength *= 1e-9
         self.sky_photons_per_second = np.clip(
-            np.trapz(self.sky_sed, self.wavelength), 0, None
+            np.trapezoid(self.sky_sed, self.wavelength), 0, None
         )
         self.star_photons_per_second = np.clip(
-            np.trapz(self.source_sed, self.wavelength), 0, None
+            np.trapezoid(self.source_sed, self.wavelength), 0, None
         )
 
     def calculate_exposure_time(self, snr: float = 100, seeing: float = 1.5) -> float:

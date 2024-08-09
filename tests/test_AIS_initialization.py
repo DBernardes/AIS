@@ -261,10 +261,12 @@ class Test_AIS_Operation(unittest.TestCase):
         self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
         self.AIS.create_sky_sed("full")
 
-        star_photons_per_second = np.trapz(
+        star_photons_per_second = np.trapezoid(
             self.AIS.source_sed, self.AIS.wavelength * 1e-9
         )
-        sky_photons_per_second = np.trapz(self.AIS.sky_sed, self.AIS.wavelength * 1e-9)
+        sky_photons_per_second = np.trapezoid(
+            self.AIS.sky_sed, self.AIS.wavelength * 1e-9
+        )
         self.AIS._integrate_sed()
 
         assert np.allclose(self.AIS.star_photons_per_second, star_photons_per_second)
