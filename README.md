@@ -3,6 +3,9 @@
 [![Code cov](https://codecov.io/gh/DBernardes/AIS/branch/main/graph/badge.svg?token=aPhVaeHkOh)](https://codecov.io/gh/DBernardes/AIS)
 [![Codacy](https://app.codacy.com/project/badge/Grade/b2724af0f0b043bc84f768659f73fb77)](https://www.codacy.com/gh/DBernardes/AIS/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DBernardes/AIS&amp;utm_campaign=Badge_Grade)
 [![DOI](https://zenodo.org/badge/346361531.svg)](https://zenodo.org/doi/10.5281/zenodo.12808262)
+[![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![PyPi license](https://badgen.net/pypi/license/pip/)](https://pypi.org/project/pip/)
 
 <h1 style="text-align: center">Welcome to the Artificial Image Simulator repository</h1>
 
