@@ -197,7 +197,7 @@ class Atmosphere(Spectral_Response):
             os.path.join(self.BASE_PATH, self.ATM_EXTINCTION_FILE), dtype=np.float64
         )
         spectral_response = 10 ** (
-            -0.4 * air_mass * ss[sky_condition]
+            -0.43428 * air_mass * ss[sky_condition]
         )  # TODO: olhar isso
         spectral_response = self._interpolate_spectral_response(
             ss["Wavelength (nm)"], spectral_response, obj_wavelength

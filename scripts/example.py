@@ -17,11 +17,13 @@ ais = Artificial_Image_Simulator(ccd_operation_mode, channel_id=1, ccd_temperatu
 ais.create_source_sed(
     calculation_method="blackbody",
     magnitude=15,
-    wavelength_interval=(400, 1100, 1000),
+    wavelength_interval=(350, 1100, 1000),
     temperature=5700,
 )
 ais.create_sky_sed(moon_phase="new")
-ais.apply_atmosphere_spectral_response()
-ais.apply_telescope_spectral_response()
-ais.apply_sparc4_spectral_response(acquisition_mode="photometry")
-ais.create_artificial_image(image_path="FITS", star_coordinates=(50, 50))
+ais.apply_atmosphere_spectral_response(2, "good")
+# ais.apply_telescope_spectral_response()
+# ais.apply_sparc4_spectral_response(acquisition_mode="photometry")
+ais._integrate_sed()
+print(ais.star_photons_per_second)
+# ais.create_artificial_image(image_path="FITS", star_coordinates=(50, 50))
