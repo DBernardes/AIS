@@ -215,7 +215,7 @@ class Test_AIS_Operation(unittest.TestCase):
     }
     AIS = Artificial_Image_Simulator(CCD_OP_MODE, CH_ID, TEMP)
     MAGNITUDE = 15
-    FITS_PATH = os.path.join("tests", "fits")
+    FITS_PATH = os.path.join("tests", "unit_tests", "fits")
     SEED = 5
 
     @classmethod

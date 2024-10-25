@@ -37,7 +37,7 @@ def hdr():
 
 
 file = os.path.join("AIS", "Header", "header.csv")
-ss = pd.read_csv(file, sep="\t")
+ss = pd.read_csv(file, sep=";")
 ccd_gain = 3.37
 
 
@@ -70,18 +70,21 @@ def test_get_ccd_gain(hdr):
 # -----------------------------test_create_image_header---------------------
 
 cards = [
-    (keyword, "", comment) for keyword, comment in zip(ss["keyword"], ss["comment"])
+    (keyword, "", comment) for keyword, comment in zip(ss["Keyword"], ss["Comment"])
 ]
 dic = ccd_operation_mode
 channel = 1
 header = fits.Header(cards)
+header["SIMPLE"] = True
+header["NAXIS"] = 2
+
 header["NAXIS1"] = dic["image_size"]
 header["NAXIS2"] = dic["image_size"]
 header["OBSERVER"] = "Johannes Kepler"
 header["OBJECT"] = "HD5980"
 header["INSTRUME"] = "SPARC4"
 header["OBSTYPE"] = "NONE"
-header["SERN"] = channel + 9913
+header["CCDSERN"] = channel + 9913
 header["CHANNEL"] = channel
 header["OBSLONG"] = -45.5825
 header["OBSLAT"] = -22.53444444444445
@@ -99,7 +102,6 @@ header["NFRAMES"] = 1
 header["FRAMEIND"] = 1
 
 header["EXPTIME"] = dic["t_exp"]
-header["CYCLTEXP"] = dic["t_exp"]
 header["ACQMODE"] = "Kinetic"
 header["PREAMP"] = "Gain " + str(dic["preamp"]) + "x"
 header["READRATE"] = dic["readout"]
@@ -139,7 +141,6 @@ header["HUMIDITY"] = 86.0
 header["ACSVRSN"] = "1.0.0"
 header["CTRLINTE"] = "S4GUI"
 header["ACSMODE"] = "Real"
-header["ICSMODE"] = "Real"
 header["TCSMODE"] = "Real"
 
 

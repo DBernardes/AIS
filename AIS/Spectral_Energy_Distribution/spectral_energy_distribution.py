@@ -327,14 +327,12 @@ class Source(Spectral_Energy_Distribution):
 
     @staticmethod
     def _calculate_sed_blackbody(wavelength, temperature) -> float:
-        return (
-            2
-            * h
-            * c**2
-            / (wavelength * 1e-9) ** 5
-            * 1
-            / (np.exp(h * c / (wavelength * 1e-9 * k * temperature)) - 1)
+        numerator = 2 * h * c**2
+        denominator = (wavelength**5 * 1e-9) * (
+            np.exp((h * c) / (wavelength * 1e-9 * k * temperature)) - 1
         )
+
+        return numerator / denominator
 
     def _read_spectral_library(self, spectral_type) -> tuple[ndarray]:
         path = os.path.join(self.SPECTRAL_LIB_PATH, "uk" + spectral_type + ".csv")

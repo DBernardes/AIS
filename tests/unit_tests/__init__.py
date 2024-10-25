@@ -6,8 +6,7 @@ Each script is responsable to the one of the classes contained in the AIS.
 """
 
 from . import (
-    test_AIS_initialization,
-    test_AIS_operation,
+    test_AIS,
     test_Atmosphere,
     test_BGI_class,
     test_Channel,

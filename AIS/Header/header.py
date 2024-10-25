@@ -39,7 +39,7 @@ class Header:
         ss = self._read_spreadsheet(self._CSV_HEADER_FILE)
         cards = [
             (keyword, "", comment)
-            for keyword, comment in zip(ss["keyword"], ss["comment"])
+            for keyword, comment in zip(ss["Keyword"], ss["Comment"])
         ]
         self.header = fits.Header(cards)
 
@@ -57,7 +57,7 @@ class Header:
 
     @staticmethod
     def _read_spreadsheet(file) -> pd.DataFrame:
-        ss = pd.read_csv(file, sep="\t")
+        ss = pd.read_csv(file, sep=";")
         return ss
 
     def create_header(self) -> fits.Header:
@@ -67,13 +67,16 @@ class Header:
         the information used to create the artificial image.
         """
         dic = self.ccd_operation_mode
+        self.header["SIMPLE"] = True
+        self.header["NAXIS"] = 2
+
         self.header["NAXIS1"] = dic["image_size"]
         self.header["NAXIS2"] = dic["image_size"]
         self.header["OBSERVER"] = "Johannes Kepler"
         self.header["OBJECT"] = "HD5980"
         self.header["INSTRUME"] = "SPARC4"
         self.header["OBSTYPE"] = "NONE"
-        self.header["SERN"] = self.channel + 9913
+        self.header["CCDSERN"] = self.channel + 9913
         self.header["CHANNEL"] = self.channel
         self.header["OBSLONG"] = -45.5825
         self.header["OBSLAT"] = -22.53444444444445
@@ -91,7 +94,6 @@ class Header:
         self.header["FRAMEIND"] = 1
 
         self.header["EXPTIME"] = dic["t_exp"]
-        self.header["CYCLTEXP"] = dic["t_exp"]
         self.header["ACQMODE"] = "Kinetic"
         self.header["PREAMP"] = "Gain " + str(dic["preamp"]) + "x"
         self.header["READRATE"] = dic["readout"]
@@ -131,7 +133,6 @@ class Header:
         self.header["ACSVRSN"] = "1.0.0"
         self.header["CTRLINTE"] = "S4GUI"
         self.header["ACSMODE"] = "Real"
-        self.header["ICSMODE"] = "Real"
         self.header["TCSMODE"] = "Real"
 
         return self.header

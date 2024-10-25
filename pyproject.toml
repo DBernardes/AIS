@@ -40,7 +40,7 @@ profile="black"
 
 [tool.taskipy.tasks]
 lint = "black --check --diff . && isort --check --diff . "
-test = "pytest -x tests --cov=AIS --cov-report=xml"
+test = "pytest -x tests\\unit_tests --cov=AIS --cov-report=xml"
 post_test = "coverage html"
 open-cov = "start htmlcov\\index.html"
 make-docs = "mkdocs build"
