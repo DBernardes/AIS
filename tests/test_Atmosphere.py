@@ -85,7 +85,7 @@ class Test_Atmosphere(unittest.TestCase):
         ss = pd.read_csv(
             os.path.join(self.BASE_PATH, self.ATM_EXTINCTION_FILE), dtype=np.float64
         )
-        spectral_response = 10 ** (-0.4 * self.AIR_MASS * ss[self.SKY_CONDITION])
+        spectral_response = 10 ** (-0.43428 * self.AIR_MASS * ss[self.SKY_CONDITION])
         spectral_response = self.atm._interpolate_spectral_response(
             ss["Wavelength (nm)"], spectral_response, self.OBJ_WAVELENGTH
         )
