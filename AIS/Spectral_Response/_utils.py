@@ -44,80 +44,80 @@ def calculate_polarizer_matrix(theta):
     return POLARIZER_MATRIX
 
 
-def calculate_polarizer_matrix_1(theta):
-    """Calculate the polarizer matrix.
+# def calculate_polarizer_matrix_1(theta):
+#     """Calculate the polarizer matrix.
 
-    Parameters
-    ----------
-    theta: float
-        Angle of the transmission axis of the polarizer in degrees
+#     Parameters
+#     ----------
+#     theta: float
+#         Angle of the transmission axis of the polarizer in degrees
 
-    """
-    theta = np.deg2rad(theta)
-    POLARIZER_MATRIX = 0.5 * np.asarray(
-        [
-            [1, cos(2 * theta), sin(2 * theta), 0],
-            [
-                cos(2 * theta),
-                cos(2 * theta) ** 2,
-                cos(2 * theta) * sin(2 * theta),
-                0,
-            ],
-            [
-                sin(2 * theta),
-                cos(2 * theta) * sin(2 * theta),
-                sin(2 * theta) ** 2,
-                0,
-            ],
-            [0, 0, 0, 0],
-        ]
-    )
-    return POLARIZER_MATRIX
+#     """
+#     theta = np.deg2rad(theta)
+#     POLARIZER_MATRIX = 0.5 * np.asarray(
+#         [
+#             [1, cos(2 * theta), sin(2 * theta), 0],
+#             [
+#                 cos(2 * theta),
+#                 cos(2 * theta) ** 2,
+#                 cos(2 * theta) * sin(2 * theta),
+#                 0,
+#             ],
+#             [
+#                 sin(2 * theta),
+#                 cos(2 * theta) * sin(2 * theta),
+#                 sin(2 * theta) ** 2,
+#                 0,
+#             ],
+#             [0, 0, 0, 0],
+#         ]
+#     )
+#     return POLARIZER_MATRIX
 
 
-def calculate_retarder_matrix_1(phase_difference, theta) -> ndarray:
-    """Calculate the retarder matrix for a given phase difference.
+# def calculate_retarder_matrix_1(phase_difference, theta) -> ndarray:
+#     """Calculate the retarder matrix for a given phase difference.
 
-    Parameters
-    ----------
-    phase_difference : float
-        Phase difference in degrees.
+#     Parameters
+#     ----------
+#     phase_difference : float
+#         Phase difference in degrees.
 
-    theta: float
-        Angle of the transmission axis of the retarder in degrees.
+#     theta: float
+#         Angle of the transmission axis of the retarder in degrees.
 
-    """
-    # ! This equation is wrong
-    phase_difference = np.deg2rad(phase_difference)
-    theta = np.deg2rad(theta)
-    G = (1 + cos(phase_difference)) / 2
-    H = (1 - cos(phase_difference)) / 2
-    retarder_matrix = 0.5 * np.asarray(
-        [
-            [1, 0, 0, 0],
-            [
-                0,
-                G + H * cos(4 * theta),
-                H * sin(4 * theta),
-                -sin(phase_difference) * sin(2 * theta),
-            ],
-            [
-                0,
-                H * sin(4 * theta),
-                G - H * cos(4 * theta),
-                sin(phase_difference) * cos(2 * theta),
-            ],
-            [
-                0,
-                sin(phase_difference) * sin(2 * theta),
-                -sin(phase_difference) * cos(2 * theta),
-                cos(phase_difference),
-            ],
-        ],
-        dtype=np.float64,
-    )
+#     """
+#     # ! This equation is wrong
+#     phase_difference = np.deg2rad(phase_difference)
+#     theta = np.deg2rad(theta)
+#     G = (1 + cos(phase_difference)) / 2
+#     H = (1 - cos(phase_difference)) / 2
+#     retarder_matrix = 0.5 * np.asarray(
+#         [
+#             [1, 0, 0, 0],
+#             [
+#                 0,
+#                 G + H * cos(4 * theta),
+#                 H * sin(4 * theta),
+#                 -sin(phase_difference) * sin(2 * theta),
+#             ],
+#             [
+#                 0,
+#                 H * sin(4 * theta),
+#                 G - H * cos(4 * theta),
+#                 sin(phase_difference) * cos(2 * theta),
+#             ],
+#             [
+#                 0,
+#                 sin(phase_difference) * sin(2 * theta),
+#                 -sin(phase_difference) * cos(2 * theta),
+#                 cos(phase_difference),
+#             ],
+#         ],
+#         dtype=np.float64,
+#     )
 
-    return retarder_matrix
+#     return retarder_matrix
 
 
 def calculate_retarder_matrix(phase_difference, theta) -> ndarray:

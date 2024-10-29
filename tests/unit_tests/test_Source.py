@@ -23,22 +23,21 @@ from AIS.Spectral_Response._utils import apply_matrix, calculate_polarizer_matri
 
 
 class Test_Source(unittest.TestCase):
-    WAVELENGTH = np.linspace(400, 1100, 100)
     EFFECT_WAVELENGTH = 545  # nm
     BASE_PATH = os.path.join("AIS", "Spectral_Energy_Distribution", "Spectral_Library")
     CSV_FILE = "moon_magnitude.csv"
     SOURCE = Source()
     MAGNITUDE = 10
 
+    def setUp(self):
+        self.WAVELENGTH = np.linspace(350, 1100, 100)
+        return
+
     def test_calculate_sed_blackbody(self):
-        sed = (
-            2
-            * h
-            * c**2
-            / (self.WAVELENGTH * 1e-9) ** 5
-            * 1
-            / (np.exp(h * c / (self.WAVELENGTH * 1e-9 * k * 5700)) - 1)
-        )
+        wavelength = self.WAVELENGTH * 1e-9
+        numerator = 2 * h * c**2
+        denominator = wavelength**5 * (np.exp(h * c / (wavelength * k * 5700)) - 1)
+        sed = numerator / denominator
         new_sed = self.SOURCE._calculate_sed_blackbody(self.WAVELENGTH, 5700)
         assert np.allclose(sed, new_sed)
 
@@ -62,7 +61,7 @@ class Test_Source(unittest.TestCase):
 
     def test_calculate_sed_bb(self):
         wv, sed = self.SOURCE.calculate_sed(
-            "blackbody", self.MAGNITUDE, (400, 1100, 100), 5700
+            "blackbody", self.MAGNITUDE, (350, 1100, 100), 5700
         )
         tmp = self.SOURCE._calculate_sed_blackbody(self.WAVELENGTH, 5700)
         normalization_flux = self.SOURCE._interpolate_spectral_distribution(
@@ -95,7 +94,7 @@ class Test_Source(unittest.TestCase):
         pol_angle = 10
 
         _, sed = self.SOURCE.calculate_sed(
-            "blackbody", self.MAGNITUDE, (400, 1100, 100), 5700
+            "blackbody", self.MAGNITUDE, (350, 1100, 100), 5700
         )
 
         theta = np.deg2rad(pol_angle)

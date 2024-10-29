@@ -41,6 +41,8 @@ from AIS.Background_Image import Background_Image
 from AIS.Header import Header
 from AIS.Noise import Noise
 from AIS.Point_Spread_Function import Point_Spread_Function
+from AIS.Spectral_Energy_Distribution import Sky, Source
+from AIS.Spectral_Response import Atmosphere, Channel, Telescope
 
 
 class Test_AIS_Initialization(unittest.TestCase):
@@ -213,14 +215,23 @@ class Test_AIS_Operation(unittest.TestCase):
         "t_exp": 1,
         "image_size": 200,
     }
+    WAVELENGTH_INTERVAL = (350, 1100, 10)
+    WAVELENGTH = np.linspace(350, 1100, 10)
     AIS = Artificial_Image_Simulator(CCD_OP_MODE, CH_ID, TEMP)
     MAGNITUDE = 15
     FITS_PATH = os.path.join("tests", "unit_tests", "fits")
     SEED = 5
+    AIR_MASS = 1
+    STAR_TEMP = 5700
+    SKY_CONDITION = "photometric"
 
     @classmethod
-    def setUpClass(cls):
-        pass
+    def setUp(self):
+        self.AIS.create_source_sed(
+            "blackbody", self.MAGNITUDE, self.WAVELENGTH_INTERVAL, self.STAR_TEMP
+        )
+        self.AIS.create_sky_sed("full")
+        return
 
     def test_print_available_spectral_types(self):
         self.AIS.print_available_spectral_types()
@@ -258,7 +269,9 @@ class Test_AIS_Operation(unittest.TestCase):
         assert np.allclose(np.zeros((4, 100)), self.AIS.source_sed)
 
     def test_integrate_sed(self):
-        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_source_sed(
+            "blackbody", self.MAGNITUDE, (400, 1100, 100), self.STAR_TEMP
+        )
         self.AIS.create_sky_sed("full")
 
         star_photons_per_second = np.trapezoid(
@@ -282,138 +295,140 @@ class Test_AIS_Operation(unittest.TestCase):
         datetime_str = now.strftime("%Y%m%d_s4c1_000004.fits")
         assert self.AIS.image_name == datetime_str
 
-    def test_calculate_exposure_time(self):
-        snr = 100
-        seeing = 1
-        psf = Point_Spread_Function(self.CCD_OP_MODE, self.CH_ID)
-        n_pix = psf.calculate_npix_star(seeing)
-        noise_obj = Noise(self.CH_ID)
-        dark_noise = noise_obj.calculate_dark_current(self.TEMP)
-        read_noise = noise_obj.calculate_read_noise(self.CCD_OP_MODE)
-        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
-        self.AIS.create_sky_sed("full")
-        self.AIS.apply_sparc4_spectral_response("photometry")
-        min_t_exp = self.AIS.calculate_exposure_time(snr, seeing)
-
-        noise_factor = 1.0
-        em_gain = 1.0
-        binn = self.CCD_OP_MODE["binn"]
-
-        a = self.AIS.star_photons_per_second**2
-        b = (
-            snr**2
-            * noise_factor**2
-            * (
-                self.AIS.star_photons_per_second
-                + n_pix * (self.AIS.sky_photons_per_second + dark_noise)
-            )
-        )
-        c = snr**2 * n_pix * (read_noise / em_gain / binn) ** 2
-
-        texp_list = self.AIS._solve_second_degree_eq(a, -b, -c)
-
-        assert min_t_exp == min([texp for texp in texp_list if texp > 0])
-
-    # def test_create_source_sed_blackbody(self):
-    #     self.AIS.create_source_sed(
-    #         calculation_method, magnitude, wavelegnth_interval, star_temperature
-    #     )
-    #     src = Source()
-    #     wv2, sed2 = src.calculate_sed(
-    #         calculation_method, magnitude, wavelegnth_interval, star_temperature
-    #     )
-    #     assert np.allclose(self.AIS.wavelength, wv2)
-    #     assert np.allclose(self.AIS.source_sed, sed2)
-
-    # def test_create_source_sed_spectral_lib(self):
-    #     calculation_method = "spectral_library"
-    #     spectral_type = "A0V"
-    #     self.AIS.create_source_sed(calculation_method, magnitude, spectral_type=spectral_type)
-    #     src = Source()
-    #     wv2, sed2 = src.calculate_sed(
-    #         calculation_method, magnitude, spectral_type=spectral_type
-    #     )
-    #     assert np.allclose(self.AIS.wavelength, wv2)
-    #     assert np.allclose(self.AIS.source_sed, sed2)
-
-    # def test_create_sky_sed(self):
-    #     self.AIS.create_source_sed("blackbody", magnitude, wavelegnth_interval, star_temperature)
-    #     self.AIS.create_sky_sed(moon_phase)
-    #     sky = Sky()
-    #     sed2 = sky.calculate_sed(moon_phase, obj_wavelength)
-
-    #     assert np.allclose(self.AIS.sky_sed, sed2)
-
-    # # # ----------------------- Apply spectruns ---------------------------
-    # air_mass = 1
-    # sky_condition = "photometric"
-
-    # def test_apply_atmosphere_spectral_response(self):
-    #     self.AIS.create_source_sed(
-    #         calculation_method, magnitude, wavelegnth_interval, star_temperature
-    #     )
-    #     atm = Atmosphere()
-    #     new_sed = atm.apply_spectral_response(
-    #         obj_wavelength, copy(self.AIS.source_sed), air_mass, sky_condition
-    #     )
-
-    #     self.AIS.apply_atmosphere_spectral_response(air_mass, sky_condition)
-    #     assert np.allclose(self.AIS.source_sed, new_sed)
-
-    # def test_apply_telescope_spectral_response(self):
-    #     self.AIS.create_source_sed(
-    #         calculation_method, magnitude, wavelegnth_interval, star_temperature
-    #     )
-    #     self.AIS.create_sky_sed(moon_phase)
-    #     tel = Telescope()
-    #     new_sed = tel.apply_spectral_response(obj_wavelength, self.AIS.source_sed)
-    #     new_sky_sed = tel.apply_spectral_response(obj_wavelength, self.AIS.sky_sed)
-    #     self.AIS.apply_telescope_spectral_response()
-    #     assert np.allclose(self.AIS.source_sed, new_sed)
-    #     assert np.allclose(self.AIS.sky_sed, new_sky_sed)
-
-    # # -----------------------------------Test apply SPARC4 spectral response ----------------------------------------------------
-
-    # def test_apply_sparc4_spectral_response_photometric(self):
-    #     self.AIS.create_source_sed(
-    #         calculation_method, magnitude, wavelegnth_interval, star_temperature
-    #     )
-    #     self.AIS.create_sky_sed(moon_phase)
-    #     channel = Channel(channel_id)
-    #     channel.write_sparc4_operation_mode("photometry")
-    #     new_sed = channel.apply_spectral_response(self.AIS.source_sed, obj_wavelength)
-    #     new_sky_sed = channel.apply_spectral_response(self.AIS.sky_sed, obj_wavelength)
+    # def test_calculate_exposure_time(self):
+    #     snr = 100
+    #     seeing = 1
+    #     psf = Point_Spread_Function(self.CCD_OP_MODE, self.CH_ID)
+    #     n_pix = psf.calculate_npix_star(seeing)
+    #     noise_obj = Noise(self.CH_ID)
+    #     dark_noise = noise_obj.calculate_dark_current(self.TEMP)
+    #     read_noise = noise_obj.calculate_read_noise(self.CCD_OP_MODE)
+    #     self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), self.STAR_TEMP)
+    #     self.AIS.create_sky_sed("full")
     #     self.AIS.apply_sparc4_spectral_response("photometry")
-    #     assert np.allclose(self.AIS.source_sed, new_sed)
-    #     assert np.allclose(self.AIS.sky_sed, new_sky_sed)
+    #     min_t_exp = self.AIS.calculate_exposure_time(snr, seeing)
 
-    # def test_apply_sparc4_spectral_response_polarimetric(self):
-    #     self.AIS.create_source_sed(
-    #         calculation_method, magnitude, wavelegnth_interval, star_temperature
+    #     noise_factor = 1.0
+    #     em_gain = 1.0
+    #     binn = self.CCD_OP_MODE["binn"]
+
+    #     a = self.AIS.star_photons_per_second**2
+    #     b = (
+    #         snr**2
+    #         * noise_factor**2
+    #         * (
+    #             self.AIS.star_photons_per_second
+    #             + n_pix * (self.AIS.sky_photons_per_second + dark_noise)
+    #         )
     #     )
-    #     self.AIS.create_sky_sed(moon_phase)
+    #     c = snr**2 * n_pix * (read_noise / em_gain / binn) ** 2
 
-    #     channel = Channel(channel_id)
-    #     channel.write_sparc4_operation_mode("polarimetry", "polarizer", "quarter")
-    #     new_sed = channel.apply_spectral_response(copy(self.AIS.source_sed), obj_wavelength)
-    #     new_sky_sed = channel.apply_spectral_response(copy(self.AIS.sky_sed), obj_wavelength)
+    #     texp_list = self.AIS._solve_second_degree_eq(a, -b, -c)
 
-    #     self.AIS.apply_sparc4_spectral_response("polarimetry", "polarizer", "quarter")
+    #     assert min_t_exp == min([texp for texp in texp_list if texp > 0])
 
-    #     assert np.allclose(self.AIS.source_sed, new_sed)
-    #     assert np.allclose(self.AIS.sky_sed, new_sky_sed)
+    def test_create_source_sed_blackbody(self):
+        self.AIS.create_source_sed(
+            "blackbody", self.MAGNITUDE, self.WAVELENGTH_INTERVAL, self.STAR_TEMP
+        )
+        src = Source()
+        wv2, sed2 = src.calculate_sed(
+            "blackbody", self.MAGNITUDE, self.WAVELENGTH_INTERVAL, self.STAR_TEMP
+        )
+        assert np.allclose(self.AIS.wavelength, wv2)
+        assert np.allclose(self.AIS.source_sed, sed2)
+
+    def test_create_source_sed_spectral_lib(self):
+        calculation_method = "spectral_library"
+        spectral_type = "A0V"
+        self.AIS.create_source_sed(
+            calculation_method,
+            self.MAGNITUDE,
+            self.WAVELENGTH_INTERVAL,
+            spectral_type=spectral_type,
+        )
+        src = Source()
+        wv2, sed2 = src.calculate_sed(
+            calculation_method,
+            self.MAGNITUDE,
+            self.WAVELENGTH_INTERVAL,
+            spectral_type=spectral_type,
+        )
+        assert np.allclose(self.AIS.wavelength, wv2)
+        assert np.allclose(self.AIS.source_sed, sed2)
+
+    def test_create_sky_sed(self):
+        self.AIS.create_sky_sed("full")
+        sky = Sky()
+        sed2 = sky.calculate_sed("full", self.WAVELENGTH)
+
+        assert np.allclose(self.AIS.sky_sed, sed2)
+
+    # ----------------------- Apply spectruns ---------------------------
+
+    def test_apply_atmosphere_spectral_response(self):
+        self.AIS.create_source_sed(
+            "blackbody", self.MAGNITUDE, self.WAVELENGTH_INTERVAL, self.STAR_TEMP
+        )
+        atm = Atmosphere()
+        new_sed = atm.apply_spectral_response(
+            self.WAVELENGTH,
+            self.AIS.source_sed.copy(),
+            self.AIR_MASS,
+            self.SKY_CONDITION,
+        )
+
+        self.AIS.apply_atmosphere_spectral_response(self.AIR_MASS, self.SKY_CONDITION)
+        assert np.allclose(self.AIS.source_sed, new_sed)
+
+    def test_apply_telescope_spectral_response(self):
+        tel = Telescope()
+        new_sed = tel.apply_spectral_response(self.WAVELENGTH, self.AIS.source_sed)
+        new_sky_sed = tel.apply_spectral_response(self.WAVELENGTH, self.AIS.sky_sed)
+        self.AIS.apply_telescope_spectral_response()
+        assert np.allclose(self.AIS.source_sed, new_sed)
+        assert np.allclose(self.AIS.sky_sed, new_sky_sed)
+
+    def test_apply_sparc4_spectral_response_photometric(self):
+        channel = Channel(self.CH_ID)
+        channel.write_sparc4_operation_mode("photometry")
+        new_sed = channel.apply_spectral_response(self.AIS.source_sed, self.WAVELENGTH)
+        new_sky_sed = channel.apply_spectral_response(self.AIS.sky_sed, self.WAVELENGTH)
+
+        self.AIS.apply_sparc4_spectral_response("photometry")
+        assert np.allclose(self.AIS.source_sed, new_sed)
+        assert np.allclose(self.AIS.sky_sed, new_sky_sed)
+
+    def test_apply_sparc4_spectral_response_polarimetric(self):
+        channel = Channel(self.CH_ID)
+        channel.write_sparc4_operation_mode("polarimetry", "polarizer", "quarter")
+        new_sed = channel.apply_spectral_response(
+            self.AIS.source_sed.copy(), self.WAVELENGTH
+        )
+        new_sky_sed = channel.apply_spectral_response(
+            self.AIS.sky_sed.copy(), self.WAVELENGTH
+        )
+
+        self.AIS.apply_sparc4_spectral_response("polarimetry", "polarizer", "quarter")
+
+        assert np.allclose(self.AIS.source_sed, new_sed)
+        assert np.allclose(self.AIS.sky_sed, new_sky_sed)
 
     # # --------------------------- test create artificial image ----------------
 
     def test_create_artificial_image_phot(self):
         star_coordinates = (50, 50)
-        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_source_sed(
+            "blackbody", self.MAGNITUDE, (400, 1100, 100), self.STAR_TEMP
+        )
         self.AIS.create_sky_sed("full")
         self.AIS.apply_sparc4_spectral_response("photometry")
         self.AIS.create_artificial_image(self.FITS_PATH, star_coordinates, 1, self.SEED)
         file1 = os.path.join(self.FITS_PATH, self.AIS.image_name)
 
-        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_source_sed(
+            "blackbody", self.MAGNITUDE, (400, 1100, 100), self.STAR_TEMP
+        )
         self.AIS.create_sky_sed("full")
         self.AIS.apply_sparc4_spectral_response("photometry")
         self.AIS._integrate_sed()
@@ -452,13 +467,17 @@ class Test_AIS_Operation(unittest.TestCase):
 
     def test_create_artificial_image_pol(self):
         star_coordinates = (50, 50)
-        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_source_sed(
+            "blackbody", self.MAGNITUDE, (400, 1100, 100), self.STAR_TEMP
+        )
         self.AIS.create_sky_sed("full")
         self.AIS.apply_sparc4_spectral_response("polarimetry")
         self.AIS.create_artificial_image(self.FITS_PATH, star_coordinates, 1, self.SEED)
         file1 = os.path.join(self.FITS_PATH, self.AIS.image_name)
 
-        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_source_sed(
+            "blackbody", self.MAGNITUDE, (400, 1100, 100), self.STAR_TEMP
+        )
         self.AIS.create_sky_sed("full")
         self.AIS.apply_sparc4_spectral_response("polarimetry")
         self.AIS._integrate_sed()
@@ -500,13 +519,17 @@ class Test_AIS_Operation(unittest.TestCase):
         os.remove(file2)
 
     def test_create_background_image(self):
-        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_source_sed(
+            "blackbody", self.MAGNITUDE, (400, 1100, 100), self.STAR_TEMP
+        )
         self.AIS.create_sky_sed("full")
         self.AIS.apply_sparc4_spectral_response("photometry")
         self.AIS.create_background_image(self.FITS_PATH, 1, self.SEED)
         file1 = os.path.join(self.FITS_PATH, self.AIS.image_name)
 
-        self.AIS.create_source_sed("blackbody", self.MAGNITUDE, (400, 1100, 100), 5700)
+        self.AIS.create_source_sed(
+            "blackbody", self.MAGNITUDE, (400, 1100, 100), self.STAR_TEMP
+        )
         self.AIS.create_sky_sed("full")
         self.AIS.apply_sparc4_spectral_response("photometry")
         self.AIS._integrate_sed()

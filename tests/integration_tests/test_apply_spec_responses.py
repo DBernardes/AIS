@@ -7,7 +7,15 @@ from math import e
 import astropy.io.fits as fits
 import numpy as np
 import pytest
+from numpy import ndarray
 from scipy.constants import c, h, k
+from scipy.interpolate import (
+    PchipInterpolator,
+    UnivariateSpline,
+    interp1d,
+    splev,
+    splrep,
+)
 
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
@@ -32,27 +40,28 @@ class Test_Apply_Spectral_Response(unittest.TestCase):
     def setUp(cls):
         # When using SetUp() rather than SetUpClass(), this method will be
         # executed for each new test
-        cls.SED = np.zeros((4, 10))
-        cls.SED[0] = np.ones(10)
-        cls.WV = np.linspace(*cls.wv_range)
-        cls.AIS = Artificial_Image_Simulator(cls.ccd_mode, cls.channel, cls.ccd_temp)
-        # cls.AIS.write_source_sed(cls.WV, cls.SED)
-        cls.AIS.create_source_sed("blackbody", cls.mag, cls.wv_range, cls.star_temp)
-        cls.AIS.create_sky_sed("new")
+        cls.sed = np.zeros((4, 10))
+        cls.sed[0] = np.ones(10)
+        cls.wv = np.linspace(*cls.wv_range)
+        cls.ais = Artificial_Image_Simulator(cls.ccd_mode, cls.channel, cls.ccd_temp)
+        cls.ais.write_source_sed(cls.wv, cls.sed)
+        cls.ais.create_sky_sed("new")
 
-    def black_body(wavelength, temperature):
-        numerator = 2 * h * c**2
-        denominator = (wavelength**5) * (
-            np.exp((h * c) / (wavelength * k * temperature)) - 1
-        )
+    def _interpolate(self, wavelength, spectral_response) -> ndarray:
+        b = PchipInterpolator(wavelength, spectral_response)
+        spectral_response = b(self.wv)
 
-        return numerator / denominator
+        return spectral_response
 
     # -----------------------------------------------------------------------------
 
+    def test_write_source_sed(self):
+        assert np.allclose(self.AIS.source_sed, self.sed)
+        assert np.allclose(self.AIS.wavelength, self.wv)
+
     def test_apply_telescope(self):
         self.AIS.apply_telescope_spectral_response()
-        print("\n", self.AIS.source_sed[0])
 
-    def test_create_blackbody(self):
-        pass
+    def test_interpolate(self):
+        spec_response = self._interpolate(self.wv, self.sed[0])
+        assert np.mean(spec_response) == 1

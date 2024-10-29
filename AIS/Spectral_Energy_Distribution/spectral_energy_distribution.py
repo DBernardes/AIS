@@ -153,6 +153,7 @@ class Source(Spectral_Energy_Distribution):
         wavelength = np.linspace(init, final, step, dtype=np.float64)
         if calculation_method == "blackbody":
             sed = self._calculate_sed_blackbody(wavelength, temperature)
+            print(wavelength)
             normalization_flux = self._interpolate_spectral_distribution(
                 wavelength, sed, self.EFFECT_WAVELENGTH
             )
@@ -327,11 +328,11 @@ class Source(Spectral_Energy_Distribution):
 
     @staticmethod
     def _calculate_sed_blackbody(wavelength, temperature) -> float:
+        wavelength = wavelength.copy() * 1e-9
         numerator = 2 * h * c**2
-        denominator = (wavelength**5 * 1e-9) * (
-            np.exp((h * c) / (wavelength * 1e-9 * k * temperature)) - 1
+        denominator = wavelength**5 * (
+            np.exp((h * c) / (wavelength * k * temperature)) - 1
         )
-
         return numerator / denominator
 
     def _read_spectral_library(self, spectral_type) -> tuple[ndarray]:
