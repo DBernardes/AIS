@@ -196,46 +196,13 @@ class Atmosphere(Spectral_Response):
         ss = pd.read_csv(
             os.path.join(self.BASE_PATH, self.ATM_EXTINCTION_FILE), dtype=np.float64
         )
-        spectral_response = 10 ** (
-            -0.43428 * air_mass * ss[sky_condition]
-        )  # TODO: olhar isso
+        spectral_response = 10 ** (-0.43428 * air_mass * ss[sky_condition])
         spectral_response = self._interpolate_spectral_response(
             ss["Wavelength (nm)"], spectral_response, obj_wavelength
         )
         spectral_response[spectral_response > 1] = 1
 
         return spectral_response
-
-    def _get_spectral_response_2(
-        self,
-        obj_wavelength: ndarray,
-        air_mass: int | float = 1,
-        sky_condition="photometric",
-    ) -> ndarray:
-        """Return the spectral response.
-
-        Parameters
-        ----------
-        obj_wavelength: array like
-            The wavelength interval, in nm, of the object.
-        air_mass: int, float
-            The air mass.
-        sky_condition: ['photometric', 'regular', 'good']
-            The condition of the sky.
-
-        Returns
-        -------
-        array like:
-            The spectral response of the optical system.
-
-        """
-        ss = pd.read_csv(
-            os.path.join(self.BASE_PATH, self.ATM_EXTINCTION_FILE), dtype=np.float64
-        )
-        extinction_coef = 10 ** (-0.4 * air_mass * ss[sky_condition])
-        popt_M1, _ = curve_fit(self._func, ss["Wavelength (nm)"], extinction_coef)
-
-        return super().get_spectral_response(obj_wavelength) * popt_M1[0]
 
     def apply_spectral_response(
         self,
@@ -296,6 +263,37 @@ class Atmosphere(Spectral_Response):
         )
 
         return spl(obj_wavelength)
+
+    # def _get_spectral_response_2(
+    #     self,
+    #     obj_wavelength: ndarray,
+    #     air_mass: int | float = 1,
+    #     sky_condition="photometric",
+    # ) -> ndarray:
+    #     """Return the spectral response.
+
+    #     Parameters
+    #     ----------
+    #     obj_wavelength: array like
+    #         The wavelength interval, in nm, of the object.
+    #     air_mass: int, float
+    #         The air mass.
+    #     sky_condition: ['photometric', 'regular', 'good']
+    #         The condition of the sky.
+
+    #     Returns
+    #     -------
+    #     array like:
+    #         The spectral response of the optical system.
+
+    #     """
+    #     ss = pd.read_csv(
+    #         os.path.join(self.BASE_PATH, self.ATM_EXTINCTION_FILE), dtype=np.float64
+    #     )
+    #     extinction_coef = 10 ** (-0.4 * air_mass * ss[sky_condition])
+    #     popt_M1, _ = curve_fit(self._func, ss["Wavelength (nm)"], extinction_coef)
+
+    #     return super().get_spectral_response(obj_wavelength) * popt_M1[0]
 
 
 class Channel(Spectral_Response):
