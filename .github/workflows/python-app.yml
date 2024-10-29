@@ -27,6 +27,7 @@ jobs:
        python -m pip install --upgrade pip        
        pip install poetry
        poetry install     
+       pip install -e .
     - name: Run black and isort
       run: |
         poetry run task lint
