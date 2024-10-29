@@ -24,6 +24,7 @@ jobs:
         python-version: "3.12"
     - name: Install dependencies
       run: |
+       cd AIS
        python -m pip install --upgrade pip        
        pip install poetry
        poetry install     
