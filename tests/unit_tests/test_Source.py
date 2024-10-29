@@ -60,8 +60,8 @@ class Test_Source(unittest.TestCase):
         self.SOURCE.print_available_spectral_types()
 
     def test_calculate_sed_bb(self):
-        wv, sed = self.SOURCE.calculate_sed(
-            "blackbody", self.MAGNITUDE, (350, 1100, 100), 5700
+        wv, sed = self.SOURCE.calculate_sed_blackbody(
+            self.MAGNITUDE, (350, 1100, 100), 5700
         )
         tmp = self.SOURCE._calculate_sed_blackbody(self.WAVELENGTH, 5700)
         normalization_flux = self.SOURCE._interpolate_spectral_distribution(
@@ -77,8 +77,8 @@ class Test_Source(unittest.TestCase):
         assert np.allclose(wv, self.WAVELENGTH)
 
     def test_calculate_sed_spec_lib(self):
-        wv, sed = self.SOURCE.calculate_sed(
-            "spectral_library", self.MAGNITUDE, (400, 1100, 100), spectral_type="a0i"
+        wv, sed = self.SOURCE.calculate_sed_spectral_library(
+            self.MAGNITUDE, (400, 1100, 100), spectral_type="a0i"
         )
         new_wv, tmp = self.SOURCE._read_spectral_library("a0i")
         tmp = self.SOURCE._interpolate_spectral_distribution(new_wv, tmp, wv)
@@ -93,8 +93,8 @@ class Test_Source(unittest.TestCase):
         percent_pol = 70
         pol_angle = 10
 
-        _, sed = self.SOURCE.calculate_sed(
-            "blackbody", self.MAGNITUDE, (350, 1100, 100), 5700
+        _, sed = self.SOURCE.calculate_sed_blackbody(
+            self.MAGNITUDE, (350, 1100, 10), 5700
         )
 
         theta = np.deg2rad(pol_angle)
@@ -107,8 +107,8 @@ class Test_Source(unittest.TestCase):
 
     def test_circular_polarization(self):
         percent_pol = 70
-        _, sed = self.SOURCE.calculate_sed(
-            "blackbody", self.MAGNITUDE, (400, 1100, 100), 5700
+        _, sed = self.SOURCE.calculate_sed_blackbody(
+            self.MAGNITUDE, (350, 1100, 10), 5700
         )
         sed[3] = percent_pol * sed[0] / 100
         polarized_sed = self.SOURCE.apply_circular_polarization(percent_pol)
@@ -117,8 +117,8 @@ class Test_Source(unittest.TestCase):
 
     def test_polarization(self):
         stokes = [0.1, 0.2, 0.3]
-        _, sed = self.SOURCE.calculate_sed(
-            "blackbody", self.MAGNITUDE, (400, 1100, 100), 5700
+        _, sed = self.SOURCE.calculate_sed_blackbody(
+            self.MAGNITUDE, (350, 1100, 10), 5700
         )
 
         I = sed[0]
@@ -132,7 +132,7 @@ class Test_Source(unittest.TestCase):
     def test_Serkowski_curve(self):
         wavelength, p_max, K, l_max = 450e-9, 10, 1.15, 550e-9
         p = p_max * np.exp(-K * np.log(l_max / wavelength) ** 2)
-        assert self.SOURCE._Serkowski_curve(wavelength, p_max, l_max) == p
+        assert self.SOURCE._Serkowski_curve(wavelength, p_max, K, l_max) == p
 
     def test_verify_pol_vals(self):
         with pytest.raises(ValueError):
@@ -146,14 +146,14 @@ class Test_Source(unittest.TestCase):
             self.SOURCE._Serkowski_curve,
             list(self.SOURCE.effect_wl.values()),
             list(pol_BVRI.values()),
-            p0=(10, 500e-9),
+            p0=(10, 1.15, 500e-9),
         )
         assert np.allclose(popt, self.SOURCE._adjust_Serkowski_curve(pol_BVRI))
 
     def test_apply_Serkowski_curve(self):
         pol_BVRI = {"B": 7.812, "V": 7.029, "R": 5.951, "I": 4.706}
-        sed = np.ones((4, 100))
-        wv = np.linspace(400, 1100, 100)
+        sed = np.ones((4, 10))
+        wv = np.linspace(350, 1100, 10)
         self.SOURCE.sed = sed
         self.SOURCE.wavelength = wv
 

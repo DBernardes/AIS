@@ -68,7 +68,7 @@ class Spectral_Energy_Distribution:
 class Source(Spectral_Energy_Distribution):
 
     # Kitchin, C. R., 2003. "Astrophysical Techniques"
-    effect_wl = {"B": 436e-9, "V": 545e-9, "R": 638e-9, "I": 0.797e-9}
+    effect_wl = {"B": 436e-9, "V": 545e-9, "R": 638e-9, "I": 797e-9}
 
     def __init__(self) -> None:
         """Initialize the class.
@@ -89,34 +89,17 @@ class Source(Spectral_Energy_Distribution):
 
         return
 
-    def calculate_sed(
+    def calculate_sed_blackbody(
         self,
-        calculation_method: str,
         magnitude: int | float,
         wavelength_interval: tuple = (),
         temperature: int | float = 0,
-        spectral_type: str = "",
     ) -> tuple[ndarray]:
-        """Get the Spectral Energy Distribution of the astronomical object.
+        """Calculate the star SED based on the balckbody distribution.
+
 
         Parameters
         ----------
-        calculation_method : ['blackbody', 'spectral_library']
-            The method used to calculate the SED.
-            If the user wants to use a blackbody SED,
-            the calculation_method must be 'blackbody'.
-            If the user wants to use a spectral standard SED,
-            the calculation_method must be 'spectral_library'.
-
-            In the 'blackbody' case, the spectral response of the object is
-            calculated using the Planck function, given the temperature and the
-            wavelength interval of the object. In the 'spectral_library' case, the
-            spectral response and the wavelength of the object are obtained using a
-            library of spectral types. These spectrums are taken from the Library of
-            Stellar Spectrum of ESO, and they can be found at:
-            https://www.eso.org/sci/facilities/paranal/decommissioned/isaac/tools/lib.html.
-            The level of the spectral response is adjusted using the magnitude of the
-            object in the V band.
 
         magnitude : int | float
             The magnitude of the astronomical object in the V band.
@@ -126,14 +109,61 @@ class Source(Spectral_Energy_Distribution):
         wavelength_interval : tuple, optional
             The wavelength interval, in nm, of the astronomical object.
             This parameter must be a tuple with three elements, where the first
-            element is the initial wavelength,
-            the second element is the final wavelength and the third element is the
-            number of elements in the array.
-            This parameter is used only if the calculation_method is 'blackbody'.
+            element is the initial wavelength, the second element is the final
+            wavelength and the third element is the number of elements in the array.
 
         temperature : int | float, optional
             The blackbody temperature of the astronomical object in Kelvin.
-            This parameter is used only if the calculation_method is 'blackbody'.
+
+        Returns
+        -------
+            ndarray:
+                The wavelength of the astronomical object in nm.
+            ndarray:
+                The SED of the astronomical object in photons/m/s.
+        """
+
+        wavelength = np.linspace(*wavelength_interval, dtype=np.float64)
+        sed = self._calculate_sed_blackbody(wavelength, temperature)
+        normalization_flux = self._interpolate_spectral_distribution(
+            wavelength, sed, self.EFFECT_WAVELENGTH
+        )
+        sed /= normalization_flux
+        effective_flux = self._calculate_photons_density(magnitude)
+        self.sed = np.zeros((4, len(wavelength)), dtype=np.float64)
+        self.sed[0] = sed * effective_flux
+        self.wavelength = wavelength
+
+        return self.wavelength, self.sed
+
+    def calculate_sed_spectral_library(
+        self,
+        magnitude: int | float,
+        wavelength_interval: tuple = (),
+        spectral_type: str = "",
+    ) -> tuple[ndarray]:
+        """Calculate the star SED based on a library of spectral standard stars.
+
+        The spectral response and the wavelength of the object are obtained using a
+        library of spectral types. These spectrums are taken from the Library of
+        Stellar Spectrum of ESO, and they can be found at:
+        https://www.eso.org/sci/facilities/paranal/decommissioned/isaac/tools/lib.html.
+        The level of the spectral response is adjusted using the magnitude of the
+        object in the V band.
+
+        Parameters
+        ----------
+
+        magnitude : int | float
+            The magnitude of the astronomical object in the V band.
+            The magnitude is used to calculate the effective flux of
+            the astronomical object.
+
+        wavelength_interval : tuple, optional
+            The wavelength interval, in nm, of the astronomical object.
+            This parameter must be a tuple with three elements, where the first
+            element is the initial wavelength, the second element is the final
+            wavelength and the third element is the number of elements in the array.
 
         spectral_type : str, optional
             The spectral type of the star that will be used to calculate the SED.
@@ -149,28 +179,12 @@ class Source(Spectral_Energy_Distribution):
                 The SED of the astronomical object in photons/m/s.
         """
 
-        init, final, step = wavelength_interval
-        wavelength = np.linspace(init, final, step, dtype=np.float64)
-        if calculation_method == "blackbody":
-            sed = self._calculate_sed_blackbody(wavelength, temperature)
-            normalization_flux = self._interpolate_spectral_distribution(
-                wavelength, sed, self.EFFECT_WAVELENGTH
-            )
-            sed /= normalization_flux
-        elif calculation_method == "spectral_library":
-            lib_wavelength, sed = self._read_spectral_library(spectral_type.lower())
-            sed = self._interpolate_spectral_distribution(
-                lib_wavelength, sed, wavelength
-            )
+        wavelength = np.linspace(*wavelength_interval, dtype=np.float64)
+        lib_wavelength, sed = self._read_spectral_library(spectral_type)
+        sed = self._interpolate_spectral_distribution(lib_wavelength, sed, wavelength)
 
-        else:
-            raise ValueError(
-                f"The calculation_method should be 'blackbody' or 'spectral_library': {calculation_method}."
-            )
-
-        n = len(sed)
         effective_flux = self._calculate_photons_density(magnitude)
-        self.sed = np.zeros((4, n), dtype=np.float64)
+        self.sed = np.zeros((4, len(wavelength)), dtype=np.float64)
         self.sed[0] = sed * effective_flux
         self.wavelength = wavelength
 
@@ -335,6 +349,7 @@ class Source(Spectral_Energy_Distribution):
         return numerator / denominator
 
     def _read_spectral_library(self, spectral_type) -> tuple[ndarray]:
+        spectral_type = spectral_type.lower()
         path = os.path.join(self.SPECTRAL_LIB_PATH, "uk" + spectral_type + ".csv")
         try:
             ss = pd.read_csv(path, dtype=np.float64)
@@ -368,6 +383,93 @@ class Source(Spectral_Energy_Distribution):
                 raise ValueError(
                     f"The provided polarization values should be in the interval [0, 100]: {val}"
                 )
+
+    # def calculate_sed(
+    #     self,
+    #     calculation_method: str,
+    #     magnitude: int | float,
+    #     wavelength_interval: tuple = (),
+    #     temperature: int | float = 0,
+    #     spectral_type: str = "",
+    # ) -> tuple[ndarray]:
+    #     """Get the Spectral Energy Distribution of the astronomical object.
+
+    #     Parameters
+    #     ----------
+    #     calculation_method : ['blackbody', 'spectral_library']
+    #         The method used to calculate the SED.
+    #         If the user wants to use a blackbody SED,
+    #         the calculation_method must be 'blackbody'.
+    #         If the user wants to use a spectral standard SED,
+    #         the calculation_method must be 'spectral_library'.
+
+    #         In the 'blackbody' case, the spectral response of the object is
+    #         calculated using the Planck function, given the temperature and the
+    #         wavelength interval of the object. In the 'spectral_library' case, the
+    #         spectral response and the wavelength of the object are obtained using a
+    #         library of spectral types. These spectrums are taken from the Library of
+    #         Stellar Spectrum of ESO, and they can be found at:
+    #         https://www.eso.org/sci/facilities/paranal/decommissioned/isaac/tools/lib.html.
+    #         The level of the spectral response is adjusted using the magnitude of the
+    #         object in the V band.
+
+    #     magnitude : int | float
+    #         The magnitude of the astronomical object in the V band.
+    #         The magnitude is used to calculate the effective flux of
+    #         the astronomical object.
+
+    #     wavelength_interval : tuple, optional
+    #         The wavelength interval, in nm, of the astronomical object.
+    #         This parameter must be a tuple with three elements, where the first
+    #         element is the initial wavelength,
+    #         the second element is the final wavelength and the third element is the
+    #         number of elements in the array.
+    #         This parameter is used only if the calculation_method is 'blackbody'.
+
+    #     temperature : int | float, optional
+    #         The blackbody temperature of the astronomical object in Kelvin.
+    #         This parameter is used only if the calculation_method is 'blackbody'.
+
+    #     spectral_type : str, optional
+    #         The spectral type of the star that will be used to calculate the SED.
+    #         This parameter is used only if the calculation_method is 'spectral_standard'.
+    #         The available spectral types can be found using
+    #         the `print_available_spectral_types()` method.
+
+    #     Returns
+    #     -------
+    #         ndarray:
+    #             The wavelength of the astronomical object in nm.
+    #         ndarray:
+    #             The SED of the astronomical object in photons/m/s.
+    #     """
+
+    #     init, final, step = wavelength_interval
+    #     wavelength = np.linspace(init, final, step, dtype=np.float64)
+    #     if calculation_method == "blackbody":
+    #         sed = self._calculate_sed_blackbody(wavelength, temperature)
+    #         normalization_flux = self._interpolate_spectral_distribution(
+    #             wavelength, sed, self.EFFECT_WAVELENGTH
+    #         )
+    #         sed /= normalization_flux
+    #     elif calculation_method == "spectral_library":
+    #         lib_wavelength, sed = self._read_spectral_library(spectral_type.lower())
+    #         sed = self._interpolate_spectral_distribution(
+    #             lib_wavelength, sed, wavelength
+    #         )
+
+    #     else:
+    #         raise ValueError(
+    #             f"The calculation_method should be 'blackbody' or 'spectral_library': {calculation_method}."
+    #         )
+
+    #     n = len(sed)
+    #     effective_flux = self._calculate_photons_density(magnitude)
+    #     self.sed = np.zeros((4, n), dtype=np.float64)
+    #     self.sed[0] = sed * effective_flux
+    #     self.wavelength = wavelength
+
+    #     return self.wavelength, self.sed
 
 
 class Sky(Spectral_Energy_Distribution):

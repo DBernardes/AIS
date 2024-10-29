@@ -129,47 +129,90 @@ class Artificial_Image_Simulator:
         if var not in _list:
             raise ValueError(f"The allowed values for the {var_name} are: {_list}")
 
-    def create_source_sed(
+    def create_source_sed_blackbody(
         self,
-        calculation_method: str,
         magnitude: int | float,
         wavelength_interval: tuple = (),
         temperature: int | float = 0,
-        spectral_type: str = "",
     ) -> None:
-        """Create the Spectral Energy Distribution of the source.
+        """Calculate the star SED based on the balckbody distribution.
+
 
         Parameters
         ----------
 
-        calculation_method : ['blackbody', 'spectral_library']
-            The method used to calculate the SED.
-
         magnitude : int | float
             The magnitude of the astronomical object in the V band.
+            The magnitude is used to calculate the effective flux of
+            the astronomical object.
 
         wavelength_interval : tuple, optional
             The wavelength interval, in nm, of the astronomical object.
             This parameter must be a tuple with three elements, where the first
             element is the initial wavelength, the second element is the final
             wavelength and the third element is the number of elements in the array.
-            This parameter is used only if the calculation_method is 'blackbody'.
 
         temperature : int | float, optional
             The blackbody temperature of the astronomical object in Kelvin.
-            This parameter is used only if the calculation_method is 'blackbody'.
+
+        Returns
+        -------
+            ndarray:
+                The wavelength of the astronomical object in nm.
+            ndarray:
+                The SED of the astronomical object in photons/m/s.
+        """
+        self.wavelength, self.source_sed = self.SRC_obj.calculate_sed_blackbody(
+            magnitude,
+            wavelength_interval,
+            temperature,
+        )
+
+    def create_source_sed_spectral_library(
+        self,
+        magnitude: int | float,
+        wavelength_interval: tuple = (),
+        spectral_type: str = "",
+    ) -> tuple[ndarray]:
+        """Calculate the star SED based on a library of spectral standard stars.
+
+        The spectral response and the wavelength of the object are obtained using a
+        library of spectral types. These spectrums are taken from the Library of
+        Stellar Spectrum of ESO, and they can be found at:
+        https://www.eso.org/sci/facilities/paranal/decommissioned/isaac/tools/lib.html.
+        The level of the spectral response is adjusted using the magnitude of the
+        object in the V band.
+
+        Parameters
+        ----------
+
+        magnitude : int | float
+            The magnitude of the astronomical object in the V band.
+            The magnitude is used to calculate the effective flux of
+            the astronomical object.
+
+        wavelength_interval : tuple, optional
+            The wavelength interval, in nm, of the astronomical object.
+            This parameter must be a tuple with three elements, where the first
+            element is the initial wavelength, the second element is the final
+            wavelength and the third element is the number of elements in the array.
 
         spectral_type : str, optional
             The spectral type of the star that will be used to calculate the SED.
             This parameter is used only if the calculation_method is 'spectral_standard'.
-            The available spectral types can be found using the
-            `print_available_spectral_types()` method.
+            The available spectral types can be found using
+            the `print_available_spectral_types()` method.
+
+        Returns
+        -------
+            ndarray:
+                The wavelength of the astronomical object in nm.
+            ndarray:
+                The SED of the astronomical object in photons/m/s.
         """
-        self.wavelength, self.source_sed = self.SRC_obj.calculate_sed(
-            calculation_method,
+        self.wavelength, self.source_sed = self.SRC_obj.calculate_sed_spectral_library(
             magnitude,
             wavelength_interval,
-            temperature,
             spectral_type,
         )
 
