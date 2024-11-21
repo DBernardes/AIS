@@ -1,8 +1,8 @@
-# PLOT SPECTRAL LIBRARY WITH ATM + TELESCOPE + SPARC4
-import matplotlib.pyplot as plt
-
+import os
+import pandas as pd
 from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
+BVRI = ["B", "V", "R", "I"]
 ccd_operation_mode = {
     "em_mode": "Conv",
     "em_gain": 1,
@@ -13,23 +13,46 @@ ccd_operation_mode = {
     "image_size": 100,
 }
 
-ais = Artificial_Image_Simulator(ccd_operation_mode, 2, -70)
+csv_path = os.path.join(
+    "..", "..", "AIS-tests", "polarimetric tests", "data", "stars", "csv"
+)
+# csv with the stars polarization in the BVRI
+csv_file = os.path.join(csv_path, "stars_info.csv")
+star_info = pd.read_csv(csv_file)
 
-ais.create_source_sed_spectral_library(15, (350, 1100, 1000), spectral_type="g5v")
-ais.create_sky_sed("new")
-plt.plot(ais.wavelength, ais.source_sed[0], label="G5 v")
-ais.apply_atmosphere_spectral_response()
-plt.plot(ais.wavelength, ais.source_sed[0], label="G5 v + atm")
+# Polarimetric measurements with SPARC4
+csv_file = os.path.join(csv_path, "observations.csv")
+observations = pd.read_csv(csv_file)
+observations["calwheel"] = observations["calwheel"].replace("none", "")
+row = observations.iloc[28]
+
+
+star = row["star"]
+waveplate = row["waveplate"]
+channel = row["channel"]
+calibration_wheel = row["calwheel"]
+stars_info_row = star_info[star_info["star"] == star]
+
+
+pol_BVRI = {k: stars_info_row[f"pol {k}"].values[0] for k in BVRI}
+dict = {"angle": [], "ord": [], "extra": []}
+
+
+ais = Artificial_Image_Simulator(
+    ccd_operation_mode, channel_id=channel, ccd_temperature=-70
+)
+ais.create_source_sed_spectral_library(
+    magnitude=12,
+    wavelength_interval=(350, 1100, 100),
+    spectral_type=stars_info_row["chosen sp"].values[0],
+)
+ais.apply_Serkowski_curve(pol_BVRI)
+ais.create_sky_sed(moon_phase="new")
+ais.apply_atmosphere_spectral_response(row["airmass"], row["sky condition"])
 ais.apply_telescope_spectral_response()
-plt.plot(ais.wavelength, ais.source_sed[0], label="G5 v + atm + tel")
-ais.apply_sparc4_spectral_response("photometry")
-plt.plot(ais.wavelength, ais.source_sed, label="G5 v + atm + tel + inst")
-ais._integrate_sed()
-print(f"{ais.star_photons_per_second:.2f}")
-plt.legend()
-plt.xlabel("Wavelength (nm)")
-plt.ylabel(r"SED (photons/m$^2$/nm)")
-plt.xlim(350, 1100)
-plt.ylim(0, 1e11)
-plt.savefig("notebook/figures/spectral_library.png", dpi=300)
-plt.show()
+ais.apply_sparc4_spectral_response(
+    "polarimetry",
+    calibration_wheel=calibration_wheel,
+    retarder_waveplate="ideal-" + waveplate,
+    retarder_waveplate_angle= 1 * 22.5,
+)

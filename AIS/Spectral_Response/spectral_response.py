@@ -430,6 +430,8 @@ class Channel(Spectral_Response):
             self.sed = spectral_response * self.sed
         #  ? Pode isso: fiz o teste uma vez e deu a mesma coisa
 
+        plt.plot(self.obj_wavelength, self.sed[0], "bo-")
+        plt.show()
         if self.calibration_wheel != "":
             self._apply_calibration_wheel()
         self._apply_retarder_waveplate()
@@ -481,19 +483,19 @@ class Channel(Spectral_Response):
             )
             self.sed[:, idx] = np.transpose(polarizer_matrix.dot(self.sed[:, idx]))
 
-    def _apply_real_polarizer_1(self, spectral_response) -> None:
-        contrast_ratio = self._get_spectral_response_custom(
-            "polarizer_contrast_ratio.csv", "Contrast ratio"
-        )
-        for idx, transmission in enumerate(spectral_response):
-            contrast = contrast_ratio[idx]
-            theta = np.rad2deg(atan(1 / sqrt(contrast)))
-            total_transmission = transmission * (1 + 1 / contrast)
-            polarizer_matrix = calculate_polarizer_matrix(self.POLARIZER_ANGLE + theta)
-            self.sed[:, idx] = total_transmission * np.transpose(
-                polarizer_matrix.dot(self.sed[:, idx])
-            )
-            self.sed[1, idx] *= 1 - 1 / contrast  # ? ta certo isso
+    # def _apply_real_polarizer_1(self, spectral_response) -> None:
+    #     contrast_ratio = self._get_spectral_response_custom(
+    #         "polarizer_contrast_ratio.csv", "Contrast ratio"
+    #     )
+    #     for idx, transmission in enumerate(spectral_response):
+    #         contrast = contrast_ratio[idx]
+    #         theta = np.rad2deg(atan(1 / sqrt(contrast)))
+    #         total_transmission = transmission * (1 + 1 / contrast)
+    #         polarizer_matrix = calculate_polarizer_matrix(self.POLARIZER_ANGLE + theta)
+    #         self.sed[:, idx] = total_transmission * np.transpose(
+    #             polarizer_matrix.dot(self.sed[:, idx])
+    #         )
+    #         self.sed[1, idx] *= 1 - 1 / contrast  # ? ta certo isso
 
     def _apply_depolarizer(self) -> None:
         spectral_response = self.get_spectral_response(
