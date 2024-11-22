@@ -430,13 +430,10 @@ class Channel(Spectral_Response):
             self.sed = spectral_response * self.sed
         #  ? Pode isso: fiz o teste uma vez e deu a mesma coisa
 
-        plt.plot(self.obj_wavelength, self.sed[0], "bo-")
-        plt.show()
         if self.calibration_wheel != "":
             self._apply_calibration_wheel()
         self._apply_retarder_waveplate()
         self._apply_analyzer()
-
         return
 
     def _apply_calibration_wheel(self) -> None:

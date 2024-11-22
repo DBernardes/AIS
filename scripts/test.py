@@ -53,6 +53,6 @@ ais.apply_telescope_spectral_response()
 ais.apply_sparc4_spectral_response(
     "polarimetry",
     calibration_wheel=calibration_wheel,
-    retarder_waveplate="ideal-" + waveplate,
-    retarder_waveplate_angle= 1 * 22.5,
+    retarder_waveplate=waveplate,
+    retarder_waveplate_angle=1 * 22.5,
 )
