@@ -6,15 +6,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from AIS.Spectral_Response import Channel
+from AIS.Artificial_Image_Simulator import Artificial_Image_Simulator
 
-
-ch = Channel(1)
-ch.obj_wavelength = np.asarray([500])
-ch.sed = np.zeros((4, 1))
-ch.sed[0] = 1
-ch.retarder_waveplate_angle = 22.5
-ch.retarder_waveplate = "half"
-
-ch._apply_real_waveplate()
-print(ch.sed)
+sed = np.linspace(1, 100, 100)
+wavelength = np.linspace(350, 1100, 100)
+ccd_operation_mode = {
+    "em_mode": "Conv",
+    "em_gain": 1,
+    "preamp": 1,
+    "readout": 1,
+    "binn": 1,
+    "t_exp": 1,
+    "image_size": 100,
+}
+ais = Artificial_Image_Simulator(ccd_operation_mode, 1, -70)
+ais.write_source_sed(wavelength, sed)
+ais.apply_linear_polarization(50, 0)

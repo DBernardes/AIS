@@ -292,6 +292,7 @@ class Artificial_Image_Simulator:
             self.source_sed = np.zeros((4, n[0]), dtype=np.float64)
             self.source_sed[0] = sed
         self.wavelength = wavelength
+        self.SRC_obj.write_source_sed(wavelength, sed)
         return
 
     def print_available_spectral_types(self) -> None:

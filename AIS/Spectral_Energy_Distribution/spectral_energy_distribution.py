@@ -190,6 +190,21 @@ class Source(Spectral_Energy_Distribution):
 
         return self.wavelength, self.sed
 
+    def write_source_sed(self, wavelength: ndarray, sed: ndarray) -> None:
+        """Write the wavelength and SED of the source.
+
+        Parameters
+        ----------
+        wavelength : ndarray
+            source wavelength interval in nm.
+        sed : ndarray
+            Spectral Energy Distribution of the source.
+        """
+
+        self.wavelength = wavelength
+        self.sed = sed
+        return
+
     def apply_linear_polarization(
         self, percent_pol: float = 100, pol_angle: float = 0
     ) -> ndarray:
