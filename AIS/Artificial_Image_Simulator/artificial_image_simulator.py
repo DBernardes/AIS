@@ -257,7 +257,7 @@ class Artificial_Image_Simulator:
         """
         self.source_sed = self.SRC_obj.apply_polarization(stokes)
 
-    def apply_Serkowski_curve(self, pol_BVRI: dict) -> None:
+    def apply_Serkowski_curve(self, pol_BVRI: dict, PA: float = 0) -> None:
         """Apply the Serkowski curve to the SED of the star.
 
         Parameters
@@ -266,6 +266,9 @@ class Artificial_Image_Simulator:
             A python dictionary containing the polarization values of the filters BVRI
             in percentage.
 
+        PA : float
+            Polarization angle in degrees.
+
         Example
         -------
         ```
@@ -273,7 +276,7 @@ class Artificial_Image_Simulator:
         AIS.apply_Serkowski_curve(pol.BVRI)
         ```
         """
-        self.source_sed = self.SRC_obj.apply_Serkowski_curve(pol_BVRI)
+        self.source_sed = self.SRC_obj.apply_Serkowski_curve(pol_BVRI, PA)
         return
 
     def write_source_sed(self, wavelength: ndarray, sed: ndarray) -> None:

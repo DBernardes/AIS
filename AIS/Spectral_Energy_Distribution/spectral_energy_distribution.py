@@ -317,13 +317,14 @@ class Source(Spectral_Energy_Distribution):
                     f"The quadratic sum of the Stokes parameters must be equal or smaller than 1: {stokes}"
                 )
         I = self.sed[0]
-        self.sed[1] = I * stokes[0]
-        self.sed[2] = I * stokes[1]
-        self.sed[3] = I * stokes[2]
+        q, u, v = stokes
+        self.sed[1] = I * q
+        self.sed[2] = I * u
+        self.sed[3] = I * v
 
         return self.sed
 
-    def apply_Serkowski_curve(self, pol_BVRI: dict) -> ndarray:
+    def apply_Serkowski_curve(self, pol_BVRI: dict, PA: float = 0) -> ndarray:
         """Apply the Serkowski curve to the SED of the star.
 
         Parameters
@@ -332,17 +333,25 @@ class Source(Spectral_Energy_Distribution):
             A python dictionary containing the polarization values
             of the filters BVRI in percentage.
 
+        PA: float
+            Polarization angle in degrees.
+
         Returns
         -------
         ndarray
             The SED of the star with the q and u Stokes parameters calculated
             according to the Serkowski curve.
         """
+        PA = np.deg2rad(PA)
         self._verify_pol_BVRI(pol_BVRI)
         popt = self._adjust_Serkowski_curve(pol_BVRI)
-        q_Stokes = self._Serkowski_curve(self.wavelength * 1e-9, *popt) / 100
+        percent_pol = self._Serkowski_curve(self.wavelength * 1e-9, *popt) / 100
 
-        self.sed[1] = q_Stokes * self.sed[0]
+        # self.sed[1] = q_Stokes * self.sed[0]
+        # self.sed[2] = q_Stokes * tan(2 * PA)
+
+        self.sed[1] = self.sed[0] * percent_pol * cos(2 * PA)
+        self.sed[2] = self.sed[0] * percent_pol * sin(2 * PA)
         return self.sed
 
     def _adjust_Serkowski_curve(self, pol_BVRI):
