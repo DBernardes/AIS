@@ -1,4 +1,4 @@
-wavelength (nm),primary,secondary
-470,78.8,86.942
-530,78.9,86.986
-650,78.1,86.626
+wavelength (nm),M1 Reflectance,M1 STD,M2 Reflectance,M2 STD
+470,78.78,1.549,86.942,0.327
+530,78.894,1.292,86.986,0.424
+650,78.12,0.983,86.626,0.536
