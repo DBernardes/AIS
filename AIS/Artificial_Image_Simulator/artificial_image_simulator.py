@@ -4,6 +4,7 @@ from math import sqrt
 from random import randint, uniform
 
 import astropy.io.fits as fits
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy import ndarray
 
@@ -497,6 +498,15 @@ class Artificial_Image_Simulator:
         header["SHUTTER"] = "OPEN"
 
         image = background + star_psf
+        # vmin = np.percentile(image, 50)
+        # vmax = np.percentile(image, 99)
+        # plt.imshow(image, cmap="gray", origin="lower")  # , vmin=vmin, vmax=vmax)
+        # plt.xlabel("x axis (pixels)", fontsize=14)
+        # plt.ylabel("y axis (pixels)", fontsize=14)
+        # plt.tight_layout()
+        # plt.xticks(fontsize=12)
+        # plt.yticks(fontsize=12)
+        # plt.show()
         file = os.path.join(image_path, self.image_name)
         fits.writeto(
             file,
