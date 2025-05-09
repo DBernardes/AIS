@@ -8,7 +8,7 @@ from sys import exit
 import numpy as np
 import pandas as pd
 from numpy import ndarray
-from scipy.constants import c, h, k
+from scipy.constants import c, h, k, pi
 from scipy.interpolate import interp1d, splev, splrep
 from scipy.optimize import curve_fit
 
@@ -18,7 +18,7 @@ __all__ = ["Source", "Sky"]
 class Spectral_Energy_Distribution:
 
     EFFECT_WAVELENGTH = 545  # nm
-    TELESCOPE_EFFECTIVE_AREA = 0.804  # m2
+    TELESCOPE_EFFECTIVE_AREA = 0.804 * pi * 0.8**2  # m2
     S_0 = 3.631e-2  # W/(m.m2)
     BASE_PATH = os.path.join(os.path.dirname(__file__))
 
@@ -61,6 +61,7 @@ class Spectral_Energy_Distribution:
             * self.TELESCOPE_EFFECTIVE_AREA
             * self.EFFECT_WAVELENGTH
             * 1e-9
+            * pi
             / (h * c)
         )
 
