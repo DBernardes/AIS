@@ -61,7 +61,6 @@ class Spectral_Energy_Distribution:
             * self.TELESCOPE_EFFECTIVE_AREA
             * self.EFFECT_WAVELENGTH
             * 1e-9
-            * pi
             / (h * c)
         )
 
@@ -367,7 +366,7 @@ class Source(Spectral_Energy_Distribution):
     @staticmethod
     def _calculate_sed_blackbody(wavelength, temperature) -> float:
         wavelength = wavelength.copy() * 1e-9
-        numerator = 2 * h * c**2
+        numerator = 2 * h * c**2 * pi
         denominator = wavelength**5 * (
             np.exp((h * c) / (wavelength * k * temperature)) - 1
         )
