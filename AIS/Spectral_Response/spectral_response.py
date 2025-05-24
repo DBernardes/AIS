@@ -515,6 +515,7 @@ class Channel(Spectral_Response):
         self.sed[0] = tmp[0] * spectral_response
 
     def _apply_real_depolarizer(self, spectral_response) -> None:
+        # * Estou aplicando 2 matrizes? Elas estão separadas de 45º?
         self.sed = spectral_response * self.sed
         for idx, wavelength in enumerate(self.obj_wavelength):
             depolarizer_matrix = calculate_depolarizer_matrix(wavelength)
